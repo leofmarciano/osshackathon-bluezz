@@ -1,0 +1,405 @@
+{
+  "navigation": {
+    "home": "Home",
+    "howToHelp": "How to Help",
+    "discover": "Discover",
+    "howItWorks": "How It Works",
+    "search": "Search",
+    "signIn": "Sign In",
+    "signUp": "Sign Up",
+    "myAccount": "My Account",
+    "signOut": "Sign Out"
+  },
+  "home": {
+    "hero": {
+      "headline": "Together, we clean the oceans. With radical transparency.",
+      "subheadline": "The first community and open-source platform that connects technology and people to fund real ocean cleanup actions.",
+      "cta_primary": "Join the first vote",
+      "cta_secondary": "Learn how it works",
+      "badges": {
+        "community_first": "Community first",
+        "radical_transparency": "Radical transparency"
+      }
+    },
+    "problem": {
+      "title": "The problem",
+      "subtitle": "The crisis is real and getting worse. We need to act now.",
+      "stat1": {
+        "title": "12 million tons/year",
+        "desc": "of plastic end up in the ocean every year."
+      },
+      "stat2": {
+        "title": "80% of marine pollution",
+        "desc": "comes from untreated terrestrial waste."
+      },
+      "stat3": {
+        "title": "Thousands of species at risk",
+        "desc": "Marine ecosystems are on the brink of collapse."
+      },
+      "image_alt": "Simple infographic showing ocean pollution"
+    },
+    "solution": {
+      "title": "Our solution",
+      "subtitle": "Technology, community and transparency to transform outrage into action.",
+      "tech": {
+        "title": "Technology",
+        "desc": "AI detects risk areas and ocean cleanup opportunities."
+      },
+      "governance": {
+        "title": "Community governance",
+        "desc": "The community decides who executes actions and how resources are allocated."
+      },
+      "transparency": {
+        "title": "Radical transparency",
+        "desc": "Every cent auditable in real time with open source code."
+      }
+    },
+    "howItWorks": {
+      "title": "How it works",
+      "subtitle": "A simple, auditable, community-driven flow.",
+      "steps": {
+        "1": {
+          "title": "Detect",
+          "desc": "AI and community reports identify high-impact areas."
+        },
+        "2": {
+          "title": "Propose",
+          "desc": "NGOs and partners present cleanup plans with costs and goals."
+        },
+        "3": {
+          "title": "Vote",
+          "desc": "The community openly votes on projects to be funded."
+        },
+        "4": {
+          "title": "Execute",
+          "desc": "The chosen initiative receives funds and executes the cleanup."
+        },
+        "5": {
+          "title": "Audit",
+          "desc": "Results and expenses published in real time, with public audit."
+        }
+      },
+      "link": "See the complete step-by-step"
+    },
+    "differentials": {
+      "title": "Why Bluezz is different",
+      "subtitle": "Open transparency and governance from day one.",
+      "comparison_title": "Direct comparison",
+      "headers": {
+        "aspect": "Aspect",
+        "traditional_ngos": "Traditional NGOs",
+        "bluezz": "Bluezz"
+      },
+      "row1": {
+        "label": "Donation traceability",
+        "ongs": "No clear tracking of resource usage.",
+        "bluezz": "Every cent auditable in real time."
+      },
+      "row2": {
+        "label": "Governance",
+        "ongs": "Centralized and non-transparent decisions.",
+        "bluezz": "Open and recorded community votes."
+      },
+      "row3": {
+        "label": "Code and processes",
+        "ongs": "Closed tools without public audit.",
+        "bluezz": "Open-source on GitHub. Nothing hidden."
+      },
+      "row4": {
+        "label": "Response speed",
+        "ongs": "Long cycles with little visibility.",
+        "bluezz": "Short cycles with public results."
+      }
+    },
+    "manifesto": {
+      "title": "Community manifesto",
+      "excerpt": "We're tired of donating in the dark. Bluezz was born so the community owns the decisions.",
+      "cta": "Read manifesto on GitHub"
+    },
+    "governance": {
+      "title": "Governance and Open Source",
+      "copy": "Nothing hidden. Everything auditable.",
+      "funds": {
+        "title": "Available funds",
+        "caption": "Example values for demonstration. Coming soon: real-time data."
+      },
+      "repo": {
+        "title": "Follow on GitHub",
+        "desc": "Code, issues, votes and audits open for anyone to verify.",
+        "cta": "View repository"
+      }
+    },
+    "community": {
+      "title": "Community and participation",
+      "subtitle": "Join the movement. Participate in discussions, propose ideas and vote.",
+      "testimonials": {
+        "1": {
+          "quote": "Finally a way to fund ocean cleanup with real transparency.",
+          "author": "Marina",
+          "role": "Environmental Engineer"
+        },
+        "2": {
+          "quote": "I love being able to see where every cent goes and vote on projects.",
+          "author": "Lucas",
+          "role": "Volunteer"
+        },
+        "3": {
+          "quote": "Open-source from the beginning. This is the way.",
+          "author": "Ana",
+          "role": "Developer"
+        }
+      },
+      "discord": "Join Discord",
+      "telegram": "Join Telegram"
+    },
+    "cta": {
+      "title": "Join the first wave",
+      "subtitle": "Help decide who cleans our ocean today.",
+      "button": "Sign up now"
+    }
+  },
+  "howToHelp": {
+    "title": "How to Help",
+    "subtitle": "There are several ways to contribute to the preservation of our oceans. Discover how you can be part of this important mission.",
+    "contribute": {
+      "title": "Contribute Financially",
+      "description": "Make donations to ocean cleanup projects and marine pollution control",
+      "features": [
+        "Values starting from $5.00",
+        "100% of the amount goes to the project",
+        "Receipt for tax declaration",
+        "Track progress in real time"
+      ],
+      "button": "View Projects"
+    },
+    "share": {
+      "title": "Share on Social Media",
+      "description": "Amplify the reach of projects by sharing with your network",
+      "features": [
+        "Share specific projects",
+        "Use recommended hashtags",
+        "Tell your own story",
+        "Engage your friends and family"
+      ],
+      "button": "Sharing Materials"
+    },
+    "ambassador": {
+      "title": "Become an Ambassador",
+      "description": "Become a spokesperson for the cause in your community",
+      "features": [
+        "Organize local events",
+        "Speak in schools and companies",
+        "Create educational content",
+        "Receive support materials"
+      ],
+      "button": "Ambassador Registration"
+    },
+    "volunteer": {
+      "title": "Volunteering",
+      "description": "Donate your time and skills to directly support projects",
+      "features": [
+        "Field work in cleanup",
+        "Administrative support",
+        "Design and communication",
+        "Material translation"
+      ],
+      "button": "Volunteer Opportunities"
+    },
+    "cta": {
+      "title": "Still have questions about how to help?",
+      "subtitle": "Our team is ready to guide you on the best way to contribute",
+      "howItWorksButton": "How It Works",
+      "contactButton": "Contact Us"
+    }
+  },
+  "discover": {
+    "title": "Discover Projects",
+    "subtitle": "Explore marine preservation projects that need your help. Every contribution makes a difference for a cleaner ocean.",
+    "searchPlaceholder": "Search projects...",
+    "filterByCategory": "Filter by category",
+    "categories": {
+      "all": "All categories",
+      "oil": "Oil Cleanup",
+      "plastic": "Plastic Collection",
+      "prevention": "Prevention"
+    },
+    "raised": "Raised",
+    "achieved": "achieved",
+    "daysLeft": "days left",
+    "contributeButton": "Contribute",
+    "noProjects": "No projects found with the applied filters.",
+    "clearFilters": "Clear filters",
+    "cta": {
+      "title": "Didn't find what you're looking for?",
+      "subtitle": "New projects are added regularly. Sign up to receive notifications.",
+      "button": "Sign Up for Updates"
+    }
+  },
+  "howItWorks": {
+    "headline": "From Detection to Action: The Community Decides, the Ocean Revives.",
+    "subheadline": "Bluezz connects technology and community governance to clean the oceans with radical transparency. Here, you don't just donate—you decide.",
+    "steps": {
+      "1": {
+        "title": "1. AI-Powered Detection",
+        "description": "Our artificial intelligence monitors the oceans 24/7, identifying large plastic clusters and oil spills with high precision."
+      },
+      "2": {
+        "title": "2. Public & Community Tender",
+        "description": "Once a problem is identified, we open a public tender on the platform. Companies and organizations apply to perform the cleanup, submitting their plans and budgets."
+      },
+      "3": {
+        "title": "3. Voting & Crowdfunding",
+        "description": "The Bluezz community funds the operation and votes for the project they deem most efficient and trustworthy. Every dollar donated is a vote."
+      },
+      "4": {
+        "title": "4. Transparent Execution & Real-Time Auditing",
+        "description": "Goal reached? The funds are transferred to the executor on the same day. The entire process is auditable, with real-time updates and reports."
+      },
+      "5": {
+        "title": "5. Open-Source Governance",
+        "description": "Bluezz is yours. All our rules, finances, and code are open and auditable on GitHub. The community governs."
+      }
+    },
+    "cta": {
+      "title": "Join the First Wave",
+      "subtitle": "Your vote decides who will clean our ocean. Join community governance today.",
+      "button": "Sign Up to Vote"
+    }
+  },
+  "search": {
+    "title": "Search Projects",
+    "subtitle": "Find the perfect project to support. Use filters to refine your search.",
+    "searchPlaceholder": "Search by title, description or organization...",
+    "filtersButton": "Filters",
+    "advancedFilters": "Advanced Filters",
+    "category": "Category",
+    "location": "Location",
+    "progress": "Progress",
+    "goalRange": "Goal Range",
+    "clearFilters": "Clear Filters",
+    "locations": {
+      "all": "All Brazil",
+      "northeast": "Northeast",
+      "southeast": "Southeast",
+      "south": "South",
+      "north": "North",
+      "centerWest": "Center-West"
+    },
+    "progressOptions": {
+      "all": "Any progress",
+      "starting": "Starting (0-25%)",
+      "progressing": "In progress (25-75%)",
+      "finishing": "Finishing (75-100%)"
+    },
+    "sorting": {
+      "relevance": "Most Relevant",
+      "newest": "Newest",
+      "goalAsc": "Lowest Goal",
+      "goalDesc": "Highest Goal",
+      "progress": "Highest Progress"
+    },
+    "resultsCount": "{{count}} project found",
+    "resultsCount_plural": "{{count}} projects found",
+    "organization": "Organization",
+    "raised": "Raised",
+    "achieved": "achieved",
+    "daysLeft": "days left",
+    "viewProjectButton": "View Project",
+    "noResults": {
+      "title": "No projects found",
+      "subtitle": "Try adjusting your filters or search terms to find projects.",
+      "button": "Clear all filters"
+    }
+  },
+  "account": {
+    "title": "My Account",
+    "unauthorizedTitle": "Unauthorized access",
+    "unauthorizedSubtitle": "You need to be logged in to access this page.",
+    "loginButton": "Login",
+    "editProfileButton": "Edit Profile",
+    "stats": {
+      "totalContributed": "Total Contributed",
+      "projectsSupported": "Projects Supported",
+      "activeProjects": "Active Projects",
+      "certificates": "Certificates"
+    },
+    "tabs": {
+      "contributions": "Contributions",
+      "certificates": "Certificates",
+      "notifications": "Notifications",
+      "settings": "Settings"
+    },
+    "contributions": {
+      "title": "My Contributions",
+      "subtitle": "Track the progress of projects you have supported",
+      "contribution": "Contribution",
+      "projectProgress": "Project progress",
+      "completed": "Completed",
+      "active": "Active",
+      "viewReportButton": "View Report",
+      "downloadReceiptButton": "Download Receipt"
+    },
+    "certificates": {
+      "title": "Participation Certificates",
+      "subtitle": "Your participation certificates in completed projects",
+      "oceanDefender": {
+        "title": "Ocean Defender",
+        "description": "For supporting 3 ocean cleanup projects"
+      },
+      "premiumContributor": {
+        "title": "Premium Contributor",
+        "description": "For contributing more than $200 to projects"
+      },
+      "downloadButton": "Download"
+    },
+    "notifications": {
+      "title": "Notification Preferences",
+      "subtitle": "Configure how you want to receive updates",
+      "projectUpdates": {
+        "title": "Project Updates",
+        "description": "Receive updates about the progress of projects you support"
+      },
+      "newProjects": {
+        "title": "New Projects",
+        "description": "Be notified when new projects are launched"
+      },
+      "monthlyReports": {
+        "title": "Monthly Reports",
+        "description": "Receive a monthly summary of the impact of your support"
+      },
+      "enabled": "Enabled",
+      "disabled": "Disabled"
+    },
+    "settings": {
+      "title": "Account Settings",
+      "subtitle": "Manage your personal information and preferences",
+      "editPersonalInfo": "Edit Personal Information",
+      "paymentMethods": "Payment Methods",
+      "emailPreferences": "Email Preferences",
+      "downloadData": "Download My Data",
+      "dangerZone": "Danger Zone",
+      "deleteAccount": "Delete Account"
+    }
+  },
+  "auth": {
+    "signIn": {
+      "title": "Sign in to your account",
+      "subtitle": "Continue contributing to ocean preservation"
+    },
+    "signUp": {
+      "title": "Create your account",
+      "subtitle": "Join the community and make a difference for the oceans"
+    }
+  },
+  "footer": {
+    "brand": "Bluezz",
+    "description": "Building social impact together.",
+    "navAriaLabel": "Footer navigation",
+    "copyright": "© {{year}} {{app}}. All rights reserved."
+  },
+  "common": {
+    "currency": "$",
+    "from": "of",
+    "user": "User"
+  }
+}

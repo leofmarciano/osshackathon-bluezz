@@ -1,0 +1,1 @@
+{"id": "vaquinha-social-frontend-uo9i", "lang": "typescript"}
