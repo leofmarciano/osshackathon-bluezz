@@ -7,6 +7,7 @@ import type { CreateCheckoutRequest, CheckoutResponse } from "./types";
 import { Polar } from "@polar-sh/sdk";
 
 const polarKey = secret("PolarKey");
+const frontendUrl = secret("FrontendURL");
 
 // Creates a Polar checkout session for a donation.
 export const createCheckout = api<CreateCheckoutRequest, CheckoutResponse>(
@@ -38,7 +39,7 @@ export const createCheckout = api<CreateCheckoutRequest, CheckoutResponse>(
         // Default server points to production (https://api.polar.sh)
       });
 
-      const successUrl = `${process.env.FRONTEND_URL || "https://vaquinha-social-frontend-d2r21j482vjq7vd7ksug.lp.dev"}/announcement/${announcement.slug}?donation_success=true&checkout_id={CHECKOUT_ID}`;
+      const successUrl = `${frontendUrl()}/announcement/${announcement.slug}?donation_success=true&checkout_id={CHECKOUT_ID}`;
 
       // Create a custom checkout session via SDK
       const session = await client.checkouts.custom.create({
