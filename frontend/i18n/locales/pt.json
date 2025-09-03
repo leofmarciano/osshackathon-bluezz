@@ -3,6 +3,7 @@
     "home": "Início",
     "howToHelp": "Como Ajudar",
     "discover": "Descubra",
+    "governance": "Governança",
     "howItWorks": "Como Funciona",
     "search": "Buscar",
     "signIn": "Entrar",
@@ -363,7 +364,15 @@
     "signInRequired": "Você precisa estar logado para fazer uma doação.",
     "minimumAmount": "O valor mínimo para doação é $0.50",
     "checkoutError": "Erro ao criar sessão de pagamento. Tente novamente.",
-    "successMessage": "Obrigado pela sua doação! Seu apoio é muito importante."
+    "successMessage": "Obrigado pela sua doação! Seu apoio é muito importante.",
+    "thankYou": {
+      "title": "Muito Obrigado!",
+      "subtitle": "Sua contribuição para \"{{project}}\" foi processada com sucesso",
+      "message": "Cada doação nos aproxima de oceanos mais limpos. Você está fazendo a diferença!",
+      "impactMessage": "Você está salvando os oceanos",
+      "shareButton": "Compartilhar e inspirar outros",
+      "continueButton": "Continuar navegando"
+    }
   },
   "donations": {
     "title": "Apoiadores",
