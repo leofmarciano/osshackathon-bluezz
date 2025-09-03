@@ -24,6 +24,7 @@ import { useBackend, useIsSignedIn } from "../../lib/useBackend";
 import { useToast } from "@/components/ui/use-toast";
 import { DonationModal } from "../DonationModal";
 import { DonationsList } from "../DonationsList";
+import { ThankYouModal } from "../ThankYouModal";
 import type { AnnouncementDetail } from "~backend/announcements/types";
 
 export function AnnouncementPage() {
@@ -37,6 +38,7 @@ export function AnnouncementPage() {
   const [announcement, setAnnouncement] = useState<AnnouncementDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [reminding, setReminding] = useState(false);
+  const [showThankYouModal, setShowThankYouModal] = useState(false);
   const processingCheckoutRef = useRef(false);
 
   useEffect(() => {
@@ -71,10 +73,9 @@ export function AnnouncementPage() {
 
         // Show success message to the user.
         triggerConfetti();
-        toast({
-          title: t("common.success"),
-          description: t("donation.successMessage"),
-        });
+        
+        // Show thank you modal
+        setShowThankYouModal(true);
 
         // Clean up the URL
         navigate(`/announcement/${slug}`, { replace: true });
@@ -518,6 +519,14 @@ export function AnnouncementPage() {
           </div>
         </div>
       </div>
+
+      {/* Thank You Modal */}
+      <ThankYouModal
+        isOpen={showThankYouModal}
+        onClose={() => setShowThankYouModal(false)}
+        announcementTitle={announcement.title}
+        onShare={() => handleShare('generic')}
+      />
     </div>
   );
 }
