@@ -8,7 +8,7 @@ interface SeedResponse {
 
 // Seeds the database with sample announcements (restricted endpoint).
 export const seed = api<void, SeedResponse>(
-  { expose: false, method: "POST", path: "/announcements/seed" },
+  { expose: true, method: "POST", path: "/announcements/seed" },
   async () => {
     const now = new Date();
     const futureDate = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000); // 30 days from now
