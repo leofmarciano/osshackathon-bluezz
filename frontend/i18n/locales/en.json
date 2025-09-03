@@ -3,6 +3,7 @@
     "home": "Home",
     "howToHelp": "How to Help",
     "discover": "Discover",
+    "companies": "Organizations",
     "governance": "Governance",
     "howItWorks": "How It Works",
     "search": "Search",
@@ -227,6 +228,12 @@
         "title": "Follow on GitHub",
         "desc": "Code, issues, votes and audits open for anyone to verify.",
         "cta": "View repository"
+      },
+      "companies": {
+        "title": "NGOs and Companies",
+        "desc": "See approved organizations and those in the voting process.",
+        "view": "View All",
+        "register": "Register"
       }
     },
     "community": {
@@ -748,6 +755,210 @@
     "navAriaLabel": "Footer navigation",
     "copyright": "© {{year}} {{app}}. All rights reserved."
   },
+  "companies": {
+    "title": "Partner Organizations",
+    "subtitle": "Meet the NGOs and companies helping to save the oceans",
+    "search": "Search organizations...",
+    "approval": "approval",
+    "followers": "followers",
+    "website": "Website",
+    "viewProfile": "View Profile",
+    "empty": {
+      "active": "No active organizations found",
+      "pending": "No organizations in voting at the moment"
+    },
+    "tabs": {
+      "active": "Active",
+      "pending": "In Voting"
+    },
+    "types": {
+      "all": "All",
+      "ngo": "NGO",
+      "company": "Company"
+    },
+    "categories": {
+      "all": "All Categories",
+      "ocean_cleanup": "Ocean Cleanup",
+      "marine_conservation": "Marine Conservation",
+      "pollution_prevention": "Pollution Prevention",
+      "research": "Research",
+      "education": "Education",
+      "technology": "Technology",
+      "recycling": "Recycling",
+      "other": "Other"
+    },
+    "status": {
+      "active": "Active",
+      "pending": "In Voting",
+      "rejected": "Rejected"
+    },
+    "voting": {
+      "daysLeft": "{{days}} days left",
+      "ended": "Voting ended"
+    },
+    "register": {
+      "title": "Register Organization",
+      "description": "Fill in the data to submit your organization for voting.",
+      "submit": "Submit for Voting",
+      "steps": {
+        "basic": "Basic Information",
+        "location": "Location",
+        "mission": "Mission and Impact",
+        "documents": "Documents"
+      },
+      "basic": {
+        "title": "Basic Information",
+        "description": "Identify your organization"
+      },
+      "location": {
+        "title": "Location",
+        "description": "Where your organization is located"
+      },
+      "mission": {
+        "title": "Mission and Impact",
+        "description": "Describe your mission and expected impact"
+      },
+      "documents": {
+        "title": "Documents",
+        "description": "Provide verification documents",
+        "alert": "All documents will be public to ensure transparency"
+      },
+      "fields": {
+        "type": "Organization Type",
+        "name": "Organization Name",
+        "cnpj": "Registration Number",
+        "category": "Category",
+        "email": "Email",
+        "phone": "Phone",
+        "website": "Website",
+        "address": "Address",
+        "city": "City",
+        "state": "State",
+        "country": "Country",
+        "description": "Brief Description",
+        "mission": "Mission",
+        "impact": "Expected Impact",
+        "documents": "Legal Documents",
+        "images": "Images"
+      },
+      "placeholders": {
+        "category": "Select a category",
+        "description": "Briefly describe your organization and what it does...",
+        "mission": "What is your organization's mission?",
+        "impact": "What impact do you expect to generate in the oceans?"
+      },
+      "upload": {
+        "documents": "Upload documents",
+        "images": "Upload images"
+      },
+      "errors": {
+        "required": "This field is required",
+        "documents": "At least one document is required"
+      }
+    },
+    "profile": {
+      "follow": "Follow",
+      "unfollow": "Unfollow",
+      "tabs": {
+        "presentation": "Presentation",
+        "timeline": "Timeline",
+        "documents": "Documents",
+        "info": "Information"
+      },
+      "stats": {
+        "followers": "Followers",
+        "posts": "Posts",
+        "donations": "Donations",
+        "since": "Since"
+      },
+      "voting": {
+        "title": "Voting in Progress",
+        "timeLeft": "{{days}} days and {{hours}} hours remaining",
+        "approval": "approval",
+        "yes": "Yes",
+        "no": "No",
+        "approve": "Approve",
+        "reject": "Reject",
+        "voted": "You voted: {{vote}}"
+      },
+      "presentation": {
+        "title": "Presentation",
+        "placeholder": "Use Markdown to format your presentation...",
+        "empty": "No presentation available yet."
+      },
+      "info": {
+        "title": "Contact Information",
+        "mission": "Mission",
+        "impact": "Impact",
+        "contact": "Contact"
+      }
+    }
+  },
+  "timeline": {
+    "create": {
+      "title": "Create Post",
+      "placeholder": "Share an update with the community...",
+      "location": "Location",
+      "post": "Post",
+      "posting": "Posting..."
+    },
+    "post": {
+      "edit": "Edit",
+      "delete": "Delete"
+    },
+    "stats": {
+      "views": "views",
+      "likes": "likes",
+      "comments": "comments"
+    },
+    "actions": {
+      "like": "Like",
+      "comment": "Comment",
+      "share": "Share"
+    },
+    "comment": {
+      "placeholder": "Write a comment..."
+    },
+    "time": {
+      "now": "now",
+      "minutes": "{{count}} min ago",
+      "hours": "{{count}}h ago",
+      "days": "{{count}}d ago"
+    },
+    "loadMore": "Load more",
+    "empty": {
+      "owner": "Create your first post to engage the community!",
+      "visitor": "No posts yet."
+    }
+  },
+  "documents": {
+    "title": "Documents",
+    "search": "Search documents...",
+    "filter": "Filter by",
+    "upload": "Upload",
+    "view": "View",
+    "download": "Download",
+    "public": "Public",
+    "empty": {
+      "default": "No documents available",
+      "search": "No documents found"
+    },
+    "categories": {
+      "all": "All",
+      "legal": "Legal",
+      "financial": "Financial",
+      "reports": "Reports",
+      "certificates": "Certificates",
+      "other": "Other"
+    },
+    "upload": {
+      "title": "Upload Documents",
+      "description": "Add new documents to the organization profile",
+      "select": "Select files",
+      "selected": "Selected files",
+      "submit": "Upload"
+    }
+  },
   "common": {
     "currency": "$",
     "from": "of",
@@ -755,6 +966,12 @@
     "success": "Success!",
     "error": "Error",
     "cancel": "Cancel",
-    "back": "Back"
+    "back": "Back",
+    "next": "Next",
+    "save": "Save",
+    "edit": "Edit",
+    "preview": "Preview",
+    "code": "Code",
+    "submitting": "Submitting..."
   }
 }

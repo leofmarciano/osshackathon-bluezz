@@ -3,6 +3,7 @@
     "home": "Início",
     "howToHelp": "Como Ajudar",
     "discover": "Descubra",
+    "companies": "Organizações",
     "governance": "Governança",
     "howItWorks": "Como Funciona",
     "search": "Buscar",
@@ -227,6 +228,12 @@
         "title": "Acompanhe no GitHub",
         "desc": "Código, issues, votações e auditorias abertas para qualquer pessoa verificar.",
         "cta": "Ver repositório"
+      },
+      "companies": {
+        "title": "ONGs e Empresas",
+        "desc": "Veja organizações aprovadas e em processo de votação.",
+        "view": "Ver Todas",
+        "register": "Cadastrar"
       }
     },
     "community": {
@@ -748,6 +755,210 @@
     "navAriaLabel": "Navegação do rodapé",
     "copyright": "© {{year}} {{app}}. Todos os direitos reservados."
   },
+  "companies": {
+    "title": "Organizações Parceiras",
+    "subtitle": "Conheça as ONGs e empresas que estão ajudando a salvar os oceanos",
+    "search": "Buscar organizações...",
+    "approval": "aprovação",
+    "followers": "seguidores",
+    "website": "Website",
+    "viewProfile": "Ver Perfil",
+    "empty": {
+      "active": "Nenhuma organização ativa encontrada",
+      "pending": "Nenhuma organização em votação no momento"
+    },
+    "tabs": {
+      "active": "Ativas",
+      "pending": "Em Votação"
+    },
+    "types": {
+      "all": "Todas",
+      "ngo": "ONG",
+      "company": "Empresa"
+    },
+    "categories": {
+      "all": "Todas as Categorias",
+      "ocean_cleanup": "Limpeza Oceânica",
+      "marine_conservation": "Conservação Marinha",
+      "pollution_prevention": "Prevenção de Poluição",
+      "research": "Pesquisa",
+      "education": "Educação",
+      "technology": "Tecnologia",
+      "recycling": "Reciclagem",
+      "other": "Outras"
+    },
+    "status": {
+      "active": "Ativa",
+      "pending": "Em Votação",
+      "rejected": "Rejeitada"
+    },
+    "voting": {
+      "daysLeft": "{{days}} dias restantes",
+      "ended": "Votação encerrada"
+    },
+    "register": {
+      "title": "Cadastrar Organização",
+      "description": "Preencha os dados para submeter sua organização para votação.",
+      "submit": "Submeter para Votação",
+      "steps": {
+        "basic": "Informações Básicas",
+        "location": "Localização",
+        "mission": "Missão e Impacto",
+        "documents": "Documentos"
+      },
+      "basic": {
+        "title": "Informações Básicas",
+        "description": "Identifique sua organização"
+      },
+      "location": {
+        "title": "Localização",
+        "description": "Onde sua organização está localizada"
+      },
+      "mission": {
+        "title": "Missão e Impacto",
+        "description": "Descreva sua missão e o impacto esperado"
+      },
+      "documents": {
+        "title": "Documentos",
+        "description": "Forneça documentos de verificação",
+        "alert": "Todos os documentos serão públicos para garantir transparência"
+      },
+      "fields": {
+        "type": "Tipo de Organização",
+        "name": "Nome da Organização",
+        "cnpj": "CNPJ",
+        "category": "Categoria",
+        "email": "Email",
+        "phone": "Telefone",
+        "website": "Website",
+        "address": "Endereço",
+        "city": "Cidade",
+        "state": "Estado",
+        "country": "País",
+        "description": "Descrição Breve",
+        "mission": "Missão",
+        "impact": "Impacto Esperado",
+        "documents": "Documentos Legais",
+        "images": "Imagens"
+      },
+      "placeholders": {
+        "category": "Selecione uma categoria",
+        "description": "Descreva brevemente sua organização e o que faz...",
+        "mission": "Qual é a missão da sua organização?",
+        "impact": "Que impacto vocês esperam gerar nos oceanos?"
+      },
+      "upload": {
+        "documents": "Fazer upload de documentos",
+        "images": "Fazer upload de imagens"
+      },
+      "errors": {
+        "required": "Este campo é obrigatório",
+        "documents": "Pelo menos um documento é necessário"
+      }
+    },
+    "profile": {
+      "follow": "Seguir",
+      "unfollow": "Deixar de seguir",
+      "tabs": {
+        "presentation": "Apresentação",
+        "timeline": "Timeline",
+        "documents": "Documentos",
+        "info": "Informações"
+      },
+      "stats": {
+        "followers": "Seguidores",
+        "posts": "Publicações",
+        "donations": "Doações",
+        "since": "Desde"
+      },
+      "voting": {
+        "title": "Votação em Andamento",
+        "timeLeft": "{{days}} dias e {{hours}} horas restantes",
+        "approval": "de aprovação",
+        "yes": "Sim",
+        "no": "Não",
+        "approve": "Aprovar",
+        "reject": "Rejeitar",
+        "voted": "Você votou: {{vote}}"
+      },
+      "presentation": {
+        "title": "Apresentação",
+        "placeholder": "Use Markdown para formatar sua apresentação...",
+        "empty": "Nenhuma apresentação disponível ainda."
+      },
+      "info": {
+        "title": "Informações de Contato",
+        "mission": "Missão",
+        "impact": "Impacto",
+        "contact": "Contato"
+      }
+    }
+  },
+  "timeline": {
+    "create": {
+      "title": "Criar Publicação",
+      "placeholder": "Compartilhe uma atualização com a comunidade...",
+      "location": "Localização",
+      "post": "Publicar",
+      "posting": "Publicando..."
+    },
+    "post": {
+      "edit": "Editar",
+      "delete": "Excluir"
+    },
+    "stats": {
+      "views": "visualizações",
+      "likes": "curtidas",
+      "comments": "comentários"
+    },
+    "actions": {
+      "like": "Curtir",
+      "comment": "Comentar",
+      "share": "Compartilhar"
+    },
+    "comment": {
+      "placeholder": "Escreva um comentário..."
+    },
+    "time": {
+      "now": "agora",
+      "minutes": "{{count}} min atrás",
+      "hours": "{{count}}h atrás",
+      "days": "{{count}}d atrás"
+    },
+    "loadMore": "Carregar mais",
+    "empty": {
+      "owner": "Crie sua primeira publicação para engajar a comunidade!",
+      "visitor": "Nenhuma publicação ainda."
+    }
+  },
+  "documents": {
+    "title": "Documentos",
+    "search": "Buscar documentos...",
+    "filter": "Filtrar por",
+    "upload": "Upload",
+    "view": "Visualizar",
+    "download": "Baixar",
+    "public": "Público",
+    "empty": {
+      "default": "Nenhum documento disponível",
+      "search": "Nenhum documento encontrado"
+    },
+    "categories": {
+      "all": "Todos",
+      "legal": "Legais",
+      "financial": "Financeiros",
+      "reports": "Relatórios",
+      "certificates": "Certificados",
+      "other": "Outros"
+    },
+    "upload": {
+      "title": "Fazer Upload de Documentos",
+      "description": "Adicione novos documentos ao perfil da organização",
+      "select": "Selecionar arquivos",
+      "selected": "Arquivos selecionados",
+      "submit": "Fazer upload"
+    }
+  },
   "common": {
     "currency": "R$",
     "from": "de",
@@ -755,6 +966,12 @@
     "success": "Sucesso!",
     "error": "Erro",
     "cancel": "Cancelar",
-    "back": "Voltar"
+    "back": "Voltar",
+    "next": "Próximo",
+    "save": "Salvar",
+    "edit": "Editar",
+    "preview": "Visualizar",
+    "code": "Código",
+    "submitting": "Enviando..."
   }
 }

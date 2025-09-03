@@ -10,6 +10,8 @@ import { AccountPage } from "./pages/AccountPage";
 import { AnnouncementPage } from "./pages/AnnouncementPage";
 import { SignInPage } from "./pages/SignInPage";
 import { SignUpPage } from "./pages/SignUpPage";
+import { CompaniesPage } from "./pages/CompaniesPage";
+import { CompanyDetailPage } from "./pages/CompanyDetailPage";
 import { Footer } from "./Footer";
 
 export function AppInner() {
@@ -22,6 +24,8 @@ export function AppInner() {
             <Route path="/" element={<HomePage />} />
             <Route path="/how-to-help" element={<HowToHelpPage />} />
             <Route path="/discover" element={<DiscoverPage />} />
+            <Route path="/companies" element={<CompaniesPage />} />
+            <Route path="/companies/:id" element={<CompanyDetailPage />} />
             <Route path="/governance" element={<GovernancePage />} />
             <Route path="/how-it-works" element={<HowItWorksPage />} />
             <Route path="/search" element={<SearchPage />} />
