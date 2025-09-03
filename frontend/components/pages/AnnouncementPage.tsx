@@ -1,382 +1,380 @@
-import { useEffect, useMemo, useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import backend from "~backend/client";
-import { useBackend } from "../../lib/useBackend";
-import type { Announcement } from "~backend/announcements/types";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Input } from "@/components/ui/input";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { Separator } from "@/components/ui/separator";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { 
+  Heart, 
+  Bell, 
+  Share2, 
+  Facebook, 
+  Twitter, 
+  MapPin, 
+  Calendar,
+  Users,
+  Target,
+  Building,
+  Loader2
+} from "lucide-react";
+import backend from "~backend/client";
+import { useBackend } from "../../lib/useBackend";
 import { useToast } from "@/components/ui/use-toast";
-import { Bookmark, Share2, Twitter, Facebook, Linkedin, Clock, Users, Target } from "lucide-react";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-
-interface Heading {
-  id: string;
-  text: string;
-}
-
-function slugify(text: string) {
-  return text
-    .toLowerCase()
-    .trim()
-    .replace(/[^\w\s-]/g, "")
-    .replace(/\s+/g, "-");
-}
-
-function extractH1Headings(md: string): Heading[] {
-  const lines = md.split(/\r?\n/);
-  const headings: Heading[] = [];
-  for (const line of lines) {
-    const m = /^#\s+(.*)$/.exec(line);
-    if (m) {
-      const text = m[1].trim();
-      headings.push({ id: slugify(text), text });
-    }
-  }
-  return headings;
-}
-
-function useCurrency(i18nLang: string) {
-  const locale = i18nLang?.startsWith("pt") ? "pt-BR" : "en-US";
-  const currency = i18nLang?.startsWith("pt") ? "BRL" : "USD";
-  const fmt = new Intl.NumberFormat(locale, { style: "currency", currency });
-  return fmt;
-}
+import type { AnnouncementDetail } from "~backend/announcements/types";
 
 export function AnnouncementPage() {
-  const { slug = "" } = useParams();
-  const { t, i18n } = useTranslation();
+  const { slug } = useParams<{ slug: string }>();
+  const { t } = useTranslation();
   const { toast } = useToast();
-  const authedBackend = useBackend();
-
-  const [ann, setAnn] = useState<Announcement | null>(null);
+  const authBackend = useBackend();
+  const [announcement, setAnnouncement] = useState<AnnouncementDetail | null>(null);
   const [loading, setLoading] = useState(true);
-  const [reminded, setReminded] = useState(false);
-  const [backOpen, setBackOpen] = useState(false);
-  const [amount, setAmount] = useState("50"); // default amount (currency units)
-  const currencyFmt = useCurrency(i18n.language || "pt-BR");
-
-  const headings = useMemo(() => extractH1Headings(ann?.contentMd ?? ""), [ann?.contentMd]);
-
-  const pledgedAmountCurrency = useMemo(() => currencyFmt.format((ann?.pledgedAmount ?? 0) / 100), [ann?.pledgedAmount, currencyFmt]);
-  const goalAmountCurrency = useMemo(() => currencyFmt.format((ann?.goalAmount ?? 0) / 100), [ann?.goalAmount, currencyFmt]);
-
-  const progressPct = useMemo(() => {
-    if (!ann) return 0;
-    if (ann.goalAmount === 0) return 0;
-    return Math.min(100, Math.round((ann.pledgedAmount / ann.goalAmount) * 100));
-  }, [ann]);
+  const [backing, setBacking] = useState(false);
+  const [reminding, setReminding] = useState(false);
 
   useEffect(() => {
-    let mounted = true;
-    async function run() {
-      try {
-        const res = await backend.announcements.getBySlug({ slug });
-        if (mounted) {
-          setAnn(res.announcement);
-        }
-      } catch (err) {
-        console.error(err);
-        toast({
-          variant: "destructive",
-          title: t("announcement.errors.loadTitle", "Erro ao carregar anúncio"),
-          description: t("announcement.errors.loadDesc", "Tente novamente mais tarde."),
-        });
-      } finally {
-        if (mounted) setLoading(false);
-      }
+    if (slug) {
+      fetchAnnouncement();
     }
-    run();
-    return () => {
-      mounted = false;
+  }, [slug]);
+
+  const fetchAnnouncement = async () => {
+    try {
+      setLoading(true);
+      const response = await backend.announcements.getBySlug({ slug: slug! });
+      setAnnouncement(response);
+    } catch (error) {
+      console.error("Failed to fetch announcement:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível carregar o projeto.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleBack = async () => {
+    if (!announcement) return;
+    
+    try {
+      setBacking(true);
+      await authBackend.announcements.back({
+        announcementId: announcement.id,
+        amount: 5000, // Default amount in cents (R$ 50.00)
+      });
+      
+      toast({
+        title: "Sucesso!",
+        description: "Seu apoio foi registrado com sucesso!",
+      });
+      
+      // Refresh the announcement data
+      await fetchAnnouncement();
+    } catch (error) {
+      console.error("Failed to back announcement:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível processar seu apoio. Tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setBacking(false);
+    }
+  };
+
+  const handleRemind = async () => {
+    if (!announcement) return;
+    
+    try {
+      setReminding(true);
+      await authBackend.announcements.remind({
+        announcementId: announcement.id,
+      });
+      
+      toast({
+        title: "Lembrete criado!",
+        description: "Você será notificado sobre atualizações deste projeto.",
+      });
+    } catch (error) {
+      console.error("Failed to set reminder:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível criar o lembrete. Tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setReminding(false);
+    }
+  };
+
+  const getDaysLeft = (campaignEndDate: Date) => {
+    const now = new Date();
+    const end = new Date(campaignEndDate);
+    const diffTime = end.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return Math.max(0, diffDays);
+  };
+
+  const getCategoryBadge = (category: string) => {
+    const badges = {
+      oil: { label: "Limpeza de Óleo", variant: "destructive" as const },
+      plastic: { label: "Coleta de Plástico", variant: "secondary" as const },
+      prevention: { label: "Prevenção", variant: "default" as const },
+      restoration: { label: "Restauração", variant: "outline" as const }
     };
-  }, [slug, toast, t]);
+    return badges[category as keyof typeof badges] || { label: "Outros", variant: "outline" as const };
+  };
 
-  function onShare(target: "twitter" | "facebook" | "linkedin") {
-    const url = window.location.href;
-    const text = encodeURIComponent(ann?.title || "Bluezz");
-    const shareUrl =
-      target === "twitter"
-        ? `https://twitter.com/intent/tweet?text=${text}&url=${encodeURIComponent(url)}`
-        : target === "facebook"
-        ? `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`
-        : `https://www.linkedin.com/shareArticle?mini=true&url=${encodeURIComponent(url)}&title=${text}`;
-    window.open(shareUrl, "_blank", "noopener,noreferrer");
-  }
+  const extractHeadings = (content: string) => {
+    const headingRegex = /^#\s+(.+)$/gm;
+    const headings: { id: string; text: string }[] = [];
+    let match;
+    
+    while ((match = headingRegex.exec(content)) !== null) {
+      const text = match[1];
+      const id = text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+      headings.push({ id, text });
+    }
+    
+    return headings;
+  };
 
-  async function onRemind() {
-    try {
-      await authedBackend.announcements.remind({ slug });
-      setReminded(true);
-      toast({ title: t("announcement.remind.ok", "Você será lembrado sobre este projeto!") });
-    } catch (err) {
-      console.error(err);
-      toast({
-        variant: "destructive",
-        title: t("announcement.remind.errTitle", "Falha ao definir lembrete"),
-        description: t("announcement.remind.errDesc", "Entre na sua conta e tente novamente."),
-      });
-    }
-  }
-
-  async function onBack() {
-    const cents = Math.round(Number(amount.replace(",", ".")) * 100);
-    if (!cents || cents <= 0) {
-      toast({ variant: "destructive", title: t("announcement.back.invalid", "Informe um valor válido") });
-      return;
-    }
-    try {
-      const res = await authedBackend.announcements.back({ slug, amount: cents });
-      setAnn((prev) =>
-        prev
-          ? {
-              ...prev,
-              pledgedAmount: res.pledgedAmount,
-              backersCount: res.backersCount,
-            }
-          : prev
-      );
-      setBackOpen(false);
-      toast({ title: t("announcement.back.ok", "Obrigado por apoiar!") });
-    } catch (err) {
-      console.error(err);
-      toast({
-        variant: "destructive",
-        title: t("announcement.back.errTitle", "Falha ao apoiar"),
-        description: t("announcement.back.errDesc", "Entre na sua conta e tente novamente."),
-      });
-    }
-  }
+  const renderMarkdown = (content: string) => {
+    // Simple markdown parser for demonstration
+    return content
+      .replace(/^# (.+)$/gm, '<h1 id="$1" class="text-3xl font-bold mb-4 mt-8">$1</h1>')
+      .replace(/^## (.+)$/gm, '<h2 class="text-2xl font-semibold mb-3 mt-6">$1</h2>')
+      .replace(/^### (.+)$/gm, '<h3 class="text-xl font-medium mb-2 mt-4">$1</h3>')
+      .replace(/^\- (.+)$/gm, '<li class="ml-4">$1</li>')
+      .replace(/^\d+\. (.+)$/gm, '<li class="ml-4">$1</li>')
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.+?)\*/g, '<em>$1</em>')
+      .replace(/\n\n/g, '</p><p class="mb-4">')
+      .replace(/^/, '<p class="mb-4">')
+      .replace(/$/, '</p>');
+  };
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-pulse text-muted-foreground">{t("common.loading", "Carregando...")}</div>
+        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+        <span className="ml-2 text-gray-600">Carregando projeto...</span>
       </div>
     );
   }
 
-  if (!ann) {
+  if (!announcement) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-semibold">{t("announcement.notfound.title", "Anúncio não encontrado")}</h1>
-          <p className="text-muted-foreground">{t("announcement.notfound.desc", "Verifique o link e tente novamente.")}</p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">Projeto não encontrado</h1>
+          <p className="text-gray-600">O projeto que você está procurando não existe.</p>
         </div>
       </div>
     );
   }
 
+  const progress = (announcement.raisedAmount / announcement.goalAmount) * 100;
+  const categoryBadge = getCategoryBadge(announcement.category);
+  const daysLeft = getDaysLeft(announcement.campaignEndDate);
+  const headings = extractHeadings(announcement.content);
+
   return (
-    <div className="min-h-screen">
-      {/* Header / Hero */}
-      <section className="relative bg-white">
-        {ann.coverImageUrl ? (
-          <div className="h-72 w-full overflow-hidden">
-            <img src={ann.coverImageUrl} alt={ann.title} className="h-full w-full object-cover" />
-          </div>
-        ) : (
-          <div className="h-24 bg-gradient-to-r from-blue-600 to-cyan-600" />
-        )}
-
-        <div className="container mx-auto px-4 -mt-12">
-          <Card className="shadow-lg">
-            <CardContent className="p-6">
-              <div className="flex flex-col lg:flex-row gap-6">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-3">
-                    <Badge variant="secondary">{ann.organization.name}</Badge>
-                    {ann.publishedAt && (
-                      <div className="flex items-center text-sm text-muted-foreground">
-                        <Clock className="w-4 h-4 mr-1" />
-                        {new Date(ann.publishedAt).toLocaleDateString()}
-                      </div>
-                    )}
-                  </div>
-                  <h1 className="text-2xl md:text-3xl font-bold">{ann.title}</h1>
-                  {ann.excerpt && <p className="mt-2 text-muted-foreground">{ann.excerpt}</p>}
-                </div>
-
-                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-                  <Dialog open={backOpen} onOpenChange={setBackOpen}>
-                    <DialogTrigger asChild>
-                      <Button size="lg" className="min-w-[220px]">{t("announcement.actions.back", "Back this project")}</Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>{t("announcement.back.title", "Apoiar este projeto")}</DialogTitle>
-                      </DialogHeader>
-                      <div className="space-y-4">
-                        <label className="text-sm text-muted-foreground">
-                          {t("announcement.back.amount", "Valor da contribuição")}
-                        </label>
-                        <div className="flex items-center gap-2">
-                          <Input
-                            type="number"
-                            min={1}
-                            value={amount}
-                            onChange={(e) => setAmount(e.target.value)}
-                            className="w-40"
-                          />
-                        </div>
-                      </div>
-                      <DialogFooter>
-                        <Button onClick={onBack}>{t("announcement.actions.confirmBack", "Confirmar apoio")}</Button>
-                      </DialogFooter>
-                    </DialogContent>
-                  </Dialog>
-
-                  <Button variant={reminded ? "secondary" : "outline"} onClick={onRemind} className="min-w-[160px]">
-                    <Bookmark className="w-4 h-4 mr-2" />
-                    {reminded ? t("announcement.remind.set", "Lembrete definido") : t("announcement.actions.remind", "Remind me")}
-                  </Button>
-
-                  <div className="flex items-center gap-2">
-                    <Button variant="outline" size="icon" onClick={() => onShare("twitter")} aria-label="Share on Twitter">
-                      <Twitter className="w-4 h-4" />
-                    </Button>
-                    <Button variant="outline" size="icon" onClick={() => onShare("facebook")} aria-label="Share on Facebook">
-                      <Facebook className="w-4 h-4" />
-                    </Button>
-                    <Button variant="outline" size="icon" onClick={() => onShare("linkedin")} aria-label="Share on LinkedIn">
-                      <Linkedin className="w-4 h-4" />
-                    </Button>
-                    <Button variant="outline" size="icon" onClick={() => navigator.share?.({ title: ann.title, url: window.location.href })} aria-label="Share">
-                      <Share2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
+    <div className="min-h-screen bg-gray-50">
+      {/* Hero Section */}
+      <div className="bg-white">
+        <div className="container mx-auto px-4 py-8">
+          <div className="grid lg:grid-cols-3 gap-8">
+            {/* Main Content */}
+            <div className="lg:col-span-2">
+              <div className="aspect-video bg-gray-200 rounded-lg overflow-hidden mb-6">
+                {announcement.imageUrl && (
+                  <img 
+                    src={announcement.imageUrl} 
+                    alt={announcement.title}
+                    className="w-full h-full object-cover"
+                  />
+                )}
               </div>
+              
+              <div className="mb-4">
+                <Badge variant={categoryBadge.variant}>
+                  {categoryBadge.label}
+                </Badge>
+              </div>
+              
+              <h1 className="text-4xl font-bold text-gray-900 mb-4">
+                {announcement.title}
+              </h1>
+              
+              <p className="text-xl text-gray-600 mb-6">
+                {announcement.description}
+              </p>
+              
+              <div className="flex items-center text-gray-500 mb-6">
+                <MapPin className="w-5 h-5 mr-2" />
+                {announcement.location}
+              </div>
+            </div>
 
-              <div className="mt-6 grid gap-6 sm:grid-cols-3">
-                <div className="rounded-lg border p-4">
-                  <div className="text-sm text-muted-foreground">{t("announcement.metrics.backers", "Backers")}</div>
-                  <div className="mt-1 flex items-center gap-2">
-                    <Users className="w-4 h-4 text-blue-600" />
-                    <div className="text-2xl font-bold">{ann.backersCount}</div>
-                  </div>
-                </div>
-                <div className="rounded-lg border p-4">
-                  <div className="text-sm text-muted-foreground">{t("announcement.metrics.pledgedOf", "Pledged of total")}</div>
-                  <div className="mt-1 flex items-center gap-2">
-                    <Target className="w-4 h-4 text-green-600" />
-                    <div className="text-2xl font-bold">
-                      {pledgedAmountCurrency} <span className="text-muted-foreground text-base">/ {goalAmountCurrency}</span>
+            {/* Sidebar */}
+            <div className="space-y-6">
+              {/* Stats Card */}
+              <Card>
+                <CardContent className="p-6">
+                  <div className="space-y-4">
+                    <div>
+                      <div className="text-3xl font-bold text-green-600">
+                        {t('common.currency')} {announcement.raisedAmount.toLocaleString()}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        pledged of {t('common.currency')} {announcement.goalAmount.toLocaleString()} goal
+                      </div>
+                    </div>
+                    
+                    <Progress value={progress} className="h-3" />
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <div className="text-2xl font-bold">{announcement.backersCount}</div>
+                        <div className="text-sm text-gray-500">backers</div>
+                      </div>
+                      <div>
+                        <div className="text-2xl font-bold">{daysLeft}</div>
+                        <div className="text-sm text-gray-500">days to go</div>
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div className="rounded-lg border p-4">
-                  <div className="text-sm text-muted-foreground">{t("announcement.metrics.progress", "Progress")}</div>
-                  <div className="mt-2">
-                    <Progress value={progressPct} />
-                    <div className="mt-1 text-sm text-muted-foreground">{progressPct}%</div>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </section>
-
-      {/* Body Layout */}
-      <section className="py-10">
-        <div className="container mx-auto px-4 grid grid-cols-1 lg:grid-cols-12 gap-8">
-          {/* Left TOC */}
-          <aside className="lg:col-span-2">
-            <div className="sticky top-24">
-              <div className="text-sm font-semibold mb-3">{t("announcement.toc", "Tópicos")}</div>
-              <nav className="space-y-2">
-                {headings.length === 0 && (
-                  <div className="text-sm text-muted-foreground">{t("announcement.tocEmpty", "Sem tópicos")}</div>
-                )}
-                {headings.map((h) => (
-                  <a key={h.id} href={`#${h.id}`} className="block text-sm text-muted-foreground hover:text-foreground">
-                    {h.text}
-                  </a>
-                ))}
-              </nav>
-            </div>
-          </aside>
-
-          {/* Center Content */}
-          <main className="lg:col-span-7">
-            <article className="prose prose-slate max-w-none">
-              <ReactMarkdown
-                remarkPlugins={[remarkGfm]}
-                components={{
-                  h1: ({ node, children }) => {
-                    const text = String(children);
-                    const id = slugify(text);
-                    return <h1 id={id}><span>{children}</span></h1>;
-                  },
-                  img: ({ src, alt }) => (
-                    <img src={src || ""} alt={alt || ""} className="rounded-lg border" />
-                  ),
-                }}
-              >
-                {ann.contentMd}
-              </ReactMarkdown>
-            </article>
-          </main>
-
-          {/* Right Support / Organization */}
-          <aside className="lg:col-span-3">
-            <div className="sticky top-24 space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base">{t("announcement.support.title", "Apoie este projeto")}</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">{t("announcement.metrics.pledged", "Arrecadado")}</span>
-                    <span className="font-semibold">{pledgedAmountCurrency}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">{t("announcement.metrics.goal", "Meta")}</span>
-                    <span className="font-semibold">{goalAmountCurrency}</span>
-                  </div>
-                  <Progress value={progressPct} />
-                  <div className="text-sm text-muted-foreground">{progressPct}% {t("announcement.metrics.achieved", "alcançado")}</div>
-                  <Button className="w-full" onClick={() => setBackOpen(true)}>{t("announcement.actions.back", "Back this project")}</Button>
-                  <Button variant="outline" className="w-full" onClick={onRemind}>
-                    <Bookmark className="w-4 h-4 mr-2" />
-                    {reminded ? t("announcement.remind.set", "Lembrete definido") : t("announcement.actions.remind", "Remind me")}
-                  </Button>
                 </CardContent>
               </Card>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base">{t("announcement.org.title", "Sobre a organização")}</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    {ann.organization.logoUrl && (
-                      <img src={ann.organization.logoUrl} alt={ann.organization.name} className="h-10 w-10 rounded-full border object-cover" />
-                    )}
-                    <div className="font-semibold">{ann.organization.name}</div>
-                  </div>
-                  {ann.organization.summary && (
-                    <p className="text-sm text-muted-foreground">{ann.organization.summary}</p>
+              {/* Action Buttons */}
+              <div className="space-y-3">
+                <Button 
+                  size="lg" 
+                  className="w-full text-lg"
+                  onClick={handleBack}
+                  disabled={backing}
+                >
+                  {backing ? (
+                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                  ) : (
+                    <Heart className="w-5 h-5 mr-2" />
                   )}
+                  Back this project
+                </Button>
+                
+                <Button 
+                  variant="outline" 
+                  size="lg" 
+                  className="w-full"
+                  onClick={handleRemind}
+                  disabled={reminding}
+                >
+                  {reminding ? (
+                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                  ) : (
+                    <Bell className="w-5 h-5 mr-2" />
+                  )}
+                  Remind me
+                </Button>
+              </div>
+
+              {/* Share Buttons */}
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" className="flex-1">
+                  <Facebook className="w-4 h-4 mr-2" />
+                  Share
+                </Button>
+                <Button variant="outline" size="sm" className="flex-1">
+                  <Twitter className="w-4 h-4 mr-2" />
+                  Tweet
+                </Button>
+                <Button variant="outline" size="sm" className="flex-1">
+                  <Share2 className="w-4 h-4 mr-2" />
+                  Share
+                </Button>
+              </div>
+
+              {/* Organization Card */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <Building className="w-5 h-5 mr-2" />
+                    About the Organization
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-start gap-3">
+                    <Avatar>
+                      <AvatarFallback>
+                        {announcement.organizationName.substring(0, 2).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <h3 className="font-semibold">{announcement.organizationName}</h3>
+                      {announcement.organizationDescription && (
+                        <p className="text-sm text-gray-600 mt-1">
+                          {announcement.organizationDescription}
+                        </p>
+                      )}
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             </div>
-          </aside>
+          </div>
         </div>
-      </section>
+      </div>
+
+      {/* Content Section */}
+      <div className="container mx-auto px-4 py-12">
+        <div className="grid lg:grid-cols-4 gap-8">
+          {/* Table of Contents */}
+          {headings.length > 0 && (
+            <div className="lg:col-span-1">
+              <div className="sticky top-8">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Contents</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ul className="space-y-2">
+                      {headings.map((heading) => (
+                        <li key={heading.id}>
+                          <a 
+                            href={`#${heading.id}`}
+                            className="text-sm text-gray-600 hover:text-blue-600 transition-colors"
+                          >
+                            {heading.text}
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          )}
+          
+          {/* Main Content */}
+          <div className={headings.length > 0 ? "lg:col-span-3" : "lg:col-span-4"}>
+            <Card>
+              <CardContent className="p-8">
+                <div 
+                  className="prose prose-lg max-w-none"
+                  dangerouslySetInnerHTML={{ __html: renderMarkdown(announcement.content) }}
+                />
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

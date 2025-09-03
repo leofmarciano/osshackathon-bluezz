@@ -1,32 +1,35 @@
 import { api, APIError } from "encore.dev/api";
 import { getAuthData } from "~encore/auth";
 import { announcementsDB } from "./db";
-import type { RemindRequest, RemindResponse } from "./types";
+import type { RemindAnnouncementRequest } from "./types";
 
-// Registers a reminder for the authenticated user for an announcement.
-export const remind = api<RemindRequest, RemindResponse>(
-  { expose: true, auth: true, method: "POST", path: "/announcements/:slug/remind" },
-  async ({ slug }) => {
+interface RemindResponse {
+  success: boolean;
+}
+
+// Sets a reminder for an announcement.
+export const remind = api<RemindAnnouncementRequest, RemindResponse>(
+  { expose: true, auth: true, method: "POST", path: "/announcements/remind" },
+  async (req) => {
     const auth = getAuthData()!;
-    const ann = await announcementsDB.queryRow<any>`
-      SELECT id FROM announcements WHERE slug = ${slug} AND published = TRUE
+
+    // Check if announcement exists and is published
+    const announcement = await announcementsDB.queryRow<{ id: number }>`
+      SELECT id FROM announcements 
+      WHERE id = ${req.announcementId} AND published = true
     `;
-    if (!ann) {
+
+    if (!announcement) {
       throw APIError.notFound("announcement not found");
     }
 
-    let reminded = false;
-    try {
-      await announcementsDB.exec`
-        INSERT INTO announcement_reminders (announcement_id, user_id)
-        VALUES (${ann.id}, ${auth.userID})
-      `;
-      reminded = true;
-    } catch (err) {
-      // Unique violation means already reminded; ignore
-      reminded = false;
-    }
+    // Insert or update reminder (ON CONFLICT DO NOTHING for uniqueness)
+    await announcementsDB.exec`
+      INSERT INTO announcement_reminders (announcement_id, user_id)
+      VALUES (${req.announcementId}, ${auth.userID})
+      ON CONFLICT (announcement_id, user_id) DO NOTHING
+    `;
 
-    return { reminded };
+    return { success: true };
   }
 );

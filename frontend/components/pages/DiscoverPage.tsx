@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,72 +7,68 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, MapPin, Calendar, Target } from "lucide-react";
+import { Search, MapPin, Calendar, Target, Loader2 } from "lucide-react";
+import backend from "~backend/client";
+import type { AnnouncementSummary } from "~backend/announcements/types";
 
 export function DiscoverPage() {
   const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
-
-  // Mock data for demonstration
-  const projects = [
-    {
-      id: 1,
-      title: "Limpeza da Mancha de Óleo - Nordeste",
-      description: "Projeto para remoção de óleo que atingiu as praias do Nordeste brasileiro",
-      location: "Bahia, Brasil",
-      category: "oil",
-      goal: 150000,
-      raised: 89000,
-      daysLeft: 15,
-      image: "/placeholder-oil-cleanup.jpg"
-    },
-    {
-      id: 2,
-      title: "Coleta de Plástico no Oceano Atlântico",
-      description: "Iniciativa para coleta e reciclagem de plástico acumulado no oceano",
-      location: "Rio de Janeiro, Brasil",
-      category: "plastic",
-      goal: 200000,
-      raised: 145000,
-      daysLeft: 8,
-      image: "/placeholder-plastic-cleanup.jpg"
-    },
-    {
-      id: 3,
-      title: "Barreira Anti-Poluição Marinha",
-      description: "Instalação de barreiras para impedir que resíduos cheguem ao mar",
-      location: "São Paulo, Brasil",
-      category: "prevention",
-      goal: 75000,
-      raised: 32000,
-      daysLeft: 22,
-      image: "/placeholder-barrier.jpg"
-    }
-  ];
+  const [announcements, setAnnouncements] = useState<AnnouncementSummary[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [total, setTotal] = useState(0);
 
   const categories = [
     { value: "all", label: t('discover.categories.all') },
     { value: "oil", label: t('discover.categories.oil') },
     { value: "plastic", label: t('discover.categories.plastic') },
-    { value: "prevention", label: t('discover.categories.prevention') }
+    { value: "prevention", label: t('discover.categories.prevention') },
+    { value: "restoration", label: "Restauração" }
   ];
 
   const getCategoryBadge = (category: string) => {
     const badges = {
       oil: { label: t('discover.categories.oil'), variant: "destructive" as const },
       plastic: { label: t('discover.categories.plastic'), variant: "secondary" as const },
-      prevention: { label: t('discover.categories.prevention'), variant: "default" as const }
+      prevention: { label: t('discover.categories.prevention'), variant: "default" as const },
+      restoration: { label: "Restauração", variant: "outline" as const }
     };
     return badges[category as keyof typeof badges] || { label: "Outros", variant: "outline" as const };
   };
 
-  const filteredProjects = projects.filter(project => {
-    const matchesSearch = project.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         project.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = categoryFilter === "all" || project.category === categoryFilter;
-    return matchesSearch && matchesCategory;
-  });
+  const fetchAnnouncements = async () => {
+    try {
+      setLoading(true);
+      const response = await backend.announcements.listPublished({
+        search: searchTerm || undefined,
+        category: categoryFilter === "all" ? undefined : categoryFilter,
+        sortBy: "newest",
+        limit: 20,
+        offset: 0,
+      });
+      setAnnouncements(response.announcements);
+      setTotal(response.total);
+    } catch (error) {
+      console.error("Failed to fetch announcements:", error);
+      setAnnouncements([]);
+      setTotal(0);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchAnnouncements();
+  }, [searchTerm, categoryFilter]);
+
+  const getDaysLeft = (campaignEndDate: Date) => {
+    const now = new Date();
+    const end = new Date(campaignEndDate);
+    const diffTime = end.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return Math.max(0, diffDays);
+  };
 
   return (
     <div className="min-h-screen py-12 bg-gray-50">
@@ -108,65 +105,102 @@ export function DiscoverPage() {
           </Select>
         </div>
 
+        {/* Loading state */}
+        {loading && (
+          <div className="flex justify-center items-center py-12">
+            <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+            <span className="ml-2 text-gray-600">Carregando projetos...</span>
+          </div>
+        )}
+
+        {/* Results count */}
+        {!loading && (
+          <div className="mb-6">
+            <p className="text-gray-600">
+              {total === 1 ? "1 projeto encontrado" : `${total} projetos encontrados`}
+            </p>
+          </div>
+        )}
+
         {/* Projects Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {filteredProjects.map((project) => {
-            const progress = (project.raised / project.goal) * 100;
-            const categoryBadge = getCategoryBadge(project.category);
+        {!loading && announcements.length > 0 && (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {announcements.map((announcement) => {
+              const progress = (announcement.raisedAmount / announcement.goalAmount) * 100;
+              const categoryBadge = getCategoryBadge(announcement.category);
+              const daysLeft = getDaysLeft(announcement.campaignEndDate);
 
-            return (
-              <Card key={project.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                <div className="h-48 bg-gray-200 relative">
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-                  <Badge 
-                    variant={categoryBadge.variant}
-                    className="absolute top-3 left-3"
-                  >
-                    {categoryBadge.label}
-                  </Badge>
-                </div>
-                
-                <CardHeader>
-                  <CardTitle className="line-clamp-2">{project.title}</CardTitle>
-                  <CardDescription className="line-clamp-3">
-                    {project.description}
-                  </CardDescription>
-                </CardHeader>
-
-                <CardContent className="space-y-4">
-                  <div className="flex items-center text-sm text-gray-500">
-                    <MapPin className="w-4 h-4 mr-1" />
-                    {project.location}
+              return (
+                <Card key={announcement.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                  <div className="h-48 bg-gray-200 relative">
+                    {announcement.imageUrl && (
+                      <img 
+                        src={announcement.imageUrl} 
+                        alt={announcement.title}
+                        className="w-full h-full object-cover"
+                      />
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                    <Badge 
+                      variant={categoryBadge.variant}
+                      className="absolute top-3 left-3"
+                    >
+                      {categoryBadge.label}
+                    </Badge>
                   </div>
+                  
+                  <CardHeader>
+                    <CardTitle className="line-clamp-2">{announcement.title}</CardTitle>
+                    <CardDescription className="line-clamp-3">
+                      {announcement.description}
+                    </CardDescription>
+                  </CardHeader>
 
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">{t('discover.raised')}</span>
-                      <span className="font-medium">
-                        {t('common.currency')} {project.raised.toLocaleString()} {t('common.from')} {t('common.currency')} {project.goal.toLocaleString()}
-                      </span>
+                  <CardContent className="space-y-4">
+                    <div className="flex items-center text-sm text-gray-500">
+                      <MapPin className="w-4 h-4 mr-1" />
+                      {announcement.location}
                     </div>
-                    <Progress value={progress} className="h-2" />
-                    <div className="flex justify-between text-sm text-gray-500">
-                      <span>{Math.round(progress)}% {t('discover.achieved')}</span>
-                      <span className="flex items-center">
-                        <Calendar className="w-4 h-4 mr-1" />
-                        {project.daysLeft} {t('discover.daysLeft')}
-                      </span>
+
+                    <div className="text-sm text-gray-600">
+                      <strong>Organização:</strong> {announcement.organizationName}
                     </div>
-                  </div>
 
-                  <Button className="w-full">
-                    <Target className="w-4 h-4 mr-2" />
-                    {t('discover.contributeButton')}
-                  </Button>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">{t('discover.raised')}</span>
+                        <span className="font-medium">
+                          {t('common.currency')} {announcement.raisedAmount.toLocaleString()} {t('common.from')} {t('common.currency')} {announcement.goalAmount.toLocaleString()}
+                        </span>
+                      </div>
+                      <Progress value={progress} className="h-2" />
+                      <div className="flex justify-between text-sm text-gray-500">
+                        <span>{Math.round(progress)}% {t('discover.achieved')}</span>
+                        <span className="flex items-center">
+                          <Calendar className="w-4 h-4 mr-1" />
+                          {daysLeft} {t('discover.daysLeft')}
+                        </span>
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        {announcement.backersCount} apoiadores
+                      </div>
+                    </div>
 
-        {filteredProjects.length === 0 && (
+                    <Button className="w-full" asChild>
+                      <Link to={`/announcement/${announcement.slug}`}>
+                        <Target className="w-4 h-4 mr-2" />
+                        {t('discover.contributeButton')}
+                      </Link>
+                    </Button>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        )}
+
+        {/* No results */}
+        {!loading && announcements.length === 0 && (
           <div className="text-center py-12">
             <p className="text-gray-500 text-lg">
               {t('discover.noProjects')}

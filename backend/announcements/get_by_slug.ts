@@ -1,47 +1,78 @@
 import { api, APIError } from "encore.dev/api";
 import { announcementsDB } from "./db";
-import type { GetAnnouncementRequest, GetAnnouncementResponse, Announcement } from "./types";
+import type { AnnouncementDetail } from "./types";
 
-// Retrieves a published announcement by slug.
-export const getBySlug = api<GetAnnouncementRequest, GetAnnouncementResponse>(
+interface GetBySlugRequest {
+  slug: string;
+}
+
+// Retrieves a published announcement by its slug.
+export const getBySlug = api<GetBySlugRequest, AnnouncementDetail>(
   { expose: true, method: "GET", path: "/announcements/:slug" },
-  async ({ slug }) => {
-    const r = await announcementsDB.queryRow<any>`
-      SELECT
-        id, slug, title, excerpt, content_md, cover_image_url,
-        goal_amount, pledged_amount, backers_count,
-        organization_name, organization_logo_url, organization_summary,
-        published, published_at, created_at, updated_at
+  async (req) => {
+    const row = await announcementsDB.queryRow<{
+      id: number;
+      slug: string;
+      title: string;
+      description: string;
+      content: string;
+      category: string;
+      location: string;
+      organization_name: string;
+      organization_description?: string;
+      goal_amount: number;
+      raised_amount: number;
+      backers_count: number;
+      image_url?: string;
+      published: boolean;
+      created_at: Date;
+      updated_at: Date;
+      campaign_end_date: Date;
+    }>`
+      SELECT 
+        id,
+        slug,
+        title,
+        description,
+        content,
+        category,
+        location,
+        organization_name,
+        organization_description,
+        goal_amount,
+        raised_amount,
+        backers_count,
+        image_url,
+        published,
+        created_at,
+        updated_at,
+        campaign_end_date
       FROM announcements
-      WHERE slug = ${slug} AND published = TRUE
-      LIMIT 1
+      WHERE slug = ${req.slug} AND published = true
     `;
 
-    if (!r) {
+    if (!row) {
       throw APIError.notFound("announcement not found");
     }
 
-    const announcement: Announcement = {
-      id: Number(r.id),
-      slug: r.slug,
-      title: r.title,
-      excerpt: r.excerpt ?? undefined,
-      contentMd: r.content_md,
-      coverImageUrl: r.cover_image_url ?? undefined,
-      goalAmount: Number(r.goal_amount),
-      pledgedAmount: Number(r.pledged_amount),
-      backersCount: Number(r.backers_count),
-      published: Boolean(r.published),
-      publishedAt: r.published_at ? new Date(r.published_at) : null,
-      createdAt: new Date(r.created_at),
-      updatedAt: new Date(r.updated_at),
-      organization: {
-        name: r.organization_name,
-        logoUrl: r.organization_logo_url ?? undefined,
-        summary: r.organization_summary ?? undefined,
-      },
+    return {
+      id: row.id,
+      slug: row.slug,
+      title: row.title,
+      description: row.description,
+      content: row.content,
+      category: row.category,
+      location: row.location,
+      organizationName: row.organization_name,
+      organizationDescription: row.organization_description,
+      goalAmount: row.goal_amount,
+      raisedAmount: row.raised_amount,
+      backersCount: row.backers_count,
+      imageUrl: row.image_url,
+      published: row.published,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+      campaignEndDate: row.campaign_end_date,
     };
-
-    return { announcement };
   }
 );
