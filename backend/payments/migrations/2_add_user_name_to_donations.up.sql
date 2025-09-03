@@ -1,3 +1,0 @@
-ALTER TABLE donations
-  ADD COLUMN IF NOT EXISTS user_name TEXT;
-

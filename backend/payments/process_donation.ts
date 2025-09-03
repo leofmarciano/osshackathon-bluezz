@@ -26,8 +26,8 @@ function anonymizeEmail(email: string): string {
 export const processDonation = api<ProcessDonationRequest, ProcessDonationResponse>(
   { expose: false, method: "POST", path: "/payments/process" },
   async (req) => {
-    if (req.amount < 0) {
-      throw APIError.invalidArgument("amount cannot be negative");
+    if (req.amount <= 0) {
+      throw APIError.invalidArgument("amount must be greater than 0");
     }
 
     if (!req.userEmail) {
@@ -43,15 +43,16 @@ export const processDonation = api<ProcessDonationRequest, ProcessDonationRespon
       throw APIError.notFound("announcement not found");
     }
 
-    // Insert the donation record
+    // Use a transaction to ensure consistency
+    const tx = await paymentsDB.begin();
     try {
-      const donationRow = await paymentsDB.queryRow<{ id: number }>`
+      // Insert the donation record
+      const donationRow = await tx.queryRow<{ id: number }>`
         INSERT INTO donations (
           announcement_id, 
           amount, 
           user_email, 
           anonymized_email,
-          user_name,
           polar_order_id,
           checkout_id,
           status
@@ -60,7 +61,6 @@ export const processDonation = api<ProcessDonationRequest, ProcessDonationRespon
           ${req.amount}, 
           ${req.userEmail}, 
           ${anonymizeEmail(req.userEmail)},
-          ${req.userName ?? null},
           ${req.polarOrderId},
           ${req.checkoutId},
           'completed'
@@ -76,38 +76,27 @@ export const processDonation = api<ProcessDonationRequest, ProcessDonationRespon
       const usdToBrlRate = 5.0; // Approximate rate, should be fetched from a real API
       const amountInBrlCents = Math.round(req.amount * usdToBrlRate);
 
-      // Calculate the updated backers count
-      const backersCountResult = await paymentsDB.queryRow<{ count: number }>`
-        SELECT COUNT(DISTINCT user_email) as count
-        FROM donations 
-        WHERE announcement_id = ${req.announcementId} AND status = 'completed'
+      // Update the announcement totals
+      await announcementsDB.exec`
+        UPDATE announcements 
+        SET 
+          raised_amount = raised_amount + ${amountInBrlCents},
+          backers_count = (
+            SELECT COUNT(DISTINCT user_email) 
+            FROM donations 
+            WHERE announcement_id = ${req.announcementId} AND status = 'completed'
+          )
+        WHERE id = ${req.announcementId}
       `;
-      const backersCount = backersCountResult?.count ?? 0;
 
-      // Update the announcement totals only if amount > 0
-      if (req.amount > 0) {
-        await announcementsDB.exec`
-          UPDATE announcements 
-          SET 
-            raised_amount = raised_amount + ${amountInBrlCents},
-            backers_count = ${backersCount}
-          WHERE id = ${req.announcementId}
-        `;
-      } else {
-        // For zero amount donations, just update the backers count
-        await announcementsDB.exec`
-          UPDATE announcements 
-          SET 
-            backers_count = ${backersCount}
-          WHERE id = ${req.announcementId}
-        `;
-      }
+      await tx.commit();
 
       return {
         success: true,
         donationId: donationRow.id,
       };
     } catch (err) {
+      await tx.rollback();
       console.error("Error processing donation:", err);
       throw APIError.internal("Failed to process donation");
     }

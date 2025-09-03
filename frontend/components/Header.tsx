@@ -22,7 +22,6 @@ export function Header() {
   const navigationItems = [
     { label: t('navigation.howToHelp'), href: "/how-to-help" },
     { label: t('navigation.discover'), href: "/discover" },
-    { label: t('navigation.governance'), href: "/governance" },
     { label: t('navigation.howItWorks'), href: "/how-it-works" },
     { label: t('navigation.search'), href: "/search" },
   ];

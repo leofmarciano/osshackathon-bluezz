@@ -3,7 +3,6 @@
     "home": "Home",
     "howToHelp": "How to Help",
     "discover": "Discover",
-    "governance": "Governance",
     "howItWorks": "How It Works",
     "search": "Search",
     "signIn": "Sign In",
@@ -364,15 +363,7 @@
     "signInRequired": "You need to be logged in to make a donation.",
     "minimumAmount": "The minimum donation amount is $0.50",
     "checkoutError": "Error creating payment session. Please try again.",
-    "successMessage": "Thank you for your donation! Your support is greatly appreciated.",
-    "thankYou": {
-      "title": "Thank You So Much!",
-      "subtitle": "Your contribution to \"{{project}}\" has been successfully processed",
-      "message": "Every donation brings us closer to cleaner oceans. You're making a difference!",
-      "impactMessage": "You're saving the oceans",
-      "shareButton": "Share and inspire others",
-      "continueButton": "Continue browsing"
-    }
+    "successMessage": "Thank you for your donation! Your support is greatly appreciated."
   },
   "donations": {
     "title": "Supporters",
