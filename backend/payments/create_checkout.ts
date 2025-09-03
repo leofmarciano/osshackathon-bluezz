@@ -50,7 +50,7 @@ export const createCheckout = api<CreateCheckoutRequest, CheckoutResponse>(
           user_id: auth.userID,
         },
         amount: req.amount, // cents
-        productId: "b26e017c-06ca-4217-9510-ed4b5c529bda",
+        productId: "0fbeac25-db41-412c-9765-3312438b397b",
       });
 
       if (!session || !session.id || !session.url) {
