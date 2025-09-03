@@ -3,6 +3,8 @@ import { getAuthData } from "~encore/auth";
 import { secret } from "encore.dev/config";
 import { announcementsDB } from "../announcements/db";
 import type { CreateCheckoutRequest, CheckoutResponse } from "./types";
+// Polar TypeScript SDK
+import { Polar } from "@polar-sh/sdk";
 
 const polarKey = secret("PolarKey");
 
@@ -30,43 +32,40 @@ export const createCheckout = api<CreateCheckoutRequest, CheckoutResponse>(
     }
 
     try {
-      // Create checkout session with Polar
-      const response = await fetch("https://api.polar.sh/v1/checkouts/sessions", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${polarKey()}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          success_url: `${process.env.FRONTEND_URL || 'https://vaquinha-social-frontend-d2r21j482vjq7vd7ksug.lp.dev'}/announcement/${announcement.slug}?donation_success=true&checkout_id={CHECKOUT_ID}`,
-          customer_email: req.userEmail || auth.email,
-          metadata: {
-            announcement_id: req.announcementId.toString(),
-            user_id: auth.userID,
-          },
-          amount: req.amount, // Amount in cents
-          currency: "USD",
-          product_id: "b26e017c-06ca-4217-9510-ed4b5c529bda",
-        }),
+      // Initialize the Polar SDK client
+      const client = new Polar({
+        accessToken: polarKey(),
+        // Default server points to production (https://api.polar.sh)
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error("Polar API error:", JSON.stringify(errorData));
+      const successUrl = `${process.env.FRONTEND_URL || "https://vaquinha-social-frontend-d2r21j482vjq7vd7ksug.lp.dev"}/announcement/${announcement.slug}?donation_success=true&checkout_id={CHECKOUT_ID}`;
+
+      // Create a custom checkout session via SDK
+      const session = await client.checkouts.custom.create({
+        successUrl,
+        customerEmail: req.userEmail || auth.email,
+        metadata: {
+          announcement_id: req.announcementId.toString(),
+          user_id: auth.userID,
+        },
+        amount: req.amount, // cents
+        productId: "b26e017c-06ca-4217-9510-ed4b5c529bda",
+      });
+
+      if (!session || !session.id || !session.url) {
+        console.error("Polar SDK returned unexpected session:", session);
         throw APIError.internal("Failed to create checkout session");
       }
 
-      const checkoutData = await response.json();
-
       return {
-        checkoutUrl: checkoutData.url,
-        checkoutId: checkoutData.id,
+        checkoutUrl: session.url as string,
+        checkoutId: session.id as string,
       };
-    } catch (error) {
-      console.error("Error creating Polar checkout:", error);
-      if (error instanceof APIError) {
-        throw error;
-      }
+    } catch (error: any) {
+      // Log SDK/API error details when available
+      const data = error?.data || error?.response?.data || error?.message;
+      console.error("Error creating Polar checkout (SDK):", data ?? error);
+      if (error instanceof APIError) throw error;
       throw APIError.internal("Failed to create checkout session");
     }
   }
