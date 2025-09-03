@@ -15,47 +15,43 @@ export const listPublished = api<ListAnnouncementsRequest, ListPublishedResponse
     const offset = req.offset || 0;
     const language = req.language || 'pt';
     
-    // Build the WHERE clause with parameterized queries to prevent SQL injection
+    // Build the WHERE clause
     const conditions: string[] = ["a.published = true"];
-    const params: any[] = [];
+    const queryParams: any[] = [];
     let paramIndex = 1;
 
-    // Search filter - using ILIKE for case-insensitive search
+    // Search filter
     if (req.search && req.search.trim()) {
       const searchTerm = `%${req.search.trim()}%`;
-      conditions.push(`(
-        COALESCE(t.title, a.title) ILIKE $${paramIndex} OR 
-        COALESCE(t.description, a.description) ILIKE $${paramIndex + 1} OR 
-        a.organization_name ILIKE $${paramIndex + 2}
-      )`);
-      params.push(searchTerm, searchTerm, searchTerm);
+      conditions.push(`(a.title ILIKE $${paramIndex} OR a.description ILIKE $${paramIndex + 1} OR a.organization_name ILIKE $${paramIndex + 2})`);
+      queryParams.push(searchTerm, searchTerm, searchTerm);
       paramIndex += 3;
     }
 
     // Category filter
     if (req.category && req.category !== "all") {
       conditions.push(`a.category = $${paramIndex}`);
-      params.push(req.category);
+      queryParams.push(req.category);
       paramIndex++;
     }
 
     // Location filter
     if (req.location && req.location !== "all") {
       conditions.push(`a.location ILIKE $${paramIndex}`);
-      params.push(`%${req.location}%`);
+      queryParams.push(`%${req.location}%`);
       paramIndex++;
     }
 
     // Goal range filters
     if (req.minGoal !== undefined && req.minGoal >= 0) {
       conditions.push(`a.goal_amount >= $${paramIndex}`);
-      params.push(req.minGoal);
+      queryParams.push(req.minGoal);
       paramIndex++;
     }
 
     if (req.maxGoal !== undefined && req.maxGoal >= 0) {
       conditions.push(`a.goal_amount <= $${paramIndex}`);
-      params.push(req.maxGoal);
+      queryParams.push(req.maxGoal);
       paramIndex++;
     }
 
@@ -77,30 +73,27 @@ export const listPublished = api<ListAnnouncementsRequest, ListPublishedResponse
         orderBy = "ORDER BY (a.raised_amount::FLOAT / a.goal_amount::FLOAT) DESC";
         break;
       case "relevance":
-        // For relevance, we'll use a combination of factors
         orderBy = "ORDER BY (a.backers_count * 0.3 + (a.raised_amount::FLOAT / a.goal_amount::FLOAT) * 0.7) DESC";
         break;
     }
 
-    // Get total count
+    // Get total count first (simpler query)
     const countQuery = `
       SELECT COUNT(*) as total
       FROM announcements a
-      LEFT JOIN announcement_translations t ON a.id = t.announcement_id AND t.language = $${paramIndex}
       ${whereClause}
     `;
     
-    params.push(language);
-    const countResult = await announcementsDB.rawQueryRow<{ total: number }>(countQuery, ...params);
+    const countResult = await announcementsDB.rawQueryRow<{ total: number }>(countQuery, ...queryParams);
     const total = countResult?.total || 0;
 
-    // Get announcements with translations
-    const query = `
+    // Get announcements - first get base data
+    const baseQuery = `
       SELECT 
         a.id,
         a.slug,
-        COALESCE(t.title, a.title) as title,
-        COALESCE(t.description, a.description) as description,
+        a.title as original_title,
+        a.description as original_description,
         a.category,
         a.location,
         a.organization_name,
@@ -112,20 +105,17 @@ export const listPublished = api<ListAnnouncementsRequest, ListPublishedResponse
         a.campaign_end_date,
         a.default_language
       FROM announcements a
-      LEFT JOIN announcement_translations t ON a.id = t.announcement_id AND t.language = $${paramIndex + 1}
       ${whereClause}
       ${orderBy}
-      LIMIT $${paramIndex + 2} OFFSET $${paramIndex + 3}
+      LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
     `;
 
-    params.push(language, limit, offset);
-
-    const announcements: AnnouncementSummary[] = [];
-    const rows = announcementsDB.rawQuery<{
+    const finalParams = [...queryParams, limit, offset];
+    const baseRows = await announcementsDB.rawQueryAll<{
       id: number;
       slug: string;
-      title: string;
-      description: string;
+      original_title: string;
+      original_description: string;
       category: string;
       location: string;
       organization_name: string;
@@ -136,14 +126,37 @@ export const listPublished = api<ListAnnouncementsRequest, ListPublishedResponse
       created_at: Date;
       campaign_end_date: Date;
       default_language: string;
-    }>(query, ...params);
+    }>(baseQuery, ...finalParams);
 
-    for await (const row of rows) {
+    const announcements: AnnouncementSummary[] = [];
+
+    // Get translations for each announcement if needed
+    for (const row of baseRows) {
+      let title = row.original_title;
+      let description = row.original_description;
+
+      // If requesting a different language than the default, try to get translation
+      if (language !== row.default_language) {
+        const translation = await announcementsDB.queryRow<{
+          title: string;
+          description: string;
+        }>`
+          SELECT title, description
+          FROM announcement_translations
+          WHERE announcement_id = ${row.id} AND language = ${language}
+        `;
+
+        if (translation) {
+          title = translation.title;
+          description = translation.description;
+        }
+      }
+
       announcements.push({
         id: row.id,
         slug: row.slug,
-        title: row.title,
-        description: row.description,
+        title,
+        description,
         category: row.category,
         location: row.location,
         organizationName: row.organization_name,
