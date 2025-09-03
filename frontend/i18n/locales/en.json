@@ -221,7 +221,8 @@
       "all": "All categories",
       "oil": "Oil Cleanup",
       "plastic": "Plastic Collection",
-      "prevention": "Prevention"
+      "prevention": "Prevention",
+      "restoration": "Restoration"
     },
     "raised": "Raised",
     "achieved": "achieved",
@@ -229,6 +230,10 @@
     "contributeButton": "Contribute",
     "noProjects": "No projects found with the applied filters.",
     "clearFilters": "Clear filters",
+    "loading": "Loading projects...",
+    "resultsCount": "{{count}} project found",
+    "resultsCount_plural": "{{count}} projects found",
+    "supporters": "supporters",
     "cta": {
       "title": "Didn't find what you're looking for?",
       "subtitle": "New projects are added regularly. Sign up to receive notifications.",
@@ -397,9 +402,31 @@
     "navAriaLabel": "Footer navigation",
     "copyright": "© {{year}} {{app}}. All rights reserved."
   },
+  "announcement": {
+    "loading": "Loading project...",
+    "fetchError": "We couldn't load the project.",
+    "notFoundTitle": "Project not found",
+    "notFoundSubtitle": "The project you're looking for does not exist.",
+    "pledgedOfGoal": "pledged of {{currency}} {{goal}} goal",
+    "backers": "backers",
+    "daysToGo": "days to go",
+    "backButton": "Back this project",
+    "remindButton": "Remind me",
+    "shareFacebook": "Share",
+    "shareTwitter": "Tweet",
+    "shareGeneric": "Share",
+    "aboutOrg": "About the Organization",
+    "contents": "Contents",
+    "backSuccessDesc": "Your support has been recorded successfully!",
+    "backErrorDesc": "We couldn't process your support. Please try again.",
+    "remindSuccessDesc": "You will be notified about updates to this project.",
+    "remindErrorDesc": "We couldn't create the reminder. Please try again."
+  },
   "common": {
     "currency": "$",
     "from": "of",
-    "user": "User"
+    "user": "User",
+    "success": "Success",
+    "error": "Error"
   }
 }

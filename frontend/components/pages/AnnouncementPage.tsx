@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { 
   Heart, 
@@ -14,9 +13,6 @@ import {
   Facebook, 
   Twitter, 
   MapPin, 
-  Calendar,
-  Users,
-  Target,
   Building,
   Loader2
 } from "lucide-react";
@@ -49,8 +45,8 @@ export function AnnouncementPage() {
     } catch (error) {
       console.error("Failed to fetch announcement:", error);
       toast({
-        title: "Erro",
-        description: "Não foi possível carregar o projeto.",
+        title: t("common.error"),
+        description: t("announcement.fetchError"),
         variant: "destructive",
       });
     } finally {
@@ -69,17 +65,16 @@ export function AnnouncementPage() {
       });
       
       toast({
-        title: "Sucesso!",
-        description: "Seu apoio foi registrado com sucesso!",
+        title: t("common.success"),
+        description: t("announcement.backSuccessDesc"),
       });
       
-      // Refresh the announcement data
       await fetchAnnouncement();
     } catch (error) {
       console.error("Failed to back announcement:", error);
       toast({
-        title: "Erro",
-        description: "Não foi possível processar seu apoio. Tente novamente.",
+        title: t("common.error"),
+        description: t("announcement.backErrorDesc"),
         variant: "destructive",
       });
     } finally {
@@ -97,14 +92,14 @@ export function AnnouncementPage() {
       });
       
       toast({
-        title: "Lembrete criado!",
-        description: "Você será notificado sobre atualizações deste projeto.",
+        title: t("common.success"),
+        description: t("announcement.remindSuccessDesc"),
       });
     } catch (error) {
       console.error("Failed to set reminder:", error);
       toast({
-        title: "Erro",
-        description: "Não foi possível criar o lembrete. Tente novamente.",
+        title: t("common.error"),
+        description: t("announcement.remindErrorDesc"),
         variant: "destructive",
       });
     } finally {
@@ -122,12 +117,12 @@ export function AnnouncementPage() {
 
   const getCategoryBadge = (category: string) => {
     const badges = {
-      oil: { label: "Limpeza de Óleo", variant: "destructive" as const },
-      plastic: { label: "Coleta de Plástico", variant: "secondary" as const },
-      prevention: { label: "Prevenção", variant: "default" as const },
-      restoration: { label: "Restauração", variant: "outline" as const }
+      oil: { label: t("discover.categories.oil"), variant: "destructive" as const },
+      plastic: { label: t("discover.categories.plastic"), variant: "secondary" as const },
+      prevention: { label: t("discover.categories.prevention"), variant: "default" as const },
+      restoration: { label: t("discover.categories.restoration"), variant: "outline" as const }
     };
-    return badges[category as keyof typeof badges] || { label: "Outros", variant: "outline" as const };
+    return badges[category as keyof typeof badges] || { label: t("discover.categories.all"), variant: "outline" as const };
   };
 
   const extractHeadings = (content: string) => {
@@ -163,7 +158,7 @@ export function AnnouncementPage() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-        <span className="ml-2 text-gray-600">Carregando projeto...</span>
+        <span className="ml-2 text-gray-600">{t("announcement.loading")}</span>
       </div>
     );
   }
@@ -172,8 +167,8 @@ export function AnnouncementPage() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Projeto não encontrado</h1>
-          <p className="text-gray-600">O projeto que você está procurando não existe.</p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">{t("announcement.notFoundTitle")}</h1>
+          <p className="text-gray-600">{t("announcement.notFoundSubtitle")}</p>
         </div>
       </div>
     );
@@ -230,10 +225,13 @@ export function AnnouncementPage() {
                   <div className="space-y-4">
                     <div>
                       <div className="text-3xl font-bold text-green-600">
-                        {t('common.currency')} {announcement.raisedAmount.toLocaleString()}
+                        {t("common.currency")} {announcement.raisedAmount.toLocaleString()}
                       </div>
                       <div className="text-sm text-gray-500">
-                        pledged of {t('common.currency')} {announcement.goalAmount.toLocaleString()} goal
+                        {t("announcement.pledgedOfGoal", {
+                          currency: t("common.currency"),
+                          goal: announcement.goalAmount.toLocaleString()
+                        })}
                       </div>
                     </div>
                     
@@ -242,11 +240,11 @@ export function AnnouncementPage() {
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <div className="text-2xl font-bold">{announcement.backersCount}</div>
-                        <div className="text-sm text-gray-500">backers</div>
+                        <div className="text-sm text-gray-500">{t("announcement.backers")}</div>
                       </div>
                       <div>
                         <div className="text-2xl font-bold">{daysLeft}</div>
-                        <div className="text-sm text-gray-500">days to go</div>
+                        <div className="text-sm text-gray-500">{t("announcement.daysToGo")}</div>
                       </div>
                     </div>
                   </div>
@@ -266,7 +264,7 @@ export function AnnouncementPage() {
                   ) : (
                     <Heart className="w-5 h-5 mr-2" />
                   )}
-                  Back this project
+                  {t("announcement.backButton")}
                 </Button>
                 
                 <Button 
@@ -281,7 +279,7 @@ export function AnnouncementPage() {
                   ) : (
                     <Bell className="w-5 h-5 mr-2" />
                   )}
-                  Remind me
+                  {t("announcement.remindButton")}
                 </Button>
               </div>
 
@@ -289,15 +287,15 @@ export function AnnouncementPage() {
               <div className="flex gap-2">
                 <Button variant="outline" size="sm" className="flex-1">
                   <Facebook className="w-4 h-4 mr-2" />
-                  Share
+                  {t("announcement.shareFacebook")}
                 </Button>
                 <Button variant="outline" size="sm" className="flex-1">
                   <Twitter className="w-4 h-4 mr-2" />
-                  Tweet
+                  {t("announcement.shareTwitter")}
                 </Button>
                 <Button variant="outline" size="sm" className="flex-1">
                   <Share2 className="w-4 h-4 mr-2" />
-                  Share
+                  {t("announcement.shareGeneric")}
                 </Button>
               </div>
 
@@ -306,7 +304,7 @@ export function AnnouncementPage() {
                 <CardHeader>
                   <CardTitle className="flex items-center">
                     <Building className="w-5 h-5 mr-2" />
-                    About the Organization
+                    {t("announcement.aboutOrg")}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -341,7 +339,7 @@ export function AnnouncementPage() {
               <div className="sticky top-8">
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-lg">Contents</CardTitle>
+                    <CardTitle className="text-lg">{t("announcement.contents")}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <ul className="space-y-2">

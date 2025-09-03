@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,7 +8,9 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
-import { Search, Filter, MapPin, Calendar, Target, SlidersHorizontal } from "lucide-react";
+import { Search, Filter, MapPin, Calendar, Target, SlidersHorizontal, Loader2 } from "lucide-react";
+import backend from "~backend/client";
+import type { AnnouncementSummary } from "~backend/announcements/types";
 
 export function SearchPage() {
   const { t } = useTranslation();
@@ -18,80 +21,25 @@ export function SearchPage() {
   const [progressFilter, setProgressFilter] = useState("all");
   const [showFilters, setShowFilters] = useState(false);
 
-  // Mock data for demonstration
-  const projects = [
-    {
-      id: 1,
-      title: "Limpeza da Mancha de Óleo - Nordeste",
-      description: "Projeto emergencial para remoção de óleo que atingiu as praias do Nordeste brasileiro, focando na recuperação da vida marinha local",
-      location: "Bahia, Brasil",
-      category: "oil",
-      goal: 150000,
-      raised: 89000,
-      daysLeft: 15,
-      organization: "ONG Mar Limpo"
-    },
-    {
-      id: 2,
-      title: "Coleta de Plástico no Oceano Atlântico",
-      description: "Iniciativa inovadora para coleta e reciclagem de plástico acumulado no oceano usando embarcações especializadas",
-      location: "Rio de Janeiro, Brasil",
-      category: "plastic",
-      goal: 200000,
-      raised: 145000,
-      daysLeft: 8,
-      organization: "Instituto Oceano Azul"
-    },
-    {
-      id: 3,
-      title: "Barreira Anti-Poluição Marinha",
-      description: "Instalação de barreiras flutuantes para impedir que resíduos urbanos cheguem ao mar através dos rios",
-      location: "São Paulo, Brasil",
-      category: "prevention",
-      goal: 75000,
-      raised: 32000,
-      daysLeft: 22,
-      organization: "Fundação Águas Limpas"
-    },
-    {
-      id: 4,
-      title: "Recuperação de Corais - Fernando de Noronha",
-      description: "Projeto de reflorestamento marinho e recuperação de recifes de corais degradados pela poluição",
-      location: "Pernambuco, Brasil",
-      category: "restoration",
-      goal: 300000,
-      raised: 180000,
-      daysLeft: 30,
-      organization: "Centro de Pesquisa Marinha"
-    },
-    {
-      id: 5,
-      title: "Limpeza de Microplásticos - Lagoa dos Patos",
-      description: "Tecnologia avançada para remoção de microplásticos em ecossistemas lagunares do sul do Brasil",
-      location: "Rio Grande do Sul, Brasil",
-      category: "plastic",
-      goal: 120000,
-      raised: 45000,
-      daysLeft: 18,
-      organization: "EcoTech Solutions"
-    }
-  ];
+  const [announcements, setAnnouncements] = useState<AnnouncementSummary[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [total, setTotal] = useState(0);
 
   const categories = [
     { value: "all", label: t('discover.categories.all') },
     { value: "oil", label: t('discover.categories.oil') },
     { value: "plastic", label: t('discover.categories.plastic') },
     { value: "prevention", label: t('discover.categories.prevention') },
-    { value: "restoration", label: "Restauração" }
+    { value: "restoration", label: t('discover.categories.restoration') }
   ];
 
   const locations = [
     { value: "all", label: t('search.locations.all') },
-    { value: "nordeste", label: t('search.locations.northeast') },
-    { value: "sudeste", label: t('search.locations.southeast') },
-    { value: "sul", label: t('search.locations.south') },
-    { value: "norte", label: t('search.locations.north') },
-    { value: "centro-oeste", label: t('search.locations.centerWest') }
+    { value: "northeast", label: t('search.locations.northeast') },
+    { value: "southeast", label: t('search.locations.southeast') },
+    { value: "south", label: t('search.locations.south') },
+    { value: "north", label: t('search.locations.north') },
+    { value: "center-oeste", label: t('search.locations.centerWest') }
   ];
 
   const progressOptions = [
@@ -106,9 +54,9 @@ export function SearchPage() {
       oil: { label: t('discover.categories.oil'), variant: "destructive" as const },
       plastic: { label: t('discover.categories.plastic'), variant: "secondary" as const },
       prevention: { label: t('discover.categories.prevention'), variant: "default" as const },
-      restoration: { label: "Restauração", variant: "outline" as const }
+      restoration: { label: t('discover.categories.restoration'), variant: "outline" as const }
     };
-    return badges[category as keyof typeof badges] || { label: "Outros", variant: "outline" as const };
+    return badges[category as keyof typeof badges] || { label: t('discover.categories.all'), variant: "outline" as const };
   };
 
   const getProgressCategory = (progress: number) => {
@@ -117,20 +65,65 @@ export function SearchPage() {
     return "finishing";
   };
 
-  const filteredProjects = projects.filter(project => {
-    const matchesSearch = project.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         project.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         project.organization.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesCategory = categoryFilter === "all" || project.category === categoryFilter;
-    
-    const matchesGoalRange = project.goal >= goalRange[0] && project.goal <= goalRange[1];
-    
-    const progress = (project.raised / project.goal) * 100;
-    const matchesProgress = progressFilter === "all" || getProgressCategory(progress) === progressFilter;
-    
-    return matchesSearch && matchesCategory && matchesGoalRange && matchesProgress;
-  });
+  const fetchAnnouncements = async () => {
+    try {
+      setLoading(true);
+      const resp = await backend.announcements.listPublished({
+        search: searchTerm || undefined,
+        category: categoryFilter === "all" ? undefined : categoryFilter,
+        sortBy: "newest",
+        limit: 50,
+        offset: 0,
+      });
+      setAnnouncements(resp.announcements);
+      setTotal(resp.total);
+    } catch (err) {
+      console.error("Failed to fetch announcements:", err);
+      setAnnouncements([]);
+      setTotal(0);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchAnnouncements();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchTerm, categoryFilter]);
+
+  const filteredAnnouncements = useMemo(() => {
+    const mapLocationValueToLabel: Record<string, string> = {
+      "northeast": t('search.locations.northeast'),
+      "southeast": t('search.locations.southeast'),
+      "south": t('search.locations.south'),
+      "north": t('search.locations.north'),
+      "center-oeste": t('search.locations.centerWest'),
+    };
+
+    return announcements.filter(a => {
+      // Location filtering (best-effort substring match)
+      const matchesLocation = locationFilter === "all" 
+        || (a.location || "").toLowerCase().includes((mapLocationValueToLabel[locationFilter] || "").toLowerCase())
+        || (a.location || "").toLowerCase().includes(locationFilter.replace("-", " "));
+
+      // Goal range filtering (by project goal)
+      const matchesGoalRange = a.goalAmount >= goalRange[0] && a.goalAmount <= goalRange[1];
+
+      // Progress filtering
+      const progress = (a.raisedAmount / a.goalAmount) * 100;
+      const matchesProgress = progressFilter === "all" || getProgressCategory(progress) === progressFilter;
+
+      return matchesLocation && matchesGoalRange && matchesProgress;
+    });
+  }, [announcements, locationFilter, goalRange, progressFilter, t]);
+
+  const getDaysLeft = (campaignEndDate: Date) => {
+    const now = new Date();
+    const end = new Date(campaignEndDate);
+    const diffTime = end.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return Math.max(0, diffDays);
+  };
 
   return (
     <div className="min-h-screen py-12 bg-gray-50">
@@ -263,35 +256,53 @@ export function SearchPage() {
           </Card>
         )}
 
+        {/* Loading */}
+        {loading && (
+          <div className="flex justify-center items-center py-12">
+            <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+            <span className="ml-2 text-gray-600">{t("discover.loading")}</span>
+          </div>
+        )}
+
         {/* Results Header */}
-        <div className="flex justify-between items-center mb-6">
-          <p className="text-gray-600">
-            {t('search.resultsCount', { count: filteredProjects.length })}
-          </p>
-          <Select defaultValue="relevance">
-            <SelectTrigger className="w-48">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="relevance">{t('search.sorting.relevance')}</SelectItem>
-              <SelectItem value="newest">{t('search.sorting.newest')}</SelectItem>
-              <SelectItem value="goal-asc">{t('search.sorting.goalAsc')}</SelectItem>
-              <SelectItem value="goal-desc">{t('search.sorting.goalDesc')}</SelectItem>
-              <SelectItem value="progress">{t('search.sorting.progress')}</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        {!loading && (
+          <div className="flex justify-between items-center mb-6">
+            <p className="text-gray-600">
+              {t('search.resultsCount', { count: filteredAnnouncements.length })}
+            </p>
+            <Select defaultValue="relevance">
+              <SelectTrigger className="w-48">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="relevance">{t('search.sorting.relevance')}</SelectItem>
+                <SelectItem value="newest">{t('search.sorting.newest')}</SelectItem>
+                <SelectItem value="goal-asc">{t('search.sorting.goalAsc')}</SelectItem>
+                <SelectItem value="goal-desc">{t('search.sorting.goalDesc')}</SelectItem>
+                <SelectItem value="progress">{t('search.sorting.progress')}</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        )}
 
         {/* Results Grid */}
-        {filteredProjects.length > 0 ? (
+        {!loading && (filteredAnnouncements.length > 0 ? (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredProjects.map((project) => {
-              const progress = (project.raised / project.goal) * 100;
-              const categoryBadge = getCategoryBadge(project.category);
+            {filteredAnnouncements.map((a) => {
+              const progress = (a.raisedAmount / a.goalAmount) * 100;
+              const categoryBadge = getCategoryBadge(a.category);
+              const daysLeft = getDaysLeft(a.campaignEndDate);
 
               return (
-                <Card key={project.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                <Card key={a.id} className="overflow-hidden hover:shadow-lg transition-shadow">
                   <div className="h-48 bg-gray-200 relative">
+                    {a.imageUrl && (
+                      <img 
+                        src={a.imageUrl} 
+                        alt={a.title}
+                        className="w-full h-full object-cover"
+                      />
+                    )}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
                     <Badge 
                       variant={categoryBadge.variant}
@@ -302,27 +313,27 @@ export function SearchPage() {
                   </div>
                   
                   <CardHeader>
-                    <CardTitle className="line-clamp-2">{project.title}</CardTitle>
+                    <CardTitle className="line-clamp-2">{a.title}</CardTitle>
                     <CardDescription className="line-clamp-3">
-                      {project.description}
+                      {a.description}
                     </CardDescription>
                   </CardHeader>
 
                   <CardContent className="space-y-4">
                     <div className="flex items-center text-sm text-gray-500">
                       <MapPin className="w-4 h-4 mr-1" />
-                      {project.location}
+                      {a.location}
                     </div>
 
                     <div className="text-sm text-gray-600">
-                      <strong>{t('search.organization')}:</strong> {project.organization}
+                      <strong>{t('search.organization')}:</strong> {a.organizationName}
                     </div>
 
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">
                         <span className="text-gray-600">{t('search.raised')}</span>
                         <span className="font-medium">
-                          {t('common.currency')} {project.raised.toLocaleString()} {t('common.from')} {t('common.currency')} {project.goal.toLocaleString()}
+                          {t('common.currency')} {a.raisedAmount.toLocaleString()} {t('common.from')} {t('common.currency')} {a.goalAmount.toLocaleString()}
                         </span>
                       </div>
                       <Progress value={progress} className="h-2" />
@@ -330,14 +341,16 @@ export function SearchPage() {
                         <span>{Math.round(progress)}% {t('search.achieved')}</span>
                         <span className="flex items-center">
                           <Calendar className="w-4 h-4 mr-1" />
-                          {project.daysLeft} {t('search.daysLeft')}
+                          {daysLeft} {t('search.daysLeft')}
                         </span>
                       </div>
                     </div>
 
-                    <Button className="w-full">
-                      <Target className="w-4 h-4 mr-2" />
-                      {t('search.viewProjectButton')}
+                    <Button className="w-full" asChild>
+                      <Link to={`/announcement/${a.slug}`}>
+                        <Target className="w-4 h-4 mr-2" />
+                        {t('search.viewProjectButton')}
+                      </Link>
                     </Button>
                   </CardContent>
                 </Card>
@@ -366,7 +379,7 @@ export function SearchPage() {
               {t('search.noResults.button')}
             </Button>
           </div>
-        )}
+        ))}
       </div>
     </div>
   );

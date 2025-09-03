@@ -24,7 +24,7 @@ export function DiscoverPage() {
     { value: "oil", label: t('discover.categories.oil') },
     { value: "plastic", label: t('discover.categories.plastic') },
     { value: "prevention", label: t('discover.categories.prevention') },
-    { value: "restoration", label: "Restauração" }
+    { value: "restoration", label: t('discover.categories.restoration') }
   ];
 
   const getCategoryBadge = (category: string) => {
@@ -32,9 +32,9 @@ export function DiscoverPage() {
       oil: { label: t('discover.categories.oil'), variant: "destructive" as const },
       plastic: { label: t('discover.categories.plastic'), variant: "secondary" as const },
       prevention: { label: t('discover.categories.prevention'), variant: "default" as const },
-      restoration: { label: "Restauração", variant: "outline" as const }
+      restoration: { label: t('discover.categories.restoration'), variant: "outline" as const }
     };
-    return badges[category as keyof typeof badges] || { label: "Outros", variant: "outline" as const };
+    return badges[category as keyof typeof badges] || { label: t('discover.categories.all'), variant: "outline" as const };
   };
 
   const fetchAnnouncements = async () => {
@@ -109,7 +109,7 @@ export function DiscoverPage() {
         {loading && (
           <div className="flex justify-center items-center py-12">
             <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-            <span className="ml-2 text-gray-600">Carregando projetos...</span>
+            <span className="ml-2 text-gray-600">{t("discover.loading")}</span>
           </div>
         )}
 
@@ -117,7 +117,7 @@ export function DiscoverPage() {
         {!loading && (
           <div className="mb-6">
             <p className="text-gray-600">
-              {total === 1 ? "1 projeto encontrado" : `${total} projetos encontrados`}
+              {t("discover.resultsCount", { count: total })}
             </p>
           </div>
         )}
@@ -163,7 +163,7 @@ export function DiscoverPage() {
                     </div>
 
                     <div className="text-sm text-gray-600">
-                      <strong>Organização:</strong> {announcement.organizationName}
+                      <strong>{t('search.organization')}:</strong> {announcement.organizationName}
                     </div>
 
                     <div className="space-y-2">
@@ -182,7 +182,7 @@ export function DiscoverPage() {
                         </span>
                       </div>
                       <div className="text-sm text-gray-500">
-                        {announcement.backersCount} apoiadores
+                        {announcement.backersCount} {t("discover.supporters")}
                       </div>
                     </div>
 

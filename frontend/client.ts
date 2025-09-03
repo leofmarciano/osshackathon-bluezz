@@ -126,11 +126,16 @@ export namespace announcements {
         }
 
         /**
-         * Retrieves a published announcement by its slug.
+         * Retrieves a published announcement by its slug with optional language support.
          */
-        public async getBySlug(params: { slug: string }): Promise<ResponseType<typeof api_announcements_get_by_slug_getBySlug>> {
+        public async getBySlug(params: RequestType<typeof api_announcements_get_by_slug_getBySlug>): Promise<ResponseType<typeof api_announcements_get_by_slug_getBySlug>> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                language: params.language,
+            })
+
             // Now make the actual call to the API
-            const resp = await this.baseClient.callTypedAPI(`/announcements/${encodeURIComponent(params.slug)}`, {method: "GET", body: undefined})
+            const resp = await this.baseClient.callTypedAPI(`/announcements/${encodeURIComponent(params.slug)}`, {query, method: "GET", body: undefined})
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_announcements_get_by_slug_getBySlug>
         }
 
@@ -141,6 +146,7 @@ export namespace announcements {
             // Convert our params into the objects we need for the request
             const query = makeRecord<string, string | string[]>({
                 category: params.category,
+                language: params.language,
                 limit:    params.limit === undefined ? undefined : String(params.limit),
                 location: params.location,
                 maxGoal:  params.maxGoal === undefined ? undefined : String(params.maxGoal),
@@ -165,7 +171,7 @@ export namespace announcements {
         }
 
         /**
-         * Seeds the database with sample announcements (restricted endpoint).
+         * Seeds the database with sample announcements and translations (restricted endpoint).
          */
         public async seed(): Promise<ResponseType<typeof api_announcements_seed_seed>> {
             // Now make the actual call to the API
