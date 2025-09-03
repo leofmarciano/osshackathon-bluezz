@@ -2,11 +2,8 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { 
   Vote, 
@@ -29,12 +26,15 @@ import {
   Calendar,
   BarChart3,
   Zap,
-  Info
+  Info,
+  Plus,
+  Eye,
+  ArrowRight
 } from "lucide-react";
 
 export function GovernancePage() {
   const { t } = useTranslation();
-  const [activeTab, setActiveTab] = useState("active-proposals");
+  const [activeSection, setActiveSection] = useState("proposals");
 
   // Mock data for demonstration
   const aiDetectedProblems = [
@@ -167,491 +167,534 @@ export function GovernancePage() {
     }
   };
 
+  const menuItems = [
+    { id: "proposals", label: t("governance.tabs.activeProposals"), icon: Vote, badge: "3" },
+    { id: "ai", label: t("governance.tabs.aiDetection"), icon: Brain, badge: "12", urgent: true },
+    { id: "manifesto", label: t("governance.tabs.manifesto"), icon: FileText },
+    { id: "ngos", label: t("governance.tabs.ngos"), icon: Building2, badge: "24" },
+    { id: "history", label: t("governance.tabs.history"), icon: Clock }
+  ];
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
       {/* Hero Section */}
       <div className="relative overflow-hidden bg-gradient-to-r from-blue-600 to-cyan-600 text-white">
         <div className="absolute inset-0 bg-black opacity-10" />
-        <div className="relative container mx-auto px-4 py-16">
+        <div className="relative container mx-auto px-4 py-12">
           <div className="max-w-4xl">
             <Badge className="mb-4 bg-white/20 text-white border-white/30">
               <Zap className="w-3 h-3 mr-1" />
               {t("governance.badge")}
             </Badge>
-            <h1 className="text-5xl font-bold mb-4">
+            <h1 className="text-4xl font-bold mb-4">
               {t("governance.title")}
             </h1>
-            <p className="text-xl text-blue-100 mb-8">
+            <p className="text-lg text-blue-100 mb-6">
               {t("governance.subtitle")}
             </p>
-            <div className="flex flex-wrap gap-4">
-              <Button size="lg" variant="secondary">
-                <Vote className="mr-2 h-5 w-5" />
-                {t("governance.voteNow")}
-              </Button>
-              <Button size="lg" variant="outline" className="bg-white/10 border-white/30 text-white hover:bg-white/20">
-                <FileText className="mr-2 h-5 w-5" />
-                {t("governance.proposeChange")}
-              </Button>
-            </div>
           </div>
         </div>
         <Waves className="absolute bottom-0 right-0 w-64 h-64 text-white/10" />
       </div>
 
-      <div className="container mx-auto px-4 py-12">
-        {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
-          <Card className="border-blue-200 bg-gradient-to-br from-blue-50 to-white">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">
-                {t("governance.stats.activeProposals")}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-blue-600">3</div>
-              <p className="text-xs text-gray-500 mt-1">
-                <TrendingUp className="w-3 h-3 inline mr-1" />
-                {t("governance.stats.endingSoon")}
-              </p>
+      {/* Stats Cards */}
+      <div className="container mx-auto px-4 -mt-8 relative z-10 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <Card className="border-0 shadow-lg">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">{t("governance.stats.activeProposals")}</p>
+                  <p className="text-2xl font-bold">3</p>
+                </div>
+                <div className="h-10 w-10 rounded-full bg-blue-100 text-blue-600 grid place-items-center">
+                  <TrendingUp className="w-5 h-5" />
+                </div>
+              </div>
             </CardContent>
           </Card>
-
-          <Card className="border-green-200 bg-gradient-to-br from-green-50 to-white">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">
-                {t("governance.stats.totalVotes")}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-green-600">8,742</div>
-              <p className="text-xs text-gray-500 mt-1">
-                <Users className="w-3 h-3 inline mr-1" />
-                {t("governance.stats.thisMonth")}
-              </p>
+          <Card className="border-0 shadow-lg">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">{t("governance.stats.totalVotes")}</p>
+                  <p className="text-2xl font-bold">8,742</p>
+                </div>
+                <div className="h-10 w-10 rounded-full bg-green-100 text-green-600 grid place-items-center">
+                  <Users className="w-5 h-5" />
+                </div>
+              </div>
             </CardContent>
           </Card>
-
-          <Card className="border-purple-200 bg-gradient-to-br from-purple-50 to-white">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">
-                {t("governance.stats.registeredNGOs")}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-purple-600">24</div>
-              <p className="text-xs text-gray-500 mt-1">
-                <CheckCircle2 className="w-3 h-3 inline mr-1" />
-                {t("governance.stats.verified")}
-              </p>
+          <Card className="border-0 shadow-lg">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">{t("governance.stats.registeredNGOs")}</p>
+                  <p className="text-2xl font-bold">24</p>
+                </div>
+                <div className="h-10 w-10 rounded-full bg-purple-100 text-purple-600 grid place-items-center">
+                  <CheckCircle2 className="w-5 h-5" />
+                </div>
+              </div>
             </CardContent>
           </Card>
-
-          <Card className="border-orange-200 bg-gradient-to-br from-orange-50 to-white">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">
-                {t("governance.stats.aiDetections")}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-orange-600">12</div>
-              <p className="text-xs text-gray-500 mt-1">
-                <AlertTriangle className="w-3 h-3 inline mr-1" />
-                {t("governance.stats.criticalIssues")}
-              </p>
+          <Card className="border-0 shadow-lg">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">{t("governance.stats.aiDetections")}</p>
+                  <p className="text-2xl font-bold">12</p>
+                </div>
+                <div className="h-10 w-10 rounded-full bg-orange-100 text-orange-600 grid place-items-center">
+                  <AlertTriangle className="w-5 h-5" />
+                </div>
+              </div>
             </CardContent>
           </Card>
         </div>
+      </div>
 
-        {/* AI Detected Problems Alert */}
-        <Alert className="mb-8 border-red-200 bg-red-50">
-          <Brain className="h-4 w-4" />
-          <AlertTitle>{t("governance.ai.alertTitle")}</AlertTitle>
-          <AlertDescription>
-            {t("governance.ai.alertDescription")}
-          </AlertDescription>
-        </Alert>
-
-        {/* Main Content Tabs */}
-        <Tabs defaultValue="active-proposals" className="space-y-8">
-          <TabsList className="grid grid-cols-2 lg:grid-cols-5 h-auto p-1 bg-gray-100">
-            <TabsTrigger value="active-proposals" className="data-[state=active]:bg-white">
-              <Vote className="w-4 h-4 mr-2" />
-              {t("governance.tabs.activeProposals")}
-            </TabsTrigger>
-            <TabsTrigger value="ai-detection" className="data-[state=active]:bg-white">
-              <Brain className="w-4 h-4 mr-2" />
-              {t("governance.tabs.aiDetection")}
-            </TabsTrigger>
-            <TabsTrigger value="manifesto" className="data-[state=active]:bg-white">
-              <FileText className="w-4 h-4 mr-2" />
-              {t("governance.tabs.manifesto")}
-            </TabsTrigger>
-            <TabsTrigger value="ngos" className="data-[state=active]:bg-white">
-              <Building2 className="w-4 h-4 mr-2" />
-              {t("governance.tabs.ngos")}
-            </TabsTrigger>
-            <TabsTrigger value="history" className="data-[state=active]:bg-white">
-              <Clock className="w-4 h-4 mr-2" />
-              {t("governance.tabs.history")}
-            </TabsTrigger>
-          </TabsList>
-
-          {/* Active Proposals Tab */}
-          <TabsContent value="active-proposals" className="space-y-6">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold">{t("governance.activeProposals.title")}</h2>
-              <Button>
-                <MessageSquare className="mr-2 h-4 w-4" />
-                {t("governance.activeProposals.createProposal")}
-              </Button>
-            </div>
-
-            <div className="grid gap-6">
-              {activeProposals.map((proposal) => (
-                <Card key={proposal.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                  <div className="flex">
-                    <div className="flex-1 p-6">
-                      <div className="flex items-start justify-between mb-4">
-                        <div>
-                          <div className="flex items-center gap-2 mb-2">
-                            {getTypeIcon(proposal.type)}
-                            <Badge variant="outline">{proposal.type}</Badge>
-                            <Badge variant="secondary">
-                              <Clock className="w-3 h-3 mr-1" />
-                              {proposal.deadline}
-                            </Badge>
-                          </div>
-                          <h3 className="text-xl font-semibold mb-2">{proposal.title}</h3>
-                          <p className="text-gray-600 mb-2">{proposal.description}</p>
-                          <p className="text-sm text-gray-500">
-                            {t("governance.activeProposals.proposedBy")}: <span className="font-medium">{proposal.proposer}</span>
-                          </p>
-                          {proposal.budget && (
-                            <p className="text-sm text-gray-500 mt-1">
-                              {t("governance.activeProposals.budget")}: <span className="font-bold text-green-600">{proposal.budget}</span>
-                            </p>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-gray-600">{t("governance.activeProposals.currentVotes")}</span>
-                          <span className="font-medium">
-                            {proposal.votes.yes + proposal.votes.no + proposal.votes.abstain} {t("governance.activeProposals.votes")}
-                          </span>
-                        </div>
-                        
-                        <div className="space-y-2">
-                          <div className="flex items-center gap-2">
-                            <CheckCircle2 className="w-4 h-4 text-green-500" />
-                            <Progress value={(proposal.votes.yes / (proposal.votes.yes + proposal.votes.no + proposal.votes.abstain)) * 100} className="flex-1 h-2" />
-                            <span className="text-sm font-medium text-green-600">{proposal.votes.yes}</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <XCircle className="w-4 h-4 text-red-500" />
-                            <Progress value={(proposal.votes.no / (proposal.votes.yes + proposal.votes.no + proposal.votes.abstain)) * 100} className="flex-1 h-2 [&>div]:bg-red-500" />
-                            <span className="text-sm font-medium text-red-600">{proposal.votes.no}</span>
-                          </div>
-                        </div>
-
-                        <div className="flex gap-2 mt-4">
-                          <Button className="flex-1" variant="default">
-                            <CheckCircle2 className="w-4 h-4 mr-2" />
-                            {t("governance.activeProposals.voteYes")}
-                          </Button>
-                          <Button className="flex-1" variant="destructive">
-                            <XCircle className="w-4 h-4 mr-2" />
-                            {t("governance.activeProposals.voteNo")}
-                          </Button>
-                          <Button variant="outline">
-                            {t("governance.activeProposals.details")}
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </Card>
-              ))}
-            </div>
-          </TabsContent>
-
-          {/* AI Detection Tab */}
-          <TabsContent value="ai-detection" className="space-y-6">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold">{t("governance.aiDetection.title")}</h2>
-              <Button variant="outline">
-                <Map className="mr-2 h-4 w-4" />
-                {t("governance.aiDetection.viewMap")}
-              </Button>
-            </div>
-
-            <div className="grid gap-6">
-              {aiDetectedProblems.map((problem) => (
-                <Card key={problem.id} className="overflow-hidden">
-                  <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <div className="flex items-center gap-2 mb-2">
-                          <Badge variant={getSeverityColor(problem.severity)}>
-                            {problem.severity.toUpperCase()}
-                          </Badge>
-                          <Badge variant="outline">{problem.type}</Badge>
-                          <Badge variant="secondary">
-                            {t("governance.aiDetection.confidence")}: {problem.confidence}%
-                          </Badge>
-                        </div>
-                        <CardTitle className="text-xl">{problem.location}</CardTitle>
-                        <CardDescription>{problem.description}</CardDescription>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-sm text-gray-500">
-                          <Calendar className="w-3 h-3 inline mr-1" />
-                          {problem.detectedAt}
-                        </p>
-                        <p className="text-xs text-gray-400 mt-1">
-                          {problem.coordinates.lat}, {problem.coordinates.lng}
-                        </p>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex gap-2">
-                      <Button variant="default" size="sm">
-                        <Target className="w-4 h-4 mr-2" />
-                        {t("governance.aiDetection.createAction")}
-                      </Button>
-                      <Button variant="outline" size="sm">
-                        <Info className="w-4 h-4 mr-2" />
-                        {t("governance.aiDetection.moreInfo")}
-                      </Button>
-                      <Button variant="ghost" size="sm">
-                        {t("governance.aiDetection.reportFalse")}
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-
-            <Alert>
-              <Brain className="h-4 w-4" />
-              <AlertTitle>{t("governance.aiDetection.howItWorks")}</AlertTitle>
-              <AlertDescription>
-                {t("governance.aiDetection.description")}
-              </AlertDescription>
-            </Alert>
-          </TabsContent>
-
-          {/* Manifesto Tab */}
-          <TabsContent value="manifesto" className="space-y-6">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold">{t("governance.manifesto.title")}</h2>
-              <div className="flex gap-2">
-                <Button variant="outline">
-                  <GitBranch className="mr-2 h-4 w-4" />
-                  {t("governance.manifesto.viewHistory")}
-                </Button>
-                <Button>
-                  <FileText className="mr-2 h-4 w-4" />
-                  {t("governance.manifesto.propose")}
-                </Button>
-              </div>
-            </div>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>{t("governance.manifesto.current")}</CardTitle>
-                <CardDescription>
-                  {t("governance.manifesto.lastUpdated")}: 2024-01-01
-                </CardDescription>
+      {/* Main Content */}
+      <div className="container mx-auto px-4 py-8">
+        <div className="grid lg:grid-cols-4 gap-8">
+          {/* Sidebar Navigation */}
+          <div className="lg:col-span-1">
+            <Card className="sticky top-4">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg">{t("governance.menu", "Menu")}</CardTitle>
               </CardHeader>
-              <CardContent>
-                <ScrollArea className="h-96 w-full rounded-md border p-4">
-                  <div className="space-y-4">
-                    <section>
-                      <h3 className="text-lg font-semibold mb-2">{t("governance.manifesto.mission")}</h3>
-                      <p className="text-gray-600">
-                        {t("governance.manifesto.missionText")}
-                      </p>
-                    </section>
-                    <Separator />
-                    <section>
-                      <h3 className="text-lg font-semibold mb-2">{t("governance.manifesto.values")}</h3>
-                      <ul className="list-disc pl-5 space-y-1 text-gray-600">
-                        <li>{t("governance.manifesto.value1")}</li>
-                        <li>{t("governance.manifesto.value2")}</li>
-                        <li>{t("governance.manifesto.value3")}</li>
-                        <li>{t("governance.manifesto.value4")}</li>
-                      </ul>
-                    </section>
-                    <Separator />
-                    <section>
-                      <h3 className="text-lg font-semibold mb-2">{t("governance.manifesto.goals")}</h3>
-                      <ul className="list-disc pl-5 space-y-1 text-gray-600">
-                        <li>{t("governance.manifesto.goal1")}</li>
-                        <li>{t("governance.manifesto.goal2")}</li>
-                        <li>{t("governance.manifesto.goal3")}</li>
-                      </ul>
-                    </section>
-                  </div>
-                </ScrollArea>
-              </CardContent>
-            </Card>
+              <CardContent className="p-2">
+                <nav className="space-y-1">
+                  {menuItems.map((item) => {
+                    const Icon = item.icon;
+                    return (
+                      <button
+                        key={item.id}
+                        onClick={() => setActiveSection(item.id)}
+                        className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-colors ${
+                          activeSection === item.id
+                            ? "bg-blue-50 text-blue-600 font-medium"
+                            : "hover:bg-gray-50 text-gray-700"
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <Icon className="w-4 h-4" />
+                          <span className="text-sm">{item.label}</span>
+                        </div>
+                        {item.badge && (
+                          <Badge 
+                            variant={item.urgent ? "destructive" : "secondary"} 
+                            className="ml-auto h-5 px-1.5 min-w-[20px] flex items-center justify-center"
+                          >
+                            {item.badge}
+                          </Badge>
+                        )}
+                      </button>
+                    );
+                  })}
+                </nav>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>{t("governance.manifesto.pendingChanges")}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between p-3 border rounded-lg">
-                    <div>
-                      <p className="font-medium">{t("governance.manifesto.change1")}</p>
-                      <p className="text-sm text-gray-500">{t("governance.manifesto.proposedBy")}: Marina Silva</p>
-                    </div>
-                    <Badge variant="outline">
-                      <Clock className="w-3 h-3 mr-1" />
-                      {t("governance.manifesto.voting")}
-                    </Badge>
-                  </div>
+                <div className="mt-6 pt-6 border-t">
+                  <Button className="w-full" size="sm">
+                    <Plus className="w-4 h-4 mr-2" />
+                    {t("governance.createProposal", "Criar Proposta")}
+                  </Button>
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
+          </div>
 
-          {/* NGOs Tab */}
-          <TabsContent value="ngos" className="space-y-6">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold">{t("governance.ngos.title")}</h2>
-              <Button>
-                <Building2 className="mr-2 h-4 w-4" />
-                {t("governance.ngos.register")}
-              </Button>
-            </div>
+          {/* Content Area */}
+          <div className="lg:col-span-3 space-y-6">
+            {/* AI Alert - Always visible when there are critical issues */}
+            {activeSection === "proposals" && (
+              <Alert className="border-orange-200 bg-orange-50">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertTitle>{t("governance.ai.alertTitle")}</AlertTitle>
+                <AlertDescription>
+                  {t("governance.ai.alertDescription")}
+                </AlertDescription>
+              </Alert>
+            )}
 
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {registeredNGOs.map((ngo, index) => (
-                <Card key={index} className="hover:shadow-lg transition-shadow">
+            {/* Active Proposals Section */}
+            {activeSection === "proposals" && (
+              <>
+                <div className="flex justify-between items-center">
+                  <h2 className="text-2xl font-bold">{t("governance.activeProposals.title")}</h2>
+                  <Button variant="outline" size="sm">
+                    <Eye className="w-4 h-4 mr-2" />
+                    {t("governance.viewAll", "Ver Todas")}
+                  </Button>
+                </div>
+
+                <div className="grid gap-4">
+                  {activeProposals.map((proposal) => {
+                    const total = proposal.votes.yes + proposal.votes.no + proposal.votes.abstain;
+                    const yesPercentage = (proposal.votes.yes / total) * 100;
+                    
+                    return (
+                      <Card key={proposal.id} className="overflow-hidden hover:shadow-md transition-shadow">
+                        <CardContent className="p-4">
+                          <div className="flex items-start gap-4">
+                            <div className="h-12 w-12 rounded-lg bg-blue-50 text-blue-600 grid place-items-center flex-shrink-0">
+                              {getTypeIcon(proposal.type)}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-start justify-between mb-2">
+                                <div className="flex-1">
+                                  <h3 className="font-semibold text-gray-900 mb-1 line-clamp-1">
+                                    {proposal.title}
+                                  </h3>
+                                  <p className="text-sm text-gray-600 line-clamp-2">
+                                    {proposal.description}
+                                  </p>
+                                </div>
+                              </div>
+                              
+                              <div className="flex flex-wrap items-center gap-3 text-sm text-gray-500 mb-3">
+                                <span className="flex items-center gap-1">
+                                  <Users className="w-3 h-3" />
+                                  {proposal.proposer}
+                                </span>
+                                <span className="flex items-center gap-1">
+                                  <Clock className="w-3 h-3" />
+                                  {proposal.deadline}
+                                </span>
+                                {proposal.budget && (
+                                  <span className="font-medium text-green-600">
+                                    {proposal.budget}
+                                  </span>
+                                )}
+                              </div>
+
+                              <div className="space-y-2">
+                                <div className="flex items-center justify-between text-sm">
+                                  <span className="text-gray-600">{total} votos</span>
+                                  <span className="font-medium text-green-600">
+                                    {Math.round(yesPercentage)}% aprovação
+                                  </span>
+                                </div>
+                                <Progress value={yesPercentage} className="h-2" />
+                                
+                                <div className="flex gap-2">
+                                  <Button size="sm" className="flex-1">
+                                    <CheckCircle2 className="w-3 h-3 mr-1" />
+                                    {t("governance.activeProposals.voteYes")}
+                                  </Button>
+                                  <Button size="sm" variant="destructive" className="flex-1">
+                                    <XCircle className="w-3 h-3 mr-1" />
+                                    {t("governance.activeProposals.voteNo")}
+                                  </Button>
+                                  <Button size="sm" variant="outline">
+                                    <ArrowRight className="w-3 h-3" />
+                                  </Button>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              </>
+            )}
+
+            {/* AI Detection Section */}
+            {activeSection === "ai" && (
+              <>
+                <div className="flex justify-between items-center">
+                  <h2 className="text-2xl font-bold">{t("governance.aiDetection.title")}</h2>
+                  <Button variant="outline" size="sm">
+                    <Map className="w-4 h-4 mr-2" />
+                    {t("governance.aiDetection.viewMap")}
+                  </Button>
+                </div>
+
+                <div className="grid gap-4">
+                  {aiDetectedProblems.map((problem) => (
+                    <Card key={problem.id} className="overflow-hidden">
+                      <CardContent className="p-4">
+                        <div className="flex items-start gap-4">
+                          <div className={`h-10 w-10 rounded-lg grid place-items-center flex-shrink-0 ${
+                            problem.severity === 'critical' ? 'bg-red-100 text-red-600' :
+                            problem.severity === 'high' ? 'bg-orange-100 text-orange-600' :
+                            'bg-yellow-100 text-yellow-600'
+                          }`}>
+                            <AlertTriangle className="w-5 h-5" />
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-start justify-between mb-2">
+                              <div>
+                                <h3 className="font-semibold text-gray-900">{problem.location}</h3>
+                                <p className="text-sm text-gray-600 mt-1">{problem.description}</p>
+                              </div>
+                              <Badge variant={getSeverityColor(problem.severity)}>
+                                {problem.severity.toUpperCase()}
+                              </Badge>
+                            </div>
+                            
+                            <div className="flex items-center gap-4 text-sm text-gray-500 mb-3">
+                              <span className="flex items-center gap-1">
+                                <Calendar className="w-3 h-3" />
+                                {problem.detectedAt}
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <Target className="w-3 h-3" />
+                                {t("governance.aiDetection.confidence")}: {problem.confidence}%
+                              </span>
+                              <span className="text-xs">
+                                {problem.coordinates.lat}, {problem.coordinates.lng}
+                              </span>
+                            </div>
+
+                            <div className="flex gap-2">
+                              <Button size="sm" variant="default">
+                                <Target className="w-3 h-3 mr-1" />
+                                {t("governance.aiDetection.createAction")}
+                              </Button>
+                              <Button size="sm" variant="outline">
+                                <Info className="w-3 h-3 mr-1" />
+                                {t("governance.aiDetection.moreInfo")}
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+
+                <Alert>
+                  <Brain className="h-4 w-4" />
+                  <AlertTitle>{t("governance.aiDetection.howItWorks")}</AlertTitle>
+                  <AlertDescription>
+                    {t("governance.aiDetection.description")}
+                  </AlertDescription>
+                </Alert>
+              </>
+            )}
+
+            {/* Manifesto Section */}
+            {activeSection === "manifesto" && (
+              <>
+                <div className="flex justify-between items-center">
+                  <h2 className="text-2xl font-bold">{t("governance.manifesto.title")}</h2>
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm">
+                      <GitBranch className="w-4 h-4 mr-2" />
+                      {t("governance.manifesto.viewHistory")}
+                    </Button>
+                    <Button size="sm">
+                      <FileText className="w-4 h-4 mr-2" />
+                      {t("governance.manifesto.propose")}
+                    </Button>
+                  </div>
+                </div>
+
+                <Card>
                   <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <CardTitle className="text-lg flex items-center gap-2">
-                          {ngo.name}
-                          {ngo.verified && (
-                            <Badge variant="default" className="bg-green-500">
-                              <CheckCircle2 className="w-3 h-3 mr-1" />
-                              {t("governance.ngos.verified")}
-                            </Badge>
-                          )}
-                        </CardTitle>
-                      </div>
+                    <CardTitle>{t("governance.manifesto.current")}</CardTitle>
+                    <CardDescription>
+                      {t("governance.manifesto.lastUpdated")}: 2024-01-01
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-6">
+                      <section>
+                        <h3 className="text-lg font-semibold mb-2">{t("governance.manifesto.mission")}</h3>
+                        <p className="text-gray-600">
+                          {t("governance.manifesto.missionText")}
+                        </p>
+                      </section>
+                      
+                      <section>
+                        <h3 className="text-lg font-semibold mb-2">{t("governance.manifesto.values")}</h3>
+                        <ul className="list-disc pl-5 space-y-1 text-gray-600">
+                          <li>{t("governance.manifesto.value1")}</li>
+                          <li>{t("governance.manifesto.value2")}</li>
+                          <li>{t("governance.manifesto.value3")}</li>
+                          <li>{t("governance.manifesto.value4")}</li>
+                        </ul>
+                      </section>
+                      
+                      <section>
+                        <h3 className="text-lg font-semibold mb-2">{t("governance.manifesto.goals")}</h3>
+                        <ul className="list-disc pl-5 space-y-1 text-gray-600">
+                          <li>{t("governance.manifesto.goal1")}</li>
+                          <li>{t("governance.manifesto.goal2")}</li>
+                          <li>{t("governance.manifesto.goal3")}</li>
+                        </ul>
+                      </section>
                     </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>{t("governance.manifesto.pendingChanges")}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-3">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-500">{t("governance.ngos.projects")}</span>
-                        <span className="font-medium">{ngo.projectsCompleted}</span>
+                      <div className="flex items-center justify-between p-3 border rounded-lg">
+                        <div>
+                          <p className="font-medium">{t("governance.manifesto.change1")}</p>
+                          <p className="text-sm text-gray-500">{t("governance.manifesto.proposedBy")}: Marina Silva</p>
+                        </div>
+                        <Badge variant="outline">
+                          <Clock className="w-3 h-3 mr-1" />
+                          {t("governance.manifesto.voting")}
+                        </Badge>
                       </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-500">{t("governance.ngos.raised")}</span>
-                        <span className="font-medium text-green-600">{ngo.totalRaised}</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-500">{t("governance.ngos.rating")}</span>
-                        <span className="font-medium">⭐ {ngo.rating}</span>
-                      </div>
-                      <Button variant="outline" className="w-full mt-4" size="sm">
-                        {t("governance.ngos.viewProfile")}
-                      </Button>
                     </div>
                   </CardContent>
                 </Card>
-              ))}
-            </div>
+              </>
+            )}
 
-            <Alert>
-              <Shield className="h-4 w-4" />
-              <AlertTitle>{t("governance.ngos.verification")}</AlertTitle>
-              <AlertDescription>
-                {t("governance.ngos.verificationDesc")}
-              </AlertDescription>
-            </Alert>
-          </TabsContent>
+            {/* NGOs Section */}
+            {activeSection === "ngos" && (
+              <>
+                <div className="flex justify-between items-center">
+                  <h2 className="text-2xl font-bold">{t("governance.ngos.title")}</h2>
+                  <Button size="sm">
+                    <Building2 className="w-4 h-4 mr-2" />
+                    {t("governance.ngos.register")}
+                  </Button>
+                </div>
 
-          {/* History Tab */}
-          <TabsContent value="history" className="space-y-6">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold">{t("governance.history.title")}</h2>
-              <Button variant="outline">
-                <BarChart3 className="mr-2 h-4 w-4" />
-                {t("governance.history.stats")}
-              </Button>
-            </div>
-
-            <div className="space-y-4">
-              {completedProposals.map((proposal) => (
-                <Card key={proposal.id}>
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          {getTypeIcon(proposal.type)}
-                          <Badge variant={proposal.result === "approved" ? "default" : "destructive"}>
-                            {proposal.result === "approved" ? t("governance.history.approved") : t("governance.history.rejected")}
-                          </Badge>
-                          <span className="text-sm text-gray-500">
-                            <Calendar className="w-3 h-3 inline mr-1" />
-                            {proposal.completedAt}
-                          </span>
+                <div className="grid md:grid-cols-2 gap-4">
+                  {registeredNGOs.map((ngo, index) => (
+                    <Card key={index} className="hover:shadow-md transition-shadow">
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between mb-3">
+                          <div>
+                            <h3 className="font-semibold text-gray-900">{ngo.name}</h3>
+                            {ngo.verified && (
+                              <Badge variant="default" className="mt-1 bg-green-500">
+                                <CheckCircle2 className="w-3 h-3 mr-1" />
+                                {t("governance.ngos.verified")}
+                              </Badge>
+                            )}
+                          </div>
+                          <div className="text-right">
+                            <div className="text-sm text-gray-500">⭐ {ngo.rating}</div>
+                          </div>
                         </div>
-                        <h4 className="font-semibold">{proposal.title}</h4>
-                        <div className="flex gap-4 mt-2 text-sm text-gray-500">
-                          <span>
-                            <CheckCircle2 className="w-3 h-3 inline mr-1 text-green-500" />
-                            {proposal.votes.yes}
-                          </span>
-                          <span>
-                            <XCircle className="w-3 h-3 inline mr-1 text-red-500" />
-                            {proposal.votes.no}
-                          </span>
-                          <span>
-                            {t("governance.history.abstain")}: {proposal.votes.abstain}
-                          </span>
+                        
+                        <div className="grid grid-cols-2 gap-3 text-sm mb-3">
+                          <div>
+                            <p className="text-gray-500">{t("governance.ngos.projects")}</p>
+                            <p className="font-medium">{ngo.projectsCompleted}</p>
+                          </div>
+                          <div>
+                            <p className="text-gray-500">{t("governance.ngos.raised")}</p>
+                            <p className="font-medium text-green-600">{ngo.totalRaised}</p>
+                          </div>
                         </div>
-                      </div>
-                      <Button variant="ghost" size="sm">
-                        <ChevronRight className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </TabsContent>
-        </Tabs>
+                        
+                        <Button variant="outline" className="w-full" size="sm">
+                          {t("governance.ngos.viewProfile")}
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
 
-        {/* CTA Section */}
-        <div className="mt-16 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-2xl p-8 text-white text-center">
-          <h2 className="text-3xl font-bold mb-4">
-            {t("governance.cta.title")}
-          </h2>
-          <p className="text-blue-100 mb-6 max-w-2xl mx-auto">
-            {t("governance.cta.description")}
-          </p>
-          <div className="flex flex-wrap gap-4 justify-center">
-            <Button size="lg" variant="secondary">
-              <Users className="mr-2 h-5 w-5" />
-              {t("governance.cta.joinCommunity")}
-            </Button>
-            <Button size="lg" variant="outline" className="bg-white/10 border-white/30 text-white hover:bg-white/20">
-              <MessageSquare className="mr-2 h-5 w-5" />
-              {t("governance.cta.startDiscussion")}
-            </Button>
+                <Alert>
+                  <Shield className="h-4 w-4" />
+                  <AlertTitle>{t("governance.ngos.verification")}</AlertTitle>
+                  <AlertDescription>
+                    {t("governance.ngos.verificationDesc")}
+                  </AlertDescription>
+                </Alert>
+              </>
+            )}
+
+            {/* History Section */}
+            {activeSection === "history" && (
+              <>
+                <div className="flex justify-between items-center">
+                  <h2 className="text-2xl font-bold">{t("governance.history.title")}</h2>
+                  <Button variant="outline" size="sm">
+                    <BarChart3 className="w-4 h-4 mr-2" />
+                    {t("governance.history.stats")}
+                  </Button>
+                </div>
+
+                <div className="space-y-3">
+                  {completedProposals.map((proposal) => (
+                    <Card key={proposal.id}>
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-start gap-3">
+                            <div className="h-10 w-10 rounded-lg bg-gray-50 grid place-items-center flex-shrink-0">
+                              {getTypeIcon(proposal.type)}
+                            </div>
+                            <div>
+                              <h4 className="font-semibold text-gray-900">{proposal.title}</h4>
+                              <div className="flex items-center gap-4 mt-1 text-sm text-gray-500">
+                                <Badge variant={proposal.result === "approved" ? "default" : "destructive"}>
+                                  {proposal.result === "approved" ? t("governance.history.approved") : t("governance.history.rejected")}
+                                </Badge>
+                                <span className="flex items-center gap-1">
+                                  <Calendar className="w-3 h-3" />
+                                  {proposal.completedAt}
+                                </span>
+                              </div>
+                              <div className="flex gap-4 mt-2 text-sm text-gray-500">
+                                <span className="flex items-center gap-1">
+                                  <CheckCircle2 className="w-3 h-3 text-green-500" />
+                                  {proposal.votes.yes}
+                                </span>
+                                <span className="flex items-center gap-1">
+                                  <XCircle className="w-3 h-3 text-red-500" />
+                                  {proposal.votes.no}
+                                </span>
+                                <span>
+                                  {t("governance.history.abstain")}: {proposal.votes.abstain}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                          <Button variant="ghost" size="sm">
+                            <ChevronRight className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
         </div>
+      </div>
+
+      {/* CTA Section */}
+      <div className="container mx-auto px-4 py-12">
+        <Card className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white border-0">
+          <CardContent className="p-8 text-center">
+            <h2 className="text-3xl font-bold mb-4">
+              {t("governance.cta.title")}
+            </h2>
+            <p className="text-blue-100 mb-6 max-w-2xl mx-auto">
+              {t("governance.cta.description")}
+            </p>
+            <div className="flex flex-wrap gap-4 justify-center">
+              <Button size="lg" variant="secondary">
+                <Users className="mr-2 h-5 w-5" />
+                {t("governance.cta.joinCommunity")}
+              </Button>
+              <Button size="lg" variant="outline" className="bg-white/10 border-white/30 text-white hover:bg-white/20">
+                <MessageSquare className="mr-2 h-5 w-5" />
+                {t("governance.cta.startDiscussion")}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

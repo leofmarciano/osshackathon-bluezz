@@ -42,7 +42,7 @@ export default function Governance() {
   }, [current, i18n.language]);
 
   return (
-    <section id="governance" className="bg-gray-50 py-20">
+    <section id="governance" className="bg-gradient-to-b from-blue-50 to-white py-20">
       <div className="container mx-auto px-4">
         <div className="mx-auto max-w-3xl text-center">
           <h2 className="text-3xl font-bold tracking-tight text-gray-900 md:text-4xl">
@@ -53,16 +53,19 @@ export default function Governance() {
           </p>
         </div>
 
-        <div className="mt-12 grid gap-6 md:grid-cols-2">
-          <Card>
+        <div className="mt-12 grid gap-4 md:grid-cols-2">
+          <Card className="relative overflow-hidden border border-blue-100 bg-white/70 backdrop-blur supports-[backdrop-filter]:bg-white/50">
+            <div className="absolute -right-10 -top-10 h-24 w-24 rounded-full bg-blue-100/60 blur-2xl" />
             <CardHeader className="flex flex-row items-center justify-between space-y-0">
               <CardTitle className="text-base">
                 {t("home.governance.funds.title", "Fundos disponíveis")}
               </CardTitle>
-              <LineChart className="h-5 w-5 text-blue-600" />
+              <div className="h-9 w-9 rounded-full bg-blue-50 text-blue-600 grid place-items-center">
+                <LineChart className="h-4 w-4" />
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-4xl font-bold tracking-tight text-gray-900">
+              <div className="text-4xl font-semibold tracking-tight text-blue-700">
                 {formatted}
               </div>
               <p className="mt-2 text-sm text-gray-600">
@@ -74,7 +77,8 @@ export default function Governance() {
             </CardContent>
           </Card>
 
-          <Card className="flex flex-col justify-between">
+          <Card className="relative flex flex-col justify-between border border-blue-100 bg-white/70 backdrop-blur supports-[backdrop-filter]:bg-white/50">
+            <div className="absolute -right-10 -top-10 h-24 w-24 rounded-full bg-cyan-100/60 blur-2xl" />
             <CardHeader>
               <CardTitle className="text-base">
                 {t("home.governance.repo.title", "Acompanhe no GitHub")}
