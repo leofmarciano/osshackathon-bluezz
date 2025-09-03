@@ -23,8 +23,7 @@ export function DonationsList({ announcementId }: DonationsListProps) {
   const fetchDonations = async () => {
     try {
       setLoading(true);
-      const response = await backend.payments.listDonations({
-        announcementId,
+      const response = await backend.payments.listDonations(announcementId, {
         limit: 20,
         offset: 0,
       });

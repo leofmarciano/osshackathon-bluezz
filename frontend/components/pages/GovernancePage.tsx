@@ -1,10 +1,15 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { useToast } from "@/components/ui/use-toast";
+import { Streamdown } from "streamdown";
+import { useBackend } from "@/lib/useBackend";
+import { ManifestoEditor } from "../manifesto/ManifestoEditor";
+import { ManifestoHistoryModal } from "../manifesto/ManifestoHistoryModal";
 import { 
   Vote, 
   Brain, 
@@ -33,8 +38,16 @@ import {
 } from "lucide-react";
 
 export function GovernancePage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const { toast } = useToast();
+  const backend = useBackend();
   const [activeSection, setActiveSection] = useState("proposals");
+  const [loading, setLoading] = useState(false);
+  const [editingManifesto, setEditingManifesto] = useState(false);
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [currentManifesto, setCurrentManifesto] = useState<any>(null);
+  const [manifestoProposals, setManifestoProposals] = useState<any[]>([]);
+  const [votingProposal, setVotingProposal] = useState<number | null>(null);
 
   // Mock data for demonstration
   const aiDetectedProblems = [
@@ -123,6 +136,71 @@ export function GovernancePage() {
       completedAt: "2024-01-08"
     }
   ];
+
+  useEffect(() => {
+    if (activeSection === "manifesto") {
+      loadManifestoData();
+    }
+  }, [activeSection, i18n.language]);
+
+  const loadManifestoData = async () => {
+    try {
+      setLoading(true);
+      // Load current manifesto with translations
+      const manifestoRes = await backend.manifesto.getCurrent();
+      
+      // Fetch the manifesto with translation for current language
+      const translatedRes = await backend.manifesto.getManifestoWithTranslations(
+        manifestoRes.manifesto.id.toString(),
+        { language: i18n.language }
+      );
+      
+      setCurrentManifesto(translatedRes.manifesto);
+      
+      // Load active proposals (filter by voting status)
+      const proposalsRes = await backend.manifesto.getProposals({ status: "voting" });
+      setManifestoProposals(proposalsRes.proposals);
+    } catch (error) {
+      console.error("Failed to load manifesto data:", error);
+      toast({
+        title: t("manifesto.loadError"),
+        description: t("manifesto.loadErrorDesc"),
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVote = async (proposalId: number, voteType: 'yes' | 'no' | 'abstain') => {
+    try {
+      setVotingProposal(proposalId);
+      const userId = localStorage.getItem("userId") || "anonymous";
+      
+      await backend.manifesto.voteOnProposal({
+        proposal_id: proposalId,
+        user_id: userId,
+        vote_type: voteType,
+      });
+
+      toast({
+        title: t("manifesto.voteSuccess"),
+        description: t("manifesto.voteSuccessDesc"),
+      });
+
+      // Reload proposals
+      await loadManifestoData();
+    } catch (error: any) {
+      console.error("Vote failed:", error);
+      toast({
+        title: t("manifesto.voteError"),
+        description: error?.message || t("manifesto.voteErrorDesc"),
+        variant: "destructive",
+      });
+    } finally {
+      setVotingProposal(null);
+    }
+  };
 
   const registeredNGOs = [
     {
@@ -480,77 +558,165 @@ export function GovernancePage() {
             {/* Manifesto Section */}
             {activeSection === "manifesto" && (
               <>
-                <div className="flex justify-between items-center">
-                  <h2 className="text-2xl font-bold">{t("governance.manifesto.title")}</h2>
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm">
-                      <GitBranch className="w-4 h-4 mr-2" />
-                      {t("governance.manifesto.viewHistory")}
-                    </Button>
-                    <Button size="sm">
-                      <FileText className="w-4 h-4 mr-2" />
-                      {t("governance.manifesto.propose")}
-                    </Button>
-                  </div>
-                </div>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle>{t("governance.manifesto.current")}</CardTitle>
-                    <CardDescription>
-                      {t("governance.manifesto.lastUpdated")}: 2024-01-01
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-6">
-                      <section>
-                        <h3 className="text-lg font-semibold mb-2">{t("governance.manifesto.mission")}</h3>
-                        <p className="text-gray-600">
-                          {t("governance.manifesto.missionText")}
-                        </p>
-                      </section>
-                      
-                      <section>
-                        <h3 className="text-lg font-semibold mb-2">{t("governance.manifesto.values")}</h3>
-                        <ul className="list-disc pl-5 space-y-1 text-gray-600">
-                          <li>{t("governance.manifesto.value1")}</li>
-                          <li>{t("governance.manifesto.value2")}</li>
-                          <li>{t("governance.manifesto.value3")}</li>
-                          <li>{t("governance.manifesto.value4")}</li>
-                        </ul>
-                      </section>
-                      
-                      <section>
-                        <h3 className="text-lg font-semibold mb-2">{t("governance.manifesto.goals")}</h3>
-                        <ul className="list-disc pl-5 space-y-1 text-gray-600">
-                          <li>{t("governance.manifesto.goal1")}</li>
-                          <li>{t("governance.manifesto.goal2")}</li>
-                          <li>{t("governance.manifesto.goal3")}</li>
-                        </ul>
-                      </section>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle>{t("governance.manifesto.pendingChanges")}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between p-3 border rounded-lg">
-                        <div>
-                          <p className="font-medium">{t("governance.manifesto.change1")}</p>
-                          <p className="text-sm text-gray-500">{t("governance.manifesto.proposedBy")}: Marina Silva</p>
-                        </div>
-                        <Badge variant="outline">
-                          <Clock className="w-3 h-3 mr-1" />
-                          {t("governance.manifesto.voting")}
-                        </Badge>
+                {editingManifesto ? (
+                  <ManifestoEditor 
+                    onClose={() => setEditingManifesto(false)}
+                    onSuccess={() => {
+                      setEditingManifesto(false);
+                      loadManifestoData();
+                    }}
+                  />
+                ) : (
+                  <>
+                    <div className="flex justify-between items-center">
+                      <h2 className="text-2xl font-bold">{t("governance.manifesto.title")}</h2>
+                      <div className="flex gap-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => setShowHistoryModal(true)}
+                        >
+                          <GitBranch className="w-4 h-4 mr-2" />
+                          {t("governance.manifesto.viewHistory")}
+                        </Button>
+                        <Button 
+                          size="sm"
+                          onClick={() => setEditingManifesto(true)}
+                        >
+                          <FileText className="w-4 h-4 mr-2" />
+                          {t("governance.manifesto.propose")}
+                        </Button>
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
+
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>{t("governance.manifesto.current")}</CardTitle>
+                        <CardDescription>
+                          {currentManifesto && (
+                            <>
+                              {t("governance.manifesto.version")}: {currentManifesto.version_number} • 
+                              {t("governance.manifesto.author")}: {currentManifesto.author_name} • 
+                              {t("governance.manifesto.lastUpdated")}: {new Date(currentManifesto.created_at).toLocaleDateString('pt-BR')}
+                            </>
+                          )}
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        {loading ? (
+                          <div className="flex items-center justify-center h-64">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                          </div>
+                        ) : currentManifesto ? (
+                          <div className="prose prose-sm max-w-none">
+                            <Streamdown>
+                              {currentManifesto.content}
+                            </Streamdown>
+                          </div>
+                        ) : (
+                          <Alert>
+                            <AlertDescription>
+                              {t("governance.manifesto.noContent")}
+                            </AlertDescription>
+                          </Alert>
+                        )}
+                      </CardContent>
+                    </Card>
+
+                    {manifestoProposals.length > 0 && (
+                      <Card>
+                        <CardHeader>
+                          <CardTitle>{t("governance.manifesto.pendingChanges")}</CardTitle>
+                          <CardDescription>
+                            {manifestoProposals.length} {t("governance.manifesto.activeProposals")}
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-4">
+                            {manifestoProposals.map((proposal) => {
+                              const total = proposal.votes_yes + proposal.votes_no + proposal.votes_abstain;
+                              const yesPercentage = total > 0 ? (proposal.votes_yes / total) * 100 : 0;
+                              const daysLeft = Math.ceil(
+                                (new Date(proposal.expires_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
+                              );
+
+                              return (
+                                <div key={proposal.id} className="border rounded-lg p-4">
+                                  <div className="flex items-start justify-between mb-3">
+                                    <div className="flex-1">
+                                      <h4 className="font-semibold">{proposal.title}</h4>
+                                      <p className="text-sm text-gray-600 mt-1">{proposal.description}</p>
+                                      <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
+                                        <span className="flex items-center gap-1">
+                                          <Users className="w-3 h-3" />
+                                          {proposal.author_name}
+                                        </span>
+                                        <span className="flex items-center gap-1">
+                                          <Clock className="w-3 h-3" />
+                                          {daysLeft} {t("governance.manifesto.daysLeft")}
+                                        </span>
+                                      </div>
+                                    </div>
+                                    <Badge variant={proposal.status === 'voting' ? 'default' : 'secondary'}>
+                                      {t(`governance.manifesto.status.${proposal.status}`)}
+                                    </Badge>
+                                  </div>
+
+                                  <div className="space-y-2">
+                                    <div className="flex items-center justify-between text-sm">
+                                      <span className="text-gray-600">
+                                        {total} {t("governance.manifesto.totalVotes")}
+                                      </span>
+                                      <span className="font-medium text-green-600">
+                                        {Math.round(yesPercentage)}% {t("governance.manifesto.approval")}
+                                      </span>
+                                    </div>
+                                    <Progress value={yesPercentage} className="h-2" />
+                                    
+                                    <div className="flex gap-2 mt-3">
+                                      <Button 
+                                        size="sm" 
+                                        className="flex-1"
+                                        disabled={votingProposal === proposal.id || proposal.status !== 'voting'}
+                                        onClick={() => handleVote(proposal.id, 'yes')}
+                                      >
+                                        <CheckCircle2 className="w-3 h-3 mr-1" />
+                                        {t("governance.manifesto.voteYes")} ({proposal.votes_yes})
+                                      </Button>
+                                      <Button 
+                                        size="sm" 
+                                        variant="destructive" 
+                                        className="flex-1"
+                                        disabled={votingProposal === proposal.id || proposal.status !== 'voting'}
+                                        onClick={() => handleVote(proposal.id, 'no')}
+                                      >
+                                        <XCircle className="w-3 h-3 mr-1" />
+                                        {t("governance.manifesto.voteNo")} ({proposal.votes_no})
+                                      </Button>
+                                      <Button 
+                                        size="sm" 
+                                        variant="outline"
+                                        disabled={votingProposal === proposal.id || proposal.status !== 'voting'}
+                                        onClick={() => handleVote(proposal.id, 'abstain')}
+                                      >
+                                        {t("governance.manifesto.abstain")} ({proposal.votes_abstain})
+                                      </Button>
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+                  </>
+                )}
+
+                <ManifestoHistoryModal 
+                  isOpen={showHistoryModal}
+                  onClose={() => setShowHistoryModal(false)}
+                />
               </>
             )}
 
