@@ -199,6 +199,13 @@
         "title": "Governança Democrática",
         "desc": "Um apoiador, um voto. Todas as mudanças passam por votação pública."
       },
+      "nonprofit": {
+        "title": "Projeto Social Sem Fins Lucrativos",
+        "text": "Bluezz é um projeto social, sem intenção de lucro. Nenhum centavo é movimentado sem aprovação da governança comunitária. Cada transação é pública, cada decisão é votada, cada ação é auditada.",
+        "badge1": "100% Sem Fins Lucrativos",
+        "badge2": "Governança Obrigatória",
+        "badge3": "Auditoria Pública"
+      },
       "quote": "\"O mal já é global. O impacto já é total. A solução precisa ser coletiva.\"",
       "quote_author": "- Manifesto Bluezz, 2024",
       "cta_primary": "Ler Manifesto Completo",

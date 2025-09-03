@@ -121,6 +121,34 @@ export default function Manifesto() {
           ))}
         </div>
 
+        {/* Non-Profit Declaration */}
+        <div className="mt-16 overflow-hidden rounded-2xl border-2 border-blue-200 bg-gradient-to-r from-blue-50 to-cyan-50 p-8">
+          <div className="flex flex-col items-center text-center lg:flex-row lg:text-left">
+            <div className="mb-6 flex h-20 w-20 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 shadow-lg lg:mb-0 lg:mr-8">
+              <Shield className="h-10 w-10 text-white" />
+            </div>
+            <div className="flex-1">
+              <h3 className="mb-3 text-2xl font-bold text-gray-900">
+                {t("home.manifesto.nonprofit.title", "Projeto Social Sem Fins Lucrativos")}
+              </h3>
+              <p className="text-lg leading-relaxed text-gray-700">
+                {t("home.manifesto.nonprofit.text", "Bluezz é um projeto social, sem intenção de lucro. Nenhum centavo é movimentado sem aprovação da governança comunitária. Cada transação é pública, cada decisão é votada, cada ação é auditada.")}
+              </p>
+              <div className="mt-4 flex flex-wrap justify-center gap-4 lg:justify-start">
+                <Badge className="bg-blue-100 px-3 py-1 text-blue-700">
+                  {t("home.manifesto.nonprofit.badge1", "100% Sem Fins Lucrativos")}
+                </Badge>
+                <Badge className="bg-green-100 px-3 py-1 text-green-700">
+                  {t("home.manifesto.nonprofit.badge2", "Governança Obrigatória")}
+                </Badge>
+                <Badge className="bg-purple-100 px-3 py-1 text-purple-700">
+                  {t("home.manifesto.nonprofit.badge3", "Auditoria Pública")}
+                </Badge>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Featured Quote */}
         <div className="mt-20 overflow-hidden rounded-3xl bg-gradient-to-r from-purple-600 to-pink-600 p-8 shadow-2xl md:p-12">
           <div className="relative">

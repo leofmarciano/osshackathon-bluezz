@@ -34,17 +34,17 @@ function ComparisonRow({
         </div>
         <span className="font-semibold text-gray-900">{label}</span>
       </div>
-      <div className="relative flex items-center border-b border-gray-200 bg-gradient-to-br from-red-50 to-orange-50 p-5 md:border-b-0 md:border-r">
-        <div className="absolute left-3 top-3">
+      <div className="relative flex items-start border-b border-gray-200 bg-gradient-to-br from-red-50 to-orange-50 p-5 md:border-b-0 md:border-r">
+        <div className="mr-3 flex-shrink-0">
           <X className="h-5 w-5 text-red-500" />
         </div>
-        <p className="pl-8 text-sm leading-relaxed text-gray-700">{ongs}</p>
+        <p className="text-sm leading-relaxed text-gray-700">{ongs}</p>
       </div>
-      <div className="relative flex items-center bg-gradient-to-br from-green-50 to-emerald-50 p-5">
-        <div className="absolute left-3 top-3">
+      <div className="relative flex items-start bg-gradient-to-br from-green-50 to-emerald-50 p-5">
+        <div className="mr-3 flex-shrink-0">
           <Check className="h-5 w-5 text-green-600" />
         </div>
-        <p className="pl-8 text-sm font-medium leading-relaxed text-gray-800">{bluezz}</p>
+        <p className="text-sm font-medium leading-relaxed text-gray-800">{bluezz}</p>
       </div>
     </div>
   );

@@ -199,6 +199,13 @@
         "title": "Democratic Governance",
         "desc": "One supporter, one vote. All changes go through public voting."
       },
+      "nonprofit": {
+        "title": "Non-Profit Social Project",
+        "text": "Bluezz is a social project with no profit motive. Not a single cent is moved without approval from community governance. Every transaction is public, every decision is voted on, every action is audited.",
+        "badge1": "100% Non-Profit",
+        "badge2": "Mandatory Governance",
+        "badge3": "Public Audit"
+      },
       "quote": "\"Evil is already global. Impact is already total. The solution needs to be collective.\"",
       "quote_author": "- Bluezz Manifesto, 2024",
       "cta_primary": "Read Full Manifesto",
