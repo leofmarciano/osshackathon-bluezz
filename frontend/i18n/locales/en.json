@@ -630,6 +630,7 @@
     "user": "User",
     "success": "Success!",
     "error": "Error",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "back": "Back"
   }
 }

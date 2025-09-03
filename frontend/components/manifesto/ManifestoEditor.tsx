@@ -89,16 +89,14 @@ export function ManifestoEditor({ onClose, onSuccess }: ManifestoEditorProps) {
     try {
       setSaving(true);
       
-      // Get user info from localStorage or auth context
-      const userId = localStorage.getItem("userId") || "anonymous";
-      const userName = localStorage.getItem("userName") || "Anonymous User";
-
+      // The backend will handle authentication and get user data from Clerk
       await backend.manifesto.createProposal({
         title,
         description,
         new_content: editedContent,
-        author_id: userId,
-        author_name: userName,
+        // author_id and author_name are now handled by the backend
+        author_id: "", // Will be replaced by backend
+        author_name: "", // Will be replaced by backend
       });
 
       toast({

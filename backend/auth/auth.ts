@@ -4,7 +4,7 @@ import { authHandler } from "encore.dev/auth";
 import { secret } from "encore.dev/config";
 
 const clerkSecretKey = secret("ClerkSecretKey");
-const clerkClient = createClerkClient({ secretKey: clerkSecretKey() });
+export const clerkClient = createClerkClient({ secretKey: clerkSecretKey() });
 
 interface AuthParams {
   authorization?: Header<"Authorization">;

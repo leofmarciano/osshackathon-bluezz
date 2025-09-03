@@ -1,7 +1,13 @@
 import { api, APIError } from "encore.dev/api";
+import { getAuthData } from "~encore/auth";
+import { secret } from "encore.dev/config";
 import { manifestoDB } from "./db";
 import { createProposalTranslations } from "./translations";
 import type { ManifestoVersion, ManifestoProposal, CreateProposalRequest, VoteRequest } from "./types";
+import { clerkClient } from "../auth/auth";
+
+// Define secret at module level
+const clerkSecretKey = secret("ClerkSecretKey");
 
 // Get current manifesto
 export const getCurrent = api(
@@ -117,8 +123,23 @@ export const getProposal = api(
 
 // Create new proposal
 export const createProposal = api(
-  { expose: true, method: "POST", path: "/manifesto/proposal" },
+  { expose: true, auth: true, method: "POST", path: "/manifesto/proposal" },
   async (req: CreateProposalRequest): Promise<{ proposal: ManifestoProposal }> => {
+    // Get authenticated user data from Clerk
+    const authData = getAuthData();
+    
+    if (!authData) {
+      throw APIError.unauthenticated("Authentication required to create manifesto proposals");
+    }
+
+    // Get user details from Clerk
+    const user = await clerkClient.users.getUser(authData.userID);
+    console.log(user)
+    // Use the real user name from Clerk
+    const userName = user.firstName && user.lastName 
+      ? `${user.firstName} ${user.lastName}`
+      : user.username || user.emailAddresses?.[0]?.emailAddress || "Unknown User";
+
     // Get current version
     const currentVersion = await manifestoDB.queryRow<{ id: number }>`
       SELECT id FROM manifesto_versions WHERE is_current = true LIMIT 1
@@ -138,8 +159,8 @@ export const createProposal = api(
         ${req.description}, 
         ${req.new_content},
         ${currentVersion.id},
-        ${req.author_id},
-        ${req.author_name},
+        ${authData.userID},
+        ${userName},
         NOW() + INTERVAL '60 days'
       )
       RETURNING id, title, description, new_content, previous_version_id, author_id, author_name,

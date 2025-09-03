@@ -42,9 +42,10 @@ export async function translateManifestoContent(
         ? `TITLE: ${title}\n\nDESCRIPTION: ${description}\n\nCONTENT:\n${content}`
         : content;
 
-      const response = await claude.messages.create({
-        model: "claude-4-sonnet",
-        max_tokens: 128000,
+      // Use streaming for long content to avoid timeout
+      const stream = await claude.messages.create({
+        model: "claude-3-5-sonnet-20241022",
+        max_tokens: 8000,
         temperature: 0.1,
         system: systemPrompt,
         messages: [
@@ -52,10 +53,18 @@ export async function translateManifestoContent(
             role: "user",
             content: contentToTranslate
           }
-        ]
+        ],
+        stream: true
       });
 
-      const translatedText = response.content[0].type === 'text' ? response.content[0].text : '';
+      // Collect the streamed response
+      let translatedText = '';
+      for await (const messageStreamEvent of stream) {
+        if (messageStreamEvent.type === 'content_block_delta' && 
+            messageStreamEvent.delta.type === 'text_delta') {
+          translatedText += messageStreamEvent.delta.text;
+        }
+      }
       
       if (title && description) {
         // Parse the translated title, description, and content

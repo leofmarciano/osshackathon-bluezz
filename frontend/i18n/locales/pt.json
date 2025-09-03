@@ -630,6 +630,7 @@
     "user": "Usuário",
     "success": "Sucesso!",
     "error": "Erro",
-    "cancel": "Cancelar"
+    "cancel": "Cancelar",
+    "back": "Voltar"
   }
 }
