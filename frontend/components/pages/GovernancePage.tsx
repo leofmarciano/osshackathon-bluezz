@@ -7,7 +7,7 @@ import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from "@/components/ui/use-toast";
 import { Streamdown } from "streamdown";
-import backend from "~backend/client";
+import { useBackend } from "@/lib/useBackend";
 import { ManifestoEditor } from "../manifesto/ManifestoEditor";
 import { ManifestoHistoryModal } from "../manifesto/ManifestoHistoryModal";
 import { 
@@ -40,6 +40,7 @@ import {
 export function GovernancePage() {
   const { t } = useTranslation();
   const { toast } = useToast();
+  const backend = useBackend();
   const [activeSection, setActiveSection] = useState("proposals");
   const [loading, setLoading] = useState(false);
   const [editingManifesto, setEditingManifesto] = useState(false);
@@ -149,8 +150,8 @@ export function GovernancePage() {
       const manifestoRes = await backend.manifesto.getCurrent();
       setCurrentManifesto(manifestoRes.manifesto);
       
-      // Load active proposals
-      const proposalsRes = await backend.manifesto.getActiveProposals();
+      // Load active proposals (filter by voting status)
+      const proposalsRes = await backend.manifesto.getProposals({ status: "voting" });
       setManifestoProposals(proposalsRes.proposals);
     } catch (error) {
       console.error("Failed to load manifesto data:", error);
@@ -169,7 +170,7 @@ export function GovernancePage() {
       setVotingProposal(proposalId);
       const userId = localStorage.getItem("userId") || "anonymous";
       
-      await backend.manifesto.vote({
+      await backend.manifesto.voteOnProposal({
         proposal_id: proposalId,
         user_id: userId,
         vote_type: voteType,
@@ -601,7 +602,9 @@ export function GovernancePage() {
                           </div>
                         ) : currentManifesto ? (
                           <div className="prose prose-sm max-w-none">
-                            <Streamdown content={currentManifesto.content} />
+                            <Streamdown>
+                              {currentManifesto.content}
+                            </Streamdown>
                           </div>
                         ) : (
                           <Alert>

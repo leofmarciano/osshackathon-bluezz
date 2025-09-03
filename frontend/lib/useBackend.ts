@@ -1,5 +1,5 @@
 import { useAuth } from "@clerk/clerk-react";
-import backend from "~backend/client";
+import backend from "../backend";
 
 // Returns the backend client with proper authentication.
 export function useBackend() {

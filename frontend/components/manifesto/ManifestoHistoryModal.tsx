@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { useTranslation } from "react-i18next";
 import { Loader2, Calendar, User, GitBranch, Eye } from "lucide-react";
-import backend from "~backend/client";
+import { useBackend } from "@/lib/useBackend";
 import { useToast } from "@/components/ui/use-toast";
 import { Streamdown } from "streamdown";
 
@@ -28,6 +28,7 @@ interface ManifestoHistoryModalProps {
 export function ManifestoHistoryModal({ isOpen, onClose }: ManifestoHistoryModalProps) {
   const { t } = useTranslation();
   const { toast } = useToast();
+  const backend = useBackend();
   const [loading, setLoading] = useState(true);
   const [versions, setVersions] = useState<ManifestoVersion[]>([]);
   const [selectedVersion, setSelectedVersion] = useState<ManifestoVersion | null>(null);
@@ -171,7 +172,9 @@ export function ManifestoHistoryModal({ isOpen, onClose }: ManifestoHistoryModal
 
           <div className="overflow-y-auto max-h-[calc(90vh-150px)] pr-2">
             <div className="prose prose-sm max-w-none">
-              <Streamdown content={selectedVersion?.content || ""} />
+              <Streamdown>
+                {selectedVersion?.content || ""}
+              </Streamdown>
             </div>
           </div>
 

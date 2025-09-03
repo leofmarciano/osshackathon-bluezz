@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useTranslation } from "react-i18next";
 import { Loader2, Save, X, FileText, GitBranch } from "lucide-react";
-import backend from "~backend/client";
+import { useBackend } from "@/lib/useBackend";
 import { useToast } from "@/components/ui/use-toast";
 
 interface ManifestoEditorProps {
@@ -18,6 +18,7 @@ interface ManifestoEditorProps {
 export function ManifestoEditor({ onClose, onSuccess }: ManifestoEditorProps) {
   const { t } = useTranslation();
   const { toast } = useToast();
+  const backend = useBackend();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [currentContent, setCurrentContent] = useState("");
