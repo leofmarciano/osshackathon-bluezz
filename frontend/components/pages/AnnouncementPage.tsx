@@ -129,8 +129,7 @@ export function AnnouncementPage() {
     if (!slug) return;
     try {
       setLoading(true);
-      const response = await backend.announcements.getBySlug({ 
-        slug: slug!,
+      const response = await backend.announcements.getBySlug(slug!, { 
         language: i18n.language 
       });
       setAnnouncement(response);
