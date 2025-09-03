@@ -6,15 +6,15 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import MDEditor from "@uiw/react-md-editor";
 import { Streamdown } from "streamdown";
 import { 
   Globe, Mail, Phone, MapPin, Calendar, Users, Target, 
-  FileText, Edit, Save, X, ThumbsUp, ThumbsDown,
+  FileText, Edit, ThumbsUp, ThumbsDown,
   Clock, CheckCircle, AlertCircle, Share2, Heart, Shield
 } from "lucide-react";
 import CompanyTimeline from "./CompanyTimeline";
 import CompanyDocuments from "./CompanyDocuments";
+import CompanyEditModal from "./CompanyEditModal";
 
 interface CompanyData {
   id: string;
@@ -67,22 +67,16 @@ export default function CompanyProfile({
   onFollow 
 }: {
   company: CompanyData;
-  onUpdate: (presentation: string) => void;
+  onUpdate: (data: any) => void;
   onVote: (vote: "yes" | "no") => void;
   onFollow: () => void;
 }) {
   const { t } = useTranslation();
-  const [isEditing, setIsEditing] = useState(false);
-  const [presentation, setPresentation] = useState(company.presentation);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
-  const handleSave = () => {
-    onUpdate(presentation);
-    setIsEditing(false);
-  };
-
-  const handleCancel = () => {
-    setPresentation(company.presentation);
-    setIsEditing(false);
+  const handleSave = (data: any) => {
+    onUpdate(data);
+    setIsEditModalOpen(false);
   };
 
   const getStatusColor = () => {
@@ -159,7 +153,7 @@ export default function CompanyProfile({
                 <Button
                   variant="secondary"
                   size="sm"
-                  onClick={() => setIsEditing(!isEditing)}
+                  onClick={() => setIsEditModalOpen(true)}
                   className="sm:size-default"
                 >
                   <Edit className="mr-0 h-4 w-4 sm:mr-2" />
@@ -331,41 +325,17 @@ export default function CompanyProfile({
               <CardTitle>{t("companies.profile.presentation.title")}</CardTitle>
             </CardHeader>
             <CardContent>
-              {isEditing ? (
-                <div className="space-y-4">
-                  <div data-color-mode="light">
-                    <MDEditor
-                      value={presentation}
-                      onChange={(val) => setPresentation(val || "")}
-                      height={500}
-                      preview="live"
-                    />
-                  </div>
-                  
-                  <div className="flex gap-2">
-                    <Button onClick={handleSave}>
-                      <Save className="mr-2 h-4 w-4" />
-                      {t("common.save")}
-                    </Button>
-                    <Button variant="outline" onClick={handleCancel}>
-                      <X className="mr-2 h-4 w-4" />
-                      {t("common.cancel")}
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                <div className="prose prose-blue max-w-none">
-                  {company.presentation ? (
-                    <Streamdown>
-                      {company.presentation}
-                    </Streamdown>
-                  ) : (
-                    <p className="text-gray-500">
-                      {t("companies.profile.presentation.empty")}
-                    </p>
-                  )}
-                </div>
-              )}
+              <div className="prose prose-blue max-w-none">
+                {company.presentation ? (
+                  <Streamdown>
+                    {company.presentation}
+                  </Streamdown>
+                ) : (
+                  <p className="text-gray-500">
+                    {t("companies.profile.presentation.empty")}
+                  </p>
+                )}
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -429,6 +399,14 @@ export default function CompanyProfile({
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Edit Modal */}
+      <CompanyEditModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        company={company}
+        onSave={handleSave}
+      />
     </div>
   );
 }

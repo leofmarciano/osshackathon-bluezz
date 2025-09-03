@@ -60,9 +60,12 @@ export default function CompanyTimeline({
       id: "1",
       companyId,
       companyName: "Ocean Cleanup NGO",
-      companyLogo: "https://via.placeholder.com/150",
+      companyLogo: "https://picsum.photos/150/150?random=1",
       content: "Today we successfully removed 500kg of plastic from the coastal area! 🌊 Our volunteers worked tirelessly to make this happen. Thank you to everyone who participated!",
-      images: ["https://via.placeholder.com/600x400?text=Beach+Cleanup+1", "https://via.placeholder.com/600x400?text=Beach+Cleanup+2"],
+      images: [
+        "https://picsum.photos/600/400?random=2",
+        "https://picsum.photos/600/400?random=3"
+      ],
       location: "Praia do Forte, BA",
       createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
       likes: 234,
@@ -78,6 +81,101 @@ export default function CompanyTimeline({
           createdAt: new Date(Date.now() - 60 * 60 * 1000),
         }
       ]
+    },
+    {
+      id: "2",
+      companyId,
+      companyName: "Ocean Cleanup NGO",
+      companyLogo: "https://picsum.photos/150/150?random=1",
+      content: "## Educational Workshop Success! 📚\n\nWe just completed our monthly educational workshop with 50 local students. Topics covered:\n\n- Ocean pollution impact\n- Marine life preservation\n- How to reduce plastic usage\n- Community action plans\n\nThe engagement was amazing! These young minds are the future of ocean conservation.",
+      images: [
+        "https://picsum.photos/600/400?random=4",
+        "https://picsum.photos/600/400?random=5",
+        "https://picsum.photos/600/400?random=6"
+      ],
+      location: "Escola Municipal Santos Dumont, SP",
+      createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000),
+      likes: 189,
+      comments: 23,
+      views: 890,
+      hasLiked: true,
+      userComments: []
+    },
+    {
+      id: "3",
+      companyId,
+      companyName: "Ocean Cleanup NGO",
+      companyLogo: "https://picsum.photos/150/150?random=1",
+      content: "🐢 **Turtle Rescue Mission Completed!**\n\nOur team rescued a sea turtle trapped in fishing nets today. After careful removal of the nets and a health check, we're happy to report the turtle is doing well and was released back to the ocean!\n\nEvery life matters in our mission to protect marine biodiversity.",
+      images: [
+        "https://picsum.photos/600/400?random=7"
+      ],
+      location: "Praia de Copacabana, RJ",
+      createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+      likes: 567,
+      comments: 89,
+      views: 3420,
+      hasLiked: false,
+      userComments: [
+        {
+          id: "c2",
+          userId: "u2",
+          userName: "Maria Santos",
+          content: "Heroes! Thank you for saving this beautiful creature 🐢💚",
+          createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+        },
+        {
+          id: "c3",
+          userId: "u3",
+          userName: "Carlos Oliveira",
+          content: "This is why I support your organization. Real impact!",
+          createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+        }
+      ]
+    },
+    {
+      id: "4",
+      companyId,
+      companyName: "Ocean Cleanup NGO",
+      companyLogo: "https://picsum.photos/150/150?random=1",
+      content: "### Partnership Announcement! 🤝\n\nWe're excited to announce our new partnership with **EcoTech Solutions**! Together, we'll be:\n\n1. Developing AI-powered ocean monitoring systems\n2. Creating biodegradable alternatives to common plastics\n3. Expanding our cleanup operations to 5 new beaches\n\nThis collaboration will help us scale our impact and reach our 2024 goals faster!",
+      images: [
+        "https://picsum.photos/600/400?random=8",
+        "https://picsum.photos/600/400?random=9"
+      ],
+      documents: [
+        {
+          name: "Partnership_Agreement_Summary.pdf",
+          url: "#",
+          size: "245 KB"
+        }
+      ],
+      createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
+      likes: 342,
+      comments: 67,
+      views: 2100,
+      hasLiked: false,
+      userComments: []
+    },
+    {
+      id: "5",
+      companyId,
+      companyName: "Ocean Cleanup NGO",
+      companyLogo: "https://picsum.photos/150/150?random=1",
+      content: "**Monthly Impact Report - October 2023** 📊\n\n- 🗑️ 2.5 tons of plastic removed\n- 🏖️ 8 beaches cleaned\n- 👥 150 volunteers engaged\n- 🐟 12 marine animals rescued\n- 📚 300 students educated\n\nThank you to everyone who made this possible! Your support drives real change.",
+      images: [
+        "https://picsum.photos/600/400?random=10",
+        "https://picsum.photos/600/400?random=11",
+        "https://picsum.photos/600/400?random=12",
+        "https://picsum.photos/600/400?random=13"
+      ],
+      location: "Multiple Locations, Brasil",
+      createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+      likes: 892,
+      comments: 134,
+      views: 5670,
+      hasLiked: true,
+      userComments: []
     }
   ]);
 
@@ -100,7 +198,7 @@ export default function CompanyTimeline({
       id: Date.now().toString(),
       companyId,
       companyName: "Your Company",
-      companyLogo: "https://via.placeholder.com/150",
+      companyLogo: "https://picsum.photos/150/150?random=1",
       content: newPost,
       location: postLocation,
       createdAt: new Date(),

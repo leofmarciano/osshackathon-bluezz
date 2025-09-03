@@ -893,6 +893,49 @@
         "impact": "Impacto",
         "contact": "Contato"
       }
+    },
+    "edit": {
+      "title": "Editar Organização",
+      "sections": {
+        "info": "Informações Gerais",
+        "infoDesc": "Dados básicos e contato",
+        "presentation": "Apresentação",
+        "presentationDesc": "Conteúdo em markdown",
+        "logo": "Logo e Identidade",
+        "logoDesc": "Imagem de perfil"
+      },
+      "info": {
+        "title": "Informações Gerais",
+        "name": "Nome",
+        "namePlaceholder": "Nome da organização",
+        "website": "Website",
+        "description": "Descrição",
+        "descriptionPlaceholder": "Breve descrição da organização",
+        "mission": "Missão",
+        "missionPlaceholder": "Nossa missão é...",
+        "impact": "Impacto",
+        "impactPlaceholder": "Nosso impacto até hoje..."
+      },
+      "contact": {
+        "title": "Informações de Contato",
+        "email": "Email",
+        "phone": "Telefone",
+        "address": "Endereço",
+        "addressPlaceholder": "Rua, número",
+        "city": "Cidade",
+        "state": "Estado",
+        "country": "País"
+      },
+      "presentation": {
+        "title": "Apresentação da Organização",
+        "description": "Use markdown para formatar sua apresentação. Esta será a página principal da sua organização."
+      },
+      "logo": {
+        "title": "Logo da Organização",
+        "upload": "Escolher imagem",
+        "requirements": "JPG, PNG ou GIF. Tamanho máximo de 2MB. Recomendado: 400x400px",
+        "reset": "Restaurar logo original"
+      }
     }
   },
   "timeline": {

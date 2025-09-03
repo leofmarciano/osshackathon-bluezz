@@ -9,7 +9,7 @@ const mockCompany = {
   id: "1",
   name: "Ocean Cleanup Brasil",
   type: "ngo" as const,
-  logo: "https://via.placeholder.com/150",
+  logo: "https://picsum.photos/150/150?random=1",
   status: "active" as const,
   category: "ocean_cleanup",
   description: "Dedicated to removing plastic waste from Brazilian coastlines and educating communities about ocean conservation.",
@@ -94,10 +94,10 @@ export function CompanyDetailPage() {
     }, 500);
   }, [id]);
 
-  const handleUpdate = async (presentation: string) => {
-    console.log("Updating presentation:", presentation);
-    // API call to update presentation
-    setCompany((prev: any) => ({ ...prev, presentation }));
+  const handleUpdate = async (data: any) => {
+    console.log("Updating company data:", data);
+    // API call to update company information
+    setCompany((prev: any) => ({ ...prev, ...data }));
   };
 
   const handleVote = async (vote: "yes" | "no") => {
