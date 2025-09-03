@@ -342,7 +342,36 @@
     "linkCopied": "Link copied to clipboard!",
     "linkCopyError": "Could not copy the link.",
     "aboutOrg": "About the Organization",
-    "contents": "Contents"
+    "contents": "Contents",
+    "tabs": {
+      "description": "Description",
+      "updates": "Updates",
+      "supporters": "Supporters"
+    },
+    "noUpdates": "No updates yet",
+    "updatesComingSoon": "Project updates will appear here"
+  },
+  "donation": {
+    "title": "Make Donation",
+    "subtitle": "Your contribution will help achieve the project goals: {{project}}",
+    "selectAmount": "Choose an amount",
+    "customAmount": "Custom amount",
+    "donationAmount": "Donation amount",
+    "processingNote": "Secure processing via Polar",
+    "donateButton": "Donate Now",
+    "secureNote": "Your payment data is protected with end-to-end encryption.",
+    "signInRequired": "You need to be logged in to make a donation.",
+    "minimumAmount": "The minimum donation amount is $0.50",
+    "checkoutError": "Error creating payment session. Please try again."
+  },
+  "donations": {
+    "title": "Supporters",
+    "supporters": "supporters",
+    "loading": "Loading supporters...",
+    "noDonations": "No supporters yet",
+    "beFirst": "Be the first to support this project!",
+    "completed": "Completed",
+    "showingCount": "Showing {{showing}} of {{total}} supporters"
   },
   "account": {
     "title": "My Account",
@@ -435,6 +464,7 @@
     "from": "of",
     "user": "User",
     "success": "Success!",
-    "error": "Error"
+    "error": "Error",
+    "cancel": "Cancel"
   }
 }

@@ -34,6 +34,7 @@ const BROWSER = typeof globalThis === "object" && ("window" in globalThis);
  */
 export class Client {
     public readonly announcements: announcements.ServiceClient
+    public readonly payments: payments.ServiceClient
     public readonly user: user.ServiceClient
     private readonly options: ClientOptions
     private readonly target: string
@@ -50,6 +51,7 @@ export class Client {
         this.options = options ?? {}
         const base = new BaseClient(this.target, this.options)
         this.announcements = new announcements.ServiceClient(base)
+        this.payments = new payments.ServiceClient(base)
         this.user = new user.ServiceClient(base)
     }
 
@@ -183,6 +185,60 @@ export namespace announcements {
 
 
 export namespace auth {
+}
+
+/**
+ * Import the endpoint handlers to derive the types for the client.
+ */
+import { createCheckout as api_payments_create_checkout_createCheckout } from "~backend/payments/create_checkout";
+import { listDonations as api_payments_list_donations_listDonations } from "~backend/payments/list_donations";
+import { webhook as api_payments_webhook_webhook } from "~backend/payments/webhook";
+
+export namespace payments {
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.createCheckout = this.createCheckout.bind(this)
+            this.listDonations = this.listDonations.bind(this)
+            this.webhook = this.webhook.bind(this)
+        }
+
+        /**
+         * Creates a Polar checkout session for a donation.
+         */
+        public async createCheckout(params: RequestType<typeof api_payments_create_checkout_createCheckout>): Promise<ResponseType<typeof api_payments_create_checkout_createCheckout>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/payments/checkout`, {method: "POST", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_payments_create_checkout_createCheckout>
+        }
+
+        /**
+         * Lists donations for an announcement with anonymized email addresses.
+         */
+        public async listDonations(params: RequestType<typeof api_payments_list_donations_listDonations>): Promise<ResponseType<typeof api_payments_list_donations_listDonations>> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                limit:  params.limit === undefined ? undefined : String(params.limit),
+                offset: params.offset === undefined ? undefined : String(params.offset),
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/payments/donations/${encodeURIComponent(params.announcementId)}`, {query, method: "GET", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_payments_list_donations_listDonations>
+        }
+
+        /**
+         * Handles Polar webhook events.
+         */
+        public async webhook(params: RequestType<typeof api_payments_webhook_webhook>): Promise<ResponseType<typeof api_payments_webhook_webhook>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/payments/webhook`, {method: "POST", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_payments_webhook_webhook>
+        }
+    }
 }
 
 /**

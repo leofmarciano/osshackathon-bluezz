@@ -342,7 +342,36 @@
     "linkCopied": "Link copiado para a área de transferência!",
     "linkCopyError": "Não foi possível copiar o link.",
     "aboutOrg": "Sobre a Organização",
-    "contents": "Conteúdo"
+    "contents": "Conteúdo",
+    "tabs": {
+      "description": "Descrição",
+      "updates": "Atualizações",
+      "supporters": "Apoiadores"
+    },
+    "noUpdates": "Nenhuma atualização ainda",
+    "updatesComingSoon": "Atualizações do projeto aparecerão aqui"
+  },
+  "donation": {
+    "title": "Fazer Doação",
+    "subtitle": "Sua contribuição ajudará a alcançar os objetivos do projeto: {{project}}",
+    "selectAmount": "Escolha um valor",
+    "customAmount": "Valor personalizado",
+    "donationAmount": "Valor da doação",
+    "processingNote": "Processamento seguro via Polar",
+    "donateButton": "Doar Agora",
+    "secureNote": "Seus dados de pagamento são protegidos com criptografia de ponta.",
+    "signInRequired": "Você precisa estar logado para fazer uma doação.",
+    "minimumAmount": "O valor mínimo para doação é $0.50",
+    "checkoutError": "Erro ao criar sessão de pagamento. Tente novamente."
+  },
+  "donations": {
+    "title": "Apoiadores",
+    "supporters": "apoiadores",
+    "loading": "Carregando apoiadores...",
+    "noDonations": "Ainda não há apoiadores",
+    "beFirst": "Seja o primeiro a apoiar este projeto!",
+    "completed": "Concluído",
+    "showingCount": "Mostrando {{showing}} de {{total}} apoiadores"
   },
   "account": {
     "title": "Minha Conta",
@@ -435,6 +464,7 @@
     "from": "de",
     "user": "Usuário",
     "success": "Sucesso!",
-    "error": "Erro"
+    "error": "Erro",
+    "cancel": "Cancelar"
   }
 }

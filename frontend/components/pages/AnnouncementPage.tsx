@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Heart, 
   Bell, 
@@ -14,12 +15,15 @@ import {
   Twitter, 
   MapPin, 
   Building,
-  Loader2
+  Loader2,
+  MessageCircle
 } from "lucide-react";
 import { Streamdown } from "streamdown";
 import backend from "~backend/client";
 import { useBackend, useIsSignedIn } from "../../lib/useBackend";
 import { useToast } from "@/components/ui/use-toast";
+import { DonationModal } from "../DonationModal";
+import { DonationsList } from "../DonationsList";
 import type { AnnouncementDetail } from "~backend/announcements/types";
 
 export function AnnouncementPage() {
@@ -31,7 +35,6 @@ export function AnnouncementPage() {
   const isSignedIn = useIsSignedIn();
   const [announcement, setAnnouncement] = useState<AnnouncementDetail | null>(null);
   const [loading, setLoading] = useState(true);
-  const [backing, setBacking] = useState(false);
   const [reminding, setReminding] = useState(false);
 
   useEffect(() => {
@@ -57,39 +60,6 @@ export function AnnouncementPage() {
       });
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleBack = async () => {
-    if (!announcement) return;
-    
-    if (!isSignedIn) {
-      navigate("/sign-in");
-      return;
-    }
-    
-    try {
-      setBacking(true);
-      await authBackend.announcements.back({
-        announcementId: announcement.id,
-        amount: 5000, // Default amount in cents (R$ 50.00)
-      });
-      
-      toast({
-        title: t("common.success"),
-        description: t("announcement.backSuccessDesc"),
-      });
-      
-      await fetchAnnouncement();
-    } catch (error) {
-      console.error("Failed to back announcement:", error);
-      toast({
-        title: t("common.error"),
-        description: t("announcement.backErrorDesc"),
-        variant: "destructive",
-      });
-    } finally {
-      setBacking(false);
     }
   };
 
@@ -301,19 +271,15 @@ export function AnnouncementPage() {
 
               {/* Action Buttons */}
               <div className="space-y-3">
-                <Button 
-                  size="lg" 
-                  className="w-full text-lg"
-                  onClick={handleBack}
-                  disabled={backing}
+                <DonationModal 
+                  announcementId={announcement.id} 
+                  announcementTitle={announcement.title}
                 >
-                  {backing ? (
-                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                  ) : (
+                  <Button size="lg" className="w-full text-lg">
                     <Heart className="w-5 h-5 mr-2" />
-                  )}
-                  {t("announcement.backButton")}
-                </Button>
+                    {t("announcement.backButton")}
+                  </Button>
+                </DonationModal>
                 
                 <Button 
                   variant="outline" 
@@ -429,18 +395,44 @@ export function AnnouncementPage() {
           
           {/* Main Content */}
           <div className={headings.length > 0 ? "lg:col-span-3" : "lg:col-span-4"}>
-            <Card>
-              <CardContent className="p-8">
-                <div className="prose prose-lg max-w-none">
-                  <Streamdown 
-                    className="max-w-none"
-                    shikiTheme="github-light"
-                  >
-                    {announcement.content}
-                  </Streamdown>
-                </div>
-              </CardContent>
-            </Card>
+            <Tabs defaultValue="description" className="space-y-6">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="description">{t("announcement.tabs.description")}</TabsTrigger>
+                <TabsTrigger value="updates">{t("announcement.tabs.updates")}</TabsTrigger>
+                <TabsTrigger value="supporters">{t("announcement.tabs.supporters")}</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="description">
+                <Card>
+                  <CardContent className="p-8">
+                    <div className="prose prose-lg max-w-none">
+                      <Streamdown 
+                        className="max-w-none"
+                        shikiTheme="github-light"
+                      >
+                        {announcement.content}
+                      </Streamdown>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="updates">
+                <Card>
+                  <CardContent className="p-8">
+                    <div className="text-center py-12">
+                      <MessageCircle className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                      <p className="text-gray-500">{t("announcement.noUpdates")}</p>
+                      <p className="text-sm text-gray-400 mt-1">{t("announcement.updatesComingSoon")}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="supporters">
+                <DonationsList announcementId={announcement.id} />
+              </TabsContent>
+            </Tabs>
           </div>
         </div>
       </div>
