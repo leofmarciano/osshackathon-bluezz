@@ -93,7 +93,7 @@ export default function Problem() {
           {/* Big Impact Number */}
           <div className="mt-12 rounded-2xl bg-gradient-to-r from-red-500 to-orange-500 p-8 text-white shadow-2xl">
             <div className="text-6xl font-black md:text-8xl">
-              {counter}+ MILHÕES
+              {counter}+ {t("home.problem.millions", "MILHÕES")}
             </div>
             <p className="mt-4 text-xl">
               {t("home.problem.animals_dead", "de animais visíveis morrem todo ano por plástico e óleo")}
@@ -105,7 +105,7 @@ export default function Problem() {
           <StatItem
             Icon={Fish}
             title={t("home.problem.stat1.title", "Animais Marinhos")}
-            number="500+ milhões/ano"
+            number={t("home.problem.stat1.number", "500+ milhões/ano")}
             description={t(
               "home.problem.stat1.desc",
               "Tartarugas, aves, mamíferos marinhos e peixes morrem vítimas de plástico e óleo anualmente."
@@ -115,7 +115,7 @@ export default function Problem() {
           <StatItem
             Icon={Users}
             title={t("home.problem.stat2.title", "Seres Humanos")}
-            number="8 bilhões"
+            number={t("home.problem.stat2.number", "8 bilhões")}
             description={t(
               "home.problem.stat2.desc",
               "Todas as pessoas do planeta já carregam microplásticos no corpo, inclusive no sangue."
@@ -125,7 +125,7 @@ export default function Problem() {
           <StatItem
             Icon={Activity}
             title={t("home.problem.stat3.title", "Microrganismos")}
-            number="Trilhões"
+            number={t("home.problem.stat3.number", "Trilhões")}
             description={t(
               "home.problem.stat3.desc",
               "Microrganismos essenciais para o equilíbrio marinho estão sendo contaminados e extintos."
@@ -135,7 +135,7 @@ export default function Problem() {
           <StatItem
             Icon={Globe}
             title={t("home.problem.stat4.title", "Plástico nos Oceanos")}
-            number="12 milhões ton/ano"
+            number={t("home.problem.stat4.number", "12 milhões ton/ano")}
             description={t(
               "home.problem.stat4.desc",
               "Quantidade de plástico despejada nos oceanos anualmente, equivalente a um caminhão por minuto."
@@ -145,7 +145,7 @@ export default function Problem() {
           <StatItem
             Icon={AlertTriangle}
             title={t("home.problem.stat5.title", "Poluição Terrestre")}
-            number="80%"
+            number={t("home.problem.stat5.number", "80%")}
             description={t(
               "home.problem.stat5.desc",
               "Da poluição marinha vem de resíduos terrestres sem tratamento adequado."
@@ -155,7 +155,7 @@ export default function Problem() {
           <StatItem
             Icon={Heart}
             title={t("home.problem.stat6.title", "Cadeia Alimentar")}
-            number="100%"
+            number={t("home.problem.stat6.number", "100%")}
             description={t(
               "home.problem.stat6.desc",
               "Toda a cadeia alimentar está contaminada, do plâncton aos grandes predadores."

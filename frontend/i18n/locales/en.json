@@ -23,98 +23,190 @@
       }
     },
     "problem": {
-      "title": "The problem",
-      "subtitle": "The crisis is real and getting worse. We need to act now.",
+      "badge": "GLOBAL CRISIS",
+      "title": "The Problem That Already Impacts 100% of Life on Earth",
+      "subtitle": "Plastic, garbage and oil have already reached everywhere: in the sea, in the air, in the rain, in our blood and even in the human placenta.",
+      "millions": "MILLION",
+      "animals_dead": "visible animals die every year from plastic and oil",
       "stat1": {
-        "title": "12 million tons/year",
-        "desc": "of plastic end up in the ocean every year."
+        "title": "Marine Animals",
+        "number": "500+ million/year",
+        "desc": "Turtles, birds, marine mammals and fish die victims of plastic and oil annually."
       },
       "stat2": {
-        "title": "80% of marine pollution",
-        "desc": "comes from untreated terrestrial waste."
+        "title": "Human Beings",
+        "number": "8 billion",
+        "desc": "Everyone on the planet already carries microplastics in their body, including in their blood."
       },
       "stat3": {
-        "title": "Thousands of species at risk",
-        "desc": "Marine ecosystems are on the brink of collapse."
+        "title": "Microorganisms",
+        "number": "Trillions",
+        "desc": "Essential microorganisms for marine balance are being contaminated and extinct."
       },
+      "stat4": {
+        "title": "Ocean Plastic",
+        "number": "12 million tons/year",
+        "desc": "Amount of plastic dumped into the oceans annually, equivalent to one truck per minute."
+      },
+      "stat5": {
+        "title": "Land Pollution",
+        "number": "80%",
+        "desc": "Of marine pollution comes from untreated terrestrial waste."
+      },
+      "stat6": {
+        "title": "Food Chain",
+        "number": "100%",
+        "desc": "The entire food chain is contaminated, from plankton to large predators."
+      },
+      "urgent_title": "There's no more time to waste",
+      "urgent_text": "Every day that passes, more lives are lost. Oceans are responsible for 70% of the oxygen we breathe. Without healthy oceans, there is no life on Earth.",
       "image_alt": "Simple infographic showing ocean pollution"
     },
     "solution": {
-      "title": "Our solution",
-      "subtitle": "Technology, community and transparency to transform outrage into action.",
+      "badge": "OUR MISSION",
+      "title": "Bluezz Attacks Evil at the Root",
+      "subtitle": "Monitor oil spills and plastic waste in real time. Mobilize the global community to fund transparent and audited cleanup missions.",
       "tech": {
-        "title": "Technology",
-        "desc": "AI detects risk areas and ocean cleanup opportunities."
+        "title": "Real-Time Monitoring",
+        "desc": "Advanced technology to detect and track ocean pollution 24/7.",
+        "f1": "AI detects oil spills and plastic concentrations",
+        "f2": "Satellites and drones map critical areas",
+        "f3": "Automatic alerts for rapid response"
       },
       "governance": {
-        "title": "Community governance",
-        "desc": "The community decides who executes actions and how resources are allocated."
+        "title": "Community Mobilization",
+        "desc": "Decision power in the hands of those who care about the oceans.",
+        "f1": "Democratic voting on all missions",
+        "f2": "Transparent crowdfunding",
+        "f3": "Community chooses verified executors"
       },
       "transparency": {
-        "title": "Radical transparency",
-        "desc": "Every cent auditable in real time with open source code."
-      }
+        "title": "100% Auditable and Transparent",
+        "desc": "Every cent tracked, every action documented, everything public.",
+        "f1": "100% open source code on GitHub",
+        "f2": "Blockchain for total traceability",
+        "f3": "Public impact reports"
+      },
+      "impact": {
+        "title": "The Impact We Want to Generate",
+        "text": "Every action at Bluezz is a direct attack on the biggest silent enemy of life. We're not talking about 'saving little fish': we're talking about ensuring oxygen, food and health for all species, including humans."
+      },
+      "cta": "Join the Change",
+      "stat1": "Total Transparency",
+      "stat2": "Supporters Goal",
+      "stat3": "Days of Operation",
+      "stat4": "Monitoring"
     },
     "howItWorks": {
-      "title": "How it works",
-      "subtitle": "A simple, auditable, community-driven flow.",
+      "title": "HOW IT WORKS",
+      "subtitle": "From Problem to Solution in 5 Steps",
+      "description": "Intelligent system that transforms indignation into concrete action. Every step is transparent, auditable and controlled by the community.",
       "steps": {
         "1": {
-          "title": "Detect",
-          "desc": "AI and community reports identify high-impact areas."
+          "title": "Intelligent Detection",
+          "desc": "AI and satellites identify pollution in real time"
         },
         "2": {
-          "title": "Propose",
-          "desc": "NGOs and partners present cleanup plans with costs and goals."
+          "title": "Instant Mobilization",
+          "desc": "Community is alerted and missions are proposed"
         },
         "3": {
-          "title": "Vote",
-          "desc": "The community openly votes on projects to be funded."
+          "title": "Democratic Voting",
+          "desc": "Supporters decide priorities and executors"
         },
         "4": {
-          "title": "Execute",
-          "desc": "The chosen initiative receives funds and executes the cleanup."
+          "title": "Verified Execution",
+          "desc": "Approved teams perform the cleanup"
         },
         "5": {
-          "title": "Audit",
-          "desc": "Results and expenses published in real time, with public audit."
+          "title": "Total Transparency",
+          "desc": "Auditable and public results in real time"
         }
       },
+      "cta": {
+        "title": "Ready to Be Part of the Change?",
+        "text": "Join thousands of people who are already transforming ocean health. Every action counts, every support matters.",
+        "button": "Start Now",
+        "learn": "Learn More"
+      },
+      "stat1": "Continuous Monitoring",
+      "stat2": "Fast Response",
+      "stat3": "Guaranteed Transparency",
       "link": "See the complete step-by-step"
     },
     "differentials": {
-      "title": "Why Bluezz is different",
-      "subtitle": "Open transparency and governance from day one.",
-      "comparison_title": "Direct comparison",
+      "badge": "DIFFERENCE THAT MATTERS",
+      "title": "Why Bluezz Is the Revolution",
+      "subtitle": "Radical transparency, community governance and cutting-edge technology. Compared to the traditional model, we are the future.",
+      "stat1": "Open Source",
+      "stat2": "Open Governance",
+      "stat3": "Admin Fee",
+      "stat4": "Response Time",
+      "comparison_title": "Bluezz vs. Traditional Model",
+      "comparison_subtitle": "The difference is in the details - and in the results",
       "headers": {
-        "aspect": "Aspect",
-        "traditional_ngos": "Traditional NGOs",
-        "bluezz": "Bluezz"
+        "aspect": "🎯 Aspect",
+        "traditional_ngos": "❌ Traditional NGOs",
+        "bluezz": "✅ Bluezz"
       },
       "row1": {
-        "label": "Donation traceability",
-        "ongs": "No clear tracking of resource usage.",
-        "bluezz": "Every cent auditable in real time."
+        "label": "Donation Tracking",
+        "ongs": "Annual generic reports, no usage details",
+        "bluezz": "Blockchain + Public dashboard in real time"
       },
       "row2": {
-        "label": "Governance",
-        "ongs": "Centralized and non-transparent decisions.",
-        "bluezz": "Open and recorded community votes."
+        "label": "Decision Making",
+        "ongs": "Closed board decides everything internally",
+        "bluezz": "Community votes on all missions and actions"
       },
       "row3": {
-        "label": "Code and processes",
-        "ongs": "Closed tools without public audit.",
-        "bluezz": "Open-source on GitHub. Nothing hidden."
+        "label": "Technology",
+        "ongs": "Proprietary systems, closed code",
+        "bluezz": "100% open source on GitHub, auditable by everyone"
       },
       "row4": {
-        "label": "Response speed",
-        "ongs": "Long cycles with little visibility.",
-        "bluezz": "Short cycles with public results."
+        "label": "Speed",
+        "ongs": "Months to approve and execute projects",
+        "bluezz": "48h from detection to community mobilization"
+      },
+      "row5": {
+        "label": "Accountability",
+        "ongs": "Periodic reports with limited information",
+        "bluezz": "Photo evidence + GPS + blockchain for every action"
+      },
+      "cta": {
+        "title": "No More Empty Promises",
+        "text": "With Bluezz, every dollar donated becomes verifiable action. Join the environmental transparency revolution."
       }
     },
     "manifesto": {
-      "title": "Community manifesto",
-      "excerpt": "We're tired of donating in the dark. Bluezz was born so the community owns the decisions.",
+      "badge": "BLUEZZ MANIFESTO",
+      "title": "Our Constitution Is the Community",
+      "excerpt": "We're tired of donating in the dark. Tired of trusting without verifying. Bluezz was born to return power to the people who care about the oceans.",
+      "principle1": {
+        "title": "Impact First",
+        "desc": "Every decision is guided by real impact on the oceans, not by politics or profit."
+      },
+      "principle2": {
+        "title": "Community Power",
+        "desc": "The community decides. No hierarchy, no bureaucracy. Direct vote on everything."
+      },
+      "principle3": {
+        "title": "Radical Transparency",
+        "desc": "Open code, open accounts, open decisions. Nothing hidden, ever."
+      },
+      "principle4": {
+        "title": "Democratic Governance",
+        "desc": "One supporter, one vote. All changes go through public voting."
+      },
+      "quote": "\"Evil is already global. Impact is already total. The solution needs to be collective.\"",
+      "quote_author": "- Bluezz Manifesto, 2024",
+      "cta_primary": "Read Full Manifesto",
+      "cta_secondary": "View on GitHub",
+      "stat1": "Days for Voting",
+      "stat2": "Public Decisions",
+      "stat3": "Hierarchy",
+      "stat4": "Transparency",
       "cta": "Read manifesto on GitHub"
     },
     "governance": {
@@ -131,8 +223,35 @@
       }
     },
     "community": {
-      "title": "Community and participation",
-      "subtitle": "Join the movement. Participate in discussions, propose ideas and vote.",
+      "badge": "GLOBAL COMMUNITY",
+      "title": "We Are Thousands United for the Oceans",
+      "subtitle": "A global community of people who no longer accept empty promises. Together, we transform indignation into concrete action.",
+      "metric1": "Active Members",
+      "metric2": "Countries Represented",
+      "metric3": "Proposed Missions",
+      "metric4": "Community Support",
+      "testimonials_title": "What Our Community Says",
+      "testimonial1": {
+        "quote": "Finally a platform where I can see exactly where my donation goes. Bluezz's transparency is revolutionary!",
+        "role": "Marine Biologist"
+      },
+      "testimonial2": {
+        "quote": "Participating in votes and seeing my voice heard in decisions is incredible. This is how it should work!",
+        "role": "Environmental Activist"
+      },
+      "testimonial3": {
+        "quote": "Open source gave me total confidence. I can audit everything, from code to transactions. This is the future!",
+        "role": "Developer"
+      },
+      "join": {
+        "title": "Be Part of the Change",
+        "text": "Join our community and actively participate in decisions. Your voice matters, your vote counts, your action transforms."
+      },
+      "discord": "Discord",
+      "telegram": "Telegram",
+      "github": "GitHub",
+      "final_cta": "Evil is already global. The solution needs to be collective.",
+      "hashtag": "#TogetherForTheOceans #BluezzRevolution",
       "testimonials": {
         "1": {
           "quote": "Finally a way to fund ocean cleanup with real transparency.",
@@ -149,9 +268,7 @@
           "author": "Ana",
           "role": "Developer"
         }
-      },
-      "discord": "Join Discord",
-      "telegram": "Join Telegram"
+      }
     },
     "cta": {
       "title": "Join the first wave",
