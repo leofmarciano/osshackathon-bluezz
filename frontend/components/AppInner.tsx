@@ -9,6 +9,7 @@ import { AccountPage } from "./pages/AccountPage";
 import { SignInPage } from "./pages/SignInPage";
 import { SignUpPage } from "./pages/SignUpPage";
 import { Footer } from "./Footer";
+import { AnnouncementPage } from "./pages/AnnouncementPage";
 
 export function AppInner() {
   return (
@@ -22,6 +23,7 @@ export function AppInner() {
             <Route path="/discover" element={<DiscoverPage />} />
             <Route path="/how-it-works" element={<HowItWorksPage />} />
             <Route path="/search" element={<SearchPage />} />
+            <Route path="/announcements/:slug" element={<AnnouncementPage />} />
             <Route path="/my-account" element={<AccountPage />} />
             <Route path="/sign-in" element={<SignInPage />} />
             <Route path="/sign-up" element={<SignUpPage />} />
