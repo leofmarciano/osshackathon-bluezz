@@ -1,20 +1,11 @@
 import { api, APIError } from "encore.dev/api";
-import { secret } from "encore.dev/config";
 import { payments } from "~encore/clients";
 import type { PolarWebhookPayload } from "./types";
-
-const polarWebhookSecret = secret("PolarWebhookSecret");
 
 // Handles Polar webhook events.
 export const webhook = api<PolarWebhookPayload, { success: boolean }>(
   { expose: true, method: "POST", path: "/payments/webhook" },
-  async (req, { headers }) => {
-    // Verify webhook signature (simplified - in production, use proper signature verification)
-    const signature = headers.get("polar-signature");
-    if (!signature) {
-      throw APIError.unauthenticated("Missing webhook signature");
-    }
-
+  async (req) => {
     try {
       // Handle different webhook events
       switch (req.type) {
