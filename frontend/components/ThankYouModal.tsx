@@ -20,7 +20,7 @@ export function ThankYouModal({ isOpen, onClose, announcementTitle, onShare }: T
           <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-green-100">
             <CheckCircle2 className="h-12 w-12 text-green-600" />
           </div>
-          <DialogTitle className="text-2xl font-bold">
+          <DialogTitle className="text-2xl font-bold text-center">
             {t("donation.thankYou.title")}
           </DialogTitle>
           <DialogDescription className="text-center mt-4 text-base">
