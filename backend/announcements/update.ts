@@ -4,7 +4,7 @@ import type { UpdateAnnouncementRequest, AnnouncementDetail } from "./types";
 
 // Updates an existing announcement (restricted endpoint).
 export const update = api<UpdateAnnouncementRequest, AnnouncementDetail>(
-  { expose: false, method: "PUT", path: "/announcements/:id" },
+  { expose: false, method: "PUT", path: "/announcements/update/:id" },
   async (req) => {
     const now = new Date();
     

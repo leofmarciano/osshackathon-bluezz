@@ -11,7 +11,7 @@ interface PublishResponse {
 
 // Publishes an announcement (restricted endpoint).
 export const publish = api<PublishRequest, PublishResponse>(
-  { expose: false, method: "POST", path: "/announcements/:id/publish" },
+  { expose: false, method: "POST", path: "/announcements/publish/:id" },
   async (req) => {
     const now = new Date();
     
