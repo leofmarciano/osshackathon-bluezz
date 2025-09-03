@@ -18,11 +18,16 @@ export interface AuthData {
 }
 
 // Configure authorized parties for token verification.
-// Adjust for your production domains as needed.
+// Include all possible domains where the frontend might be deployed
 const AUTHORIZED_PARTIES = [
   "http://localhost:5173",
   "http://127.0.0.1:5173",
+  "https://vaquinha-social-frontend-d2r21j482vjq7vd7ksug.lp.dev",
+  // Add common Leap deployment patterns
   "https://*.lp.dev",
+  // Add localhost variants
+  "http://localhost:3000",
+  "http://127.0.0.1:3000",
 ];
 
 const auth = authHandler<AuthParams, AuthData>(async (data) => {
