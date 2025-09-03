@@ -192,7 +192,6 @@ export namespace auth {
  */
 import { createCheckout as api_payments_create_checkout_createCheckout } from "~backend/payments/create_checkout";
 import { listDonations as api_payments_list_donations_listDonations } from "~backend/payments/list_donations";
-import { webhook as api_payments_webhook_webhook } from "~backend/payments/webhook";
 
 export namespace payments {
 
@@ -231,12 +230,11 @@ export namespace payments {
         }
 
         /**
-         * Handles Polar webhook events.
+         * Raw handler to verify Polar webhook signatures.
          */
-        public async webhook(params: RequestType<typeof api_payments_webhook_webhook>): Promise<ResponseType<typeof api_payments_webhook_webhook>> {
-            // Now make the actual call to the API
-            const resp = await this.baseClient.callTypedAPI(`/payments/webhook`, {method: "POST", body: JSON.stringify(params)})
-            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_payments_webhook_webhook>
+        public async webhook(options: PickMethods<"POST"> = {}): Promise<globalThis.Response> {
+            options.method ||= "POST";
+            return this.baseClient.callAPI(`/payments/webhook`, options)
         }
     }
 }
