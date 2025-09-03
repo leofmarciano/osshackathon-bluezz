@@ -43,7 +43,7 @@ export async function translateManifestoContent(
         : content;
 
       const response = await claude.messages.create({
-        model: "claude-4-sonnet-20240229", // Using Claude 3.5 Sonnet as requested
+        model: "claude-4-sonnet",
         max_tokens: 128000,
         temperature: 0.1,
         system: systemPrompt,

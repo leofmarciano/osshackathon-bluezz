@@ -50,9 +50,15 @@ export function ManifestoEditor({ onClose, onSuccess }: ManifestoEditorProps) {
   };
 
   const handleSave = () => {
+    console.log("handleSave called");
+    console.log("Title:", title);
+    console.log("Description:", description);
+    console.log("Content changed:", editedContent !== currentContent);
+    
     if (!title.trim()) {
       toast({
-        title: t("manifesto.editor.titleRequired"),
+        title: t("manifesto.editor.titleRequired", "Título é obrigatório"),
+        description: t("manifesto.editor.titleRequiredDesc", "Por favor, insira um título para sua proposta"),
         variant: "destructive",
       });
       return;
@@ -60,15 +66,17 @@ export function ManifestoEditor({ onClose, onSuccess }: ManifestoEditorProps) {
 
     if (!description.trim()) {
       toast({
-        title: t("manifesto.editor.descriptionRequired"),
+        title: t("manifesto.editor.descriptionRequired", "Descrição é obrigatória"),
+        description: t("manifesto.editor.descriptionRequiredDesc", "Por favor, insira uma descrição para sua proposta"),
         variant: "destructive",
       });
       return;
     }
 
-    if (editedContent === currentContent) {
+    if (editedContent.trim() === currentContent.trim()) {
       toast({
-        title: t("manifesto.editor.noChanges"),
+        title: t("manifesto.editor.noChanges", "Sem alterações"),
+        description: t("manifesto.editor.noChangesDesc", "Você precisa fazer alterações no manifesto antes de prosseguir"),
         variant: "destructive",
       });
       return;
@@ -182,11 +190,18 @@ export function ManifestoEditor({ onClose, onSuccess }: ManifestoEditorProps) {
               <div className="flex justify-end gap-2">
                 <Button variant="outline" onClick={onClose}>
                   <X className="h-4 w-4 mr-2" />
-                  {t("common.cancel")}
+                  {t("common.cancel", "Cancelar")}
                 </Button>
-                <Button onClick={handleSave}>
+                <Button 
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleSave();
+                  }}
+                  type="button"
+                  disabled={!title.trim() || !description.trim() || editedContent.trim() === currentContent.trim()}
+                >
                   <Save className="h-4 w-4 mr-2" />
-                  {t("manifesto.editor.reviewChanges")}
+                  {t("manifesto.editor.reviewChanges", "Revisar Alterações")}
                 </Button>
               </div>
             </CardContent>
@@ -256,50 +271,162 @@ export function ManifestoEditor({ onClose, onSuccess }: ManifestoEditorProps) {
   );
 }
 
-// Simple diff viewer component
+// Improved diff viewer component
 function DiffViewer({ oldContent, newContent }: { oldContent: string; newContent: string }) {
   const oldLines = oldContent.split('\n');
   const newLines = newContent.split('\n');
   
-  // Simple diff - just show changed lines
-  const maxLines = Math.max(oldLines.length, newLines.length);
+  // Find actual differences
   const changes = [];
+  const maxLines = Math.max(oldLines.length, newLines.length);
   
-  for (let i = 0; i < maxLines; i++) {
-    const oldLine = oldLines[i] || '';
-    const newLine = newLines[i] || '';
+  // Group consecutive changes for better visualization
+  let i = 0;
+  let j = 0;
+  
+  while (i < oldLines.length || j < newLines.length) {
+    const oldLine = i < oldLines.length ? oldLines[i] : undefined;
+    const newLine = j < newLines.length ? newLines[j] : undefined;
     
-    if (oldLine !== newLine) {
-      if (oldLine && !newLine) {
-        changes.push({ type: 'removed', content: oldLine, lineNumber: i + 1 });
-      } else if (!oldLine && newLine) {
-        changes.push({ type: 'added', content: newLine, lineNumber: i + 1 });
+    if (oldLine === newLine) {
+      // Lines are the same, move both pointers
+      i++;
+      j++;
+    } else if (oldLine === undefined) {
+      // New line added at the end
+      changes.push({ 
+        type: 'added', 
+        content: newLine || '', 
+        lineNumber: j + 1,
+        context: j > 0 ? newLines[j - 1] : ''
+      });
+      j++;
+    } else if (newLine === undefined) {
+      // Old line removed at the end
+      changes.push({ 
+        type: 'removed', 
+        content: oldLine || '', 
+        lineNumber: i + 1,
+        context: i > 0 ? oldLines[i - 1] : ''
+      });
+      i++;
+    } else {
+      // Lines are different - check if it's a real change or just shifted content
+      // Look ahead to see if this line appears later
+      let foundInNew = false;
+      let foundInOld = false;
+      
+      // Check if old line exists somewhere ahead in new content
+      for (let k = j + 1; k < Math.min(j + 5, newLines.length); k++) {
+        if (oldLine === newLines[k]) {
+          foundInNew = true;
+          break;
+        }
+      }
+      
+      // Check if new line exists somewhere ahead in old content
+      for (let k = i + 1; k < Math.min(i + 5, oldLines.length); k++) {
+        if (newLine === oldLines[k]) {
+          foundInOld = true;
+          break;
+        }
+      }
+      
+      if (foundInNew && !foundInOld) {
+        // Line was removed
+        changes.push({ 
+          type: 'removed', 
+          content: oldLine, 
+          lineNumber: i + 1,
+          context: i > 0 ? oldLines[i - 1] : ''
+        });
+        i++;
+      } else if (!foundInNew && foundInOld) {
+        // Line was added
+        changes.push({ 
+          type: 'added', 
+          content: newLine, 
+          lineNumber: j + 1,
+          context: j > 0 ? newLines[j - 1] : ''
+        });
+        j++;
       } else {
-        changes.push({ type: 'removed', content: oldLine, lineNumber: i + 1 });
-        changes.push({ type: 'added', content: newLine, lineNumber: i + 1 });
+        // Line was modified
+        if (oldLine.trim() !== newLine.trim()) {
+          changes.push({ 
+            type: 'removed', 
+            content: oldLine, 
+            lineNumber: i + 1,
+            context: ''
+          });
+          changes.push({ 
+            type: 'added', 
+            content: newLine, 
+            lineNumber: j + 1,
+            context: ''
+          });
+        }
+        i++;
+        j++;
       }
     }
   }
   
   if (changes.length === 0) {
-    return <p className="text-gray-500">No changes detected</p>;
+    return (
+      <p className="text-gray-500 text-center py-4">
+        Nenhuma alteração detectada
+      </p>
+    );
+  }
+  
+  // Group changes by proximity for better readability
+  const groupedChanges = [];
+  let currentGroup = [];
+  let lastLineNumber = -10;
+  
+  for (const change of changes) {
+    if (change.lineNumber - lastLineNumber > 3 && currentGroup.length > 0) {
+      groupedChanges.push([...currentGroup]);
+      currentGroup = [];
+    }
+    currentGroup.push(change);
+    lastLineNumber = change.lineNumber;
+  }
+  
+  if (currentGroup.length > 0) {
+    groupedChanges.push(currentGroup);
   }
   
   return (
-    <div className="space-y-1 font-mono text-sm">
-      {changes.map((change, index) => (
-        <div 
-          key={index}
-          className={`px-2 py-1 ${
-            change.type === 'added' 
-              ? 'bg-green-100 text-green-800' 
-              : 'bg-red-100 text-red-800'
-          }`}
-        >
-          <span className="mr-2">
-            {change.type === 'added' ? '+' : '-'} Line {change.lineNumber}:
-          </span>
-          {change.content}
+    <div className="space-y-4">
+      <div className="text-sm text-gray-600 mb-2">
+        {changes.filter(c => c.type === 'added').length} adições, {' '}
+        {changes.filter(c => c.type === 'removed').length} remoções
+      </div>
+      
+      {groupedChanges.map((group, groupIndex) => (
+        <div key={groupIndex} className="border rounded-lg overflow-hidden">
+          <div className="bg-gray-100 px-3 py-1 text-xs text-gray-600 font-mono">
+            Linha {group[0].lineNumber}
+          </div>
+          <div className="divide-y divide-gray-200">
+            {group.map((change, index) => (
+              <div 
+                key={index}
+                className={`px-3 py-2 font-mono text-sm ${
+                  change.type === 'added' 
+                    ? 'bg-green-50 text-green-900 border-l-4 border-green-500' 
+                    : 'bg-red-50 text-red-900 border-l-4 border-red-500'
+                }`}
+              >
+                <span className="select-none mr-2 text-xs opacity-50">
+                  {change.type === 'added' ? '+' : '-'}
+                </span>
+                {change.content || <span className="text-gray-400">(linha vazia)</span>}
+              </div>
+            ))}
+          </div>
         </div>
       ))}
     </div>
