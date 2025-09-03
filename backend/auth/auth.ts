@@ -44,6 +44,7 @@ const auth = authHandler<AuthParams, AuthData>(async (data) => {
       email: user.emailAddresses?.[0]?.emailAddress ?? null,
     };
   } catch (err) {
+    console.error("Token verification failed:", err);
     throw APIError.unauthenticated("invalid token", err as Error);
   }
 });

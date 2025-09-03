@@ -1,17 +1,32 @@
 import { useAuth } from "@clerk/clerk-react";
 import backend from "~backend/client";
 
-// Returns a backend client configured to send the Clerk session token.
+// Returns the backend client with proper authentication.
 export function useBackend() {
   const { getToken, isSignedIn } = useAuth();
-
-  if (!isSignedIn) return backend;
-
+  
+  if (!isSignedIn) {
+    return backend;
+  }
+  
   return backend.with({
     auth: async () => {
-      const token = await getToken();
-      if (!token) return null;
-      return { authorization: `Bearer ${token}` };
-    },
+      try {
+        const token = await getToken();
+        if (!token) {
+          throw new Error("No token available");
+        }
+        return { authorization: `Bearer ${token}` };
+      } catch (error) {
+        console.error("Failed to get auth token:", error);
+        throw error;
+      }
+    }
   });
+}
+
+// Returns whether the user is signed in
+export function useIsSignedIn() {
+  const { isSignedIn } = useAuth();
+  return isSignedIn;
 }

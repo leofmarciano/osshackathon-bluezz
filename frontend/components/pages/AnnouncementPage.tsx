@@ -6,18 +6,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import {
-  Heart,
-  Bell,
-  Share2,
-  Facebook,
-  Twitter,
-  MapPin,
+import { 
+  Heart, 
+  Bell, 
+  Share2, 
+  Facebook, 
+  Twitter, 
+  MapPin, 
   Building,
   Loader2
 } from "lucide-react";
 import backend from "~backend/client";
-import { useBackend } from "../../lib/useBackend";
+import { useBackend, useIsSignedIn } from "../../lib/useBackend";
 import { useToast } from "@/components/ui/use-toast";
 import type { AnnouncementDetail } from "~backend/announcements/types";
 
@@ -27,6 +27,7 @@ export function AnnouncementPage() {
   const { toast } = useToast();
   const navigate = useNavigate();
   const authBackend = useBackend();
+  const isSignedIn = useIsSignedIn();
   const [announcement, setAnnouncement] = useState<AnnouncementDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [backing, setBacking] = useState(false);
@@ -41,9 +42,9 @@ export function AnnouncementPage() {
   const fetchAnnouncement = async () => {
     try {
       setLoading(true);
-      const response = await backend.announcements.getBySlug({
+      const response = await backend.announcements.getBySlug({ 
         slug: slug!,
-        language: i18n.language
+        language: i18n.language 
       });
       setAnnouncement(response);
     } catch (error) {
@@ -58,44 +59,28 @@ export function AnnouncementPage() {
     }
   };
 
-  const isUnauthenticatedError = (error: any) => {
-    const msg = typeof error?.message === "string" ? error.message.toLowerCase() : "";
-    return (
-      error?.code === "unauthenticated" ||
-      error?.status === 401 ||
-      error?.response?.status === 401 ||
-      error?.details?.code === "unauthenticated" ||
-      msg.includes("unauthenticated") ||
-      msg.includes("not authenticated")
-    );
-  };
-
-  const redirectToLogin = () => {
-    const currentPath = window.location.pathname + window.location.search;
-    navigate(`/sign-in?redirect=${encodeURIComponent(currentPath)}`);
-  };
-
   const handleBack = async () => {
     if (!announcement) return;
-
+    
+    if (!isSignedIn) {
+      navigate("/sign-in");
+      return;
+    }
+    
     try {
       setBacking(true);
       await authBackend.announcements.back({
         announcementId: announcement.id,
         amount: 5000, // Default amount in cents (R$ 50.00)
       });
-
+      
       toast({
         title: t("common.success"),
         description: t("announcement.backSuccessDesc"),
       });
-
+      
       await fetchAnnouncement();
     } catch (error) {
-      if (isUnauthenticatedError(error)) {
-        redirectToLogin();
-        return;
-      }
       console.error("Failed to back announcement:", error);
       toast({
         title: t("common.error"),
@@ -109,23 +94,23 @@ export function AnnouncementPage() {
 
   const handleRemind = async () => {
     if (!announcement) return;
-
+    
+    if (!isSignedIn) {
+      navigate("/sign-in");
+      return;
+    }
+    
     try {
       setReminding(true);
       await authBackend.announcements.remind({
         announcementId: announcement.id,
       });
-
+      
       toast({
         title: t("common.success"),
         description: t("announcement.remindSuccessDesc"),
       });
     } catch (error) {
-      if (isUnauthenticatedError(error)) {
-        // Not signed in: go to sign-in page
-        redirectToLogin();
-        return;
-      }
       console.error("Failed to set reminder:", error);
       toast({
         title: t("common.error"),
@@ -134,6 +119,52 @@ export function AnnouncementPage() {
       });
     } finally {
       setReminding(false);
+    }
+  };
+
+  const handleShare = (platform: 'facebook' | 'twitter' | 'generic') => {
+    if (!announcement) return;
+    
+    const url = window.location.href;
+    const text = `${announcement.title} - ${announcement.description}`;
+    
+    switch (platform) {
+      case 'facebook':
+        window.open(
+          `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
+          '_blank',
+          'width=600,height=400'
+        );
+        break;
+      case 'twitter':
+        window.open(
+          `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`,
+          '_blank',
+          'width=600,height=400'
+        );
+        break;
+      case 'generic':
+        if (navigator.share) {
+          navigator.share({
+            title: announcement.title,
+            text: announcement.description,
+            url: url,
+          }).catch(console.error);
+        } else {
+          navigator.clipboard.writeText(url).then(() => {
+            toast({
+              title: t("common.success"),
+              description: t("announcement.linkCopied"),
+            });
+          }).catch(() => {
+            toast({
+              title: t("common.error"),
+              description: t("announcement.linkCopyError"),
+              variant: "destructive",
+            });
+          });
+        }
+        break;
     }
   };
 
@@ -155,90 +186,33 @@ export function AnnouncementPage() {
     return badges[category as keyof typeof badges] || { label: t("discover.categories.other"), variant: "outline" as const };
   };
 
-  const slugify = (text: string) =>
-    text.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-
   const extractHeadings = (content: string) => {
     const headingRegex = /^#\s+(.+)$/gm;
     const headings: { id: string; text: string }[] = [];
     let match;
-
+    
     while ((match = headingRegex.exec(content)) !== null) {
       const text = match[1];
-      const id = slugify(text);
+      const id = text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
       headings.push({ id, text });
     }
-
+    
     return headings;
   };
 
   const renderMarkdown = (content: string) => {
     // Simple markdown parser for demonstration
     return content
-      .replace(/^# (.+)$/gm, (_m, p1) => `<h1 id="${slugify(p1)}" class="text-3xl font-bold mb-4 mt-8">${p1}</h1>`)
-      .replace(/^## (.+)$/gm, (_m, p1) => `<h2 id="${slugify(p1)}" class="text-2xl font-semibold mb-3 mt-6">${p1}</h2>`)
-      .replace(/^### (.+)$/gm, (_m, p1) => `<h3 id="${slugify(p1)}" class="text-xl font-medium mb-2 mt-4">${p1}</h3>`)
+      .replace(/^# (.+)$/gm, '<h1 id="$1" class="text-3xl font-bold mb-4 mt-8">$1</h1>')
+      .replace(/^## (.+)$/gm, '<h2 class="text-2xl font-semibold mb-3 mt-6">$1</h2>')
+      .replace(/^### (.+)$/gm, '<h3 class="text-xl font-medium mb-2 mt-4">$1</h3>')
       .replace(/^\- (.+)$/gm, '<li class="ml-4">$1</li>')
       .replace(/^\d+\. (.+)$/gm, '<li class="ml-4">$1</li>')
-      .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
-      .replace(/\*(.+?)\*/g, "<em>$1</em>")
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.+?)\*/g, '<em>$1</em>')
       .replace(/\n\n/g, '</p><p class="mb-4">')
       .replace(/^/, '<p class="mb-4">')
-      .replace(/$/, "</p>");
-  };
-
-  const openPopup = (url: string, title: string) => {
-    const w = 600;
-    const h = 600;
-    const y = window.top ? window.top.outerHeight / 2 + window.top.screenY - h / 2 : 100;
-    const x = window.top ? window.top.outerWidth / 2 + window.top.screenX - w / 2 : 100;
-    window.open(
-      url,
-      title,
-      `width=${w},height=${h},left=${x},top=${y},status=no,toolbar=no,menubar=no,location=no`
-    );
-  };
-
-  const handleShareFacebook = () => {
-    if (!announcement) return;
-    const shareUrl = window.location.href;
-    const url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`;
-    openPopup(url, "Facebook Share");
-  };
-
-  const handleShareTwitter = () => {
-    if (!announcement) return;
-    const shareUrl = window.location.href;
-    const text = `${announcement.title}`;
-    const url = `https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(text)}`;
-    openPopup(url, "Twitter Share");
-  };
-
-  const handleShareGeneric = async () => {
-    if (!announcement) return;
-    const shareUrl = window.location.href;
-    try {
-      if (navigator.share) {
-        await navigator.share({
-          title: announcement.title,
-          text: announcement.description ?? announcement.title,
-          url: shareUrl,
-        });
-      } else {
-        await navigator.clipboard.writeText(shareUrl);
-        toast({
-          title: t("common.success"),
-          description: t("announcement.linkCopied") || "Link copied to clipboard.",
-        });
-      }
-    } catch (error) {
-      console.error("Share failed:", error);
-      toast({
-        title: t("common.error"),
-        description: t("announcement.shareError") || "Failed to share this announcement.",
-        variant: "destructive",
-      });
-    }
+      .replace(/$/, '</p>');
   };
 
   if (loading) {
@@ -274,30 +248,30 @@ export function AnnouncementPage() {
           <div className="grid lg:grid-cols-3 gap-8">
             {/* Main Content */}
             <div className="lg:col-span-2">
-              <div className="aspect-video bg-gray-2 00 rounded-lg overflow-hidden mb-6">
+              <div className="aspect-video bg-gray-200 rounded-lg overflow-hidden mb-6">
                 {announcement.imageUrl && (
-                  <img
-                    src={announcement.imageUrl}
+                  <img 
+                    src={announcement.imageUrl} 
                     alt={announcement.title}
                     className="w-full h-full object-cover"
                   />
                 )}
               </div>
-
+              
               <div className="mb-4">
                 <Badge variant={categoryBadge.variant}>
                   {categoryBadge.label}
                 </Badge>
               </div>
-
+              
               <h1 className="text-4xl font-bold text-gray-900 mb-4">
                 {announcement.title}
               </h1>
-
+              
               <p className="text-xl text-gray-600 mb-6">
                 {announcement.description}
               </p>
-
+              
               <div className="flex items-center text-gray-500 mb-6">
                 <MapPin className="w-5 h-5 mr-2" />
                 {announcement.location}
@@ -321,9 +295,9 @@ export function AnnouncementPage() {
                         })}
                       </div>
                     </div>
-
+                    
                     <Progress value={progress} className="h-3" />
-
+                    
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <div className="text-2xl font-bold">{announcement.backersCount}</div>
@@ -340,8 +314,8 @@ export function AnnouncementPage() {
 
               {/* Action Buttons */}
               <div className="space-y-3">
-                <Button
-                  size="lg"
+                <Button 
+                  size="lg" 
                   className="w-full text-lg"
                   onClick={handleBack}
                   disabled={backing}
@@ -353,10 +327,10 @@ export function AnnouncementPage() {
                   )}
                   {t("announcement.backButton")}
                 </Button>
-
-                <Button
-                  variant="outline"
-                  size="lg"
+                
+                <Button 
+                  variant="outline" 
+                  size="lg" 
                   className="w-full"
                   onClick={handleRemind}
                   disabled={reminding}
@@ -372,15 +346,30 @@ export function AnnouncementPage() {
 
               {/* Share Buttons */}
               <div className="flex gap-2">
-                <Button variant="outline" size="sm" className="flex-1" onClick={handleShareFacebook}>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="flex-1"
+                  onClick={() => handleShare('facebook')}
+                >
                   <Facebook className="w-4 h-4 mr-2" />
                   {t("announcement.shareFacebook")}
                 </Button>
-                <Button variant="outline" size="sm" className="flex-1" onClick={handleShareTwitter}>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="flex-1"
+                  onClick={() => handleShare('twitter')}
+                >
                   <Twitter className="w-4 h-4 mr-2" />
                   {t("announcement.shareTwitter")}
                 </Button>
-                <Button variant="outline" size="sm" className="flex-1" onClick={handleShareGeneric}>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="flex-1"
+                  onClick={() => handleShare('generic')}
+                >
                   <Share2 className="w-4 h-4 mr-2" />
                   {t("announcement.shareGeneric")}
                 </Button>
@@ -432,7 +421,7 @@ export function AnnouncementPage() {
                     <ul className="space-y-2">
                       {headings.map((heading) => (
                         <li key={heading.id}>
-                          <a
+                          <a 
                             href={`#${heading.id}`}
                             className="text-sm text-gray-600 hover:text-blue-600 transition-colors"
                           >
@@ -446,12 +435,12 @@ export function AnnouncementPage() {
               </div>
             </div>
           )}
-
+          
           {/* Main Content */}
           <div className={headings.length > 0 ? "lg:col-span-3" : "lg:col-span-4"}>
             <Card>
               <CardContent className="p-8">
-                <div
+                <div 
                   className="prose prose-lg max-w-none"
                   dangerouslySetInnerHTML={{ __html: renderMarkdown(announcement.content) }}
                 />
