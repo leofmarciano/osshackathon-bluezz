@@ -3,6 +3,7 @@ import { Header } from "./Header";
 import { HomePage } from "./pages/HomePage";
 import { HowToHelpPage } from "./pages/HowToHelpPage";
 import { DiscoverPage } from "./pages/DiscoverPage";
+import { GovernancePage } from "./pages/GovernancePage";
 import { HowItWorksPage } from "./pages/HowItWorksPage";
 import { SearchPage } from "./pages/SearchPage";
 import { AccountPage } from "./pages/AccountPage";
@@ -21,6 +22,7 @@ export function AppInner() {
             <Route path="/" element={<HomePage />} />
             <Route path="/how-to-help" element={<HowToHelpPage />} />
             <Route path="/discover" element={<DiscoverPage />} />
+            <Route path="/governance" element={<GovernancePage />} />
             <Route path="/how-it-works" element={<HowItWorksPage />} />
             <Route path="/search" element={<SearchPage />} />
             <Route path="/my-account" element={<AccountPage />} />

@@ -383,6 +383,101 @@
     "completed": "Completed",
     "showingCount": "Showing {{showing}} of {{total}} supporters"
   },
+  "governance": {
+    "badge": "Open Governance",
+    "title": "Community Governance",
+    "subtitle": "Participate in decisions that shape the future of our oceans. Every voice matters.",
+    "voteNow": "Vote Now",
+    "proposeChange": "Propose Change",
+    "stats": {
+      "activeProposals": "Active Proposals",
+      "endingSoon": "2 ending soon",
+      "totalVotes": "Total Votes",
+      "thisMonth": "this month",
+      "registeredNGOs": "Registered NGOs",
+      "verified": "18 verified",
+      "aiDetections": "AI Detections",
+      "criticalIssues": "3 critical"
+    },
+    "ai": {
+      "alertTitle": "New AI-detected problems",
+      "alertDescription": "Our artificial intelligence has detected 3 new critical areas that need immediate attention. Vote on action proposals."
+    },
+    "tabs": {
+      "activeProposals": "Proposals",
+      "aiDetection": "AI Detection",
+      "manifesto": "Manifesto",
+      "ngos": "NGOs",
+      "history": "History"
+    },
+    "activeProposals": {
+      "title": "Active Proposals for Voting",
+      "createProposal": "Create Proposal",
+      "proposedBy": "Proposed by",
+      "budget": "Budget",
+      "currentVotes": "Current votes",
+      "votes": "votes",
+      "voteYes": "Approve",
+      "voteNo": "Reject",
+      "details": "Details"
+    },
+    "aiDetection": {
+      "title": "AI Detected Problems",
+      "viewMap": "View Map",
+      "confidence": "Confidence",
+      "createAction": "Create Action",
+      "moreInfo": "More Info",
+      "reportFalse": "Report False Positive",
+      "howItWorks": "How it works",
+      "description": "Our AI monitors satellite imagery and oceanographic data 24/7 to identify pollution, oil spills and other threats to the oceans."
+    },
+    "manifesto": {
+      "title": "Bluezz Manifesto",
+      "viewHistory": "View History",
+      "propose": "Propose Change",
+      "current": "Current Manifesto",
+      "lastUpdated": "Last updated",
+      "mission": "Our Mission",
+      "missionText": "Mobilize the global community to clean and protect the oceans through radical transparency, technology and collective action.",
+      "values": "Our Values",
+      "value1": "Total transparency in all operations",
+      "value2": "Democratic and decentralized decisions",
+      "value3": "Based on scientific evidence",
+      "value4": "Inclusion and diversity of voices",
+      "goals": "2024 Goals",
+      "goal1": "Remove 1000 tons of plastic from the oceans",
+      "goal2": "Engage 100,000 people in governance",
+      "goal3": "Establish 50 partnerships with local NGOs",
+      "pendingChanges": "Pending Changes",
+      "change1": "Add section on microplastics",
+      "proposedBy": "Proposed by",
+      "voting": "Voting"
+    },
+    "ngos": {
+      "title": "Registered NGOs",
+      "register": "Register NGO",
+      "verified": "Verified",
+      "projects": "Projects",
+      "raised": "Raised",
+      "rating": "Rating",
+      "viewProfile": "View Profile",
+      "verification": "Verification Process",
+      "verificationDesc": "All NGOs go through a rigorous verification process including document analysis, project history and community validation."
+    },
+    "history": {
+      "title": "Voting History",
+      "stats": "Statistics",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "abstain": "Abstentions"
+    },
+    "cta": {
+      "title": "Your voice can change the oceans",
+      "description": "Join thousands of people who are actively participating in decisions about the future of our seas.",
+      "joinCommunity": "Join Community",
+      "startDiscussion": "Start Discussion"
+    }
+  },
   "account": {
     "title": "My Account",
     "unauthorizedTitle": "Unauthorized access",

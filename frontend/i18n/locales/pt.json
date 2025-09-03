@@ -383,6 +383,101 @@
     "completed": "Concluído",
     "showingCount": "Mostrando {{showing}} de {{total}} apoiadores"
   },
+  "governance": {
+    "badge": "Governança Aberta",
+    "title": "Governança Comunitária",
+    "subtitle": "Participe das decisões que moldam o futuro dos nossos oceanos. Cada voz importa.",
+    "voteNow": "Votar Agora",
+    "proposeChange": "Propor Mudança",
+    "stats": {
+      "activeProposals": "Propostas Ativas",
+      "endingSoon": "2 terminando em breve",
+      "totalVotes": "Total de Votos",
+      "thisMonth": "este mês",
+      "registeredNGOs": "ONGs Registradas",
+      "verified": "18 verificadas",
+      "aiDetections": "Detecções por IA",
+      "criticalIssues": "3 críticas"
+    },
+    "ai": {
+      "alertTitle": "Novos problemas detectados por IA",
+      "alertDescription": "Nossa inteligência artificial detectou 3 novas áreas críticas que precisam de atenção imediata. Vote nas propostas de ação."
+    },
+    "tabs": {
+      "activeProposals": "Propostas",
+      "aiDetection": "Detecção IA",
+      "manifesto": "Manifesto",
+      "ngos": "ONGs",
+      "history": "Histórico"
+    },
+    "activeProposals": {
+      "title": "Propostas Ativas para Votação",
+      "createProposal": "Criar Proposta",
+      "proposedBy": "Proposto por",
+      "budget": "Orçamento",
+      "currentVotes": "Votos atuais",
+      "votes": "votos",
+      "voteYes": "Aprovar",
+      "voteNo": "Rejeitar",
+      "details": "Detalhes"
+    },
+    "aiDetection": {
+      "title": "Problemas Detectados por IA",
+      "viewMap": "Ver Mapa",
+      "confidence": "Confiança",
+      "createAction": "Criar Ação",
+      "moreInfo": "Mais Info",
+      "reportFalse": "Reportar Falso Positivo",
+      "howItWorks": "Como funciona",
+      "description": "Nossa IA monitora imagens de satélite e dados oceanográficos 24/7 para identificar poluição, manchas de óleo e outras ameaças aos oceanos."
+    },
+    "manifesto": {
+      "title": "Manifesto Bluezz",
+      "viewHistory": "Ver Histórico",
+      "propose": "Propor Alteração",
+      "current": "Manifesto Atual",
+      "lastUpdated": "Última atualização",
+      "mission": "Nossa Missão",
+      "missionText": "Mobilizar a comunidade global para limpar e proteger os oceanos através de transparência radical, tecnologia e ação coletiva.",
+      "values": "Nossos Valores",
+      "value1": "Transparência total em todas as operações",
+      "value2": "Decisões democráticas e descentralizadas",
+      "value3": "Baseado em evidências científicas",
+      "value4": "Inclusão e diversidade de vozes",
+      "goals": "Metas 2024",
+      "goal1": "Remover 1000 toneladas de plástico dos oceanos",
+      "goal2": "Engajar 100.000 pessoas na governança",
+      "goal3": "Estabelecer 50 parcerias com ONGs locais",
+      "pendingChanges": "Alterações Pendentes",
+      "change1": "Adicionar seção sobre microplásticos",
+      "proposedBy": "Proposto por",
+      "voting": "Em votação"
+    },
+    "ngos": {
+      "title": "ONGs Registradas",
+      "register": "Registrar ONG",
+      "verified": "Verificada",
+      "projects": "Projetos",
+      "raised": "Arrecadado",
+      "rating": "Avaliação",
+      "viewProfile": "Ver Perfil",
+      "verification": "Processo de Verificação",
+      "verificationDesc": "Todas as ONGs passam por um rigoroso processo de verificação incluindo análise de documentos, histórico de projetos e validação da comunidade."
+    },
+    "history": {
+      "title": "Histórico de Votações",
+      "stats": "Estatísticas",
+      "approved": "Aprovado",
+      "rejected": "Rejeitado",
+      "abstain": "Abstenções"
+    },
+    "cta": {
+      "title": "Sua voz pode mudar os oceanos",
+      "description": "Junte-se a milhares de pessoas que estão ativamente participando das decisões sobre o futuro dos nossos mares.",
+      "joinCommunity": "Entrar na Comunidade",
+      "startDiscussion": "Iniciar Discussão"
+    }
+  },
   "account": {
     "title": "Minha Conta",
     "unauthorizedTitle": "Acesso não autorizado",
