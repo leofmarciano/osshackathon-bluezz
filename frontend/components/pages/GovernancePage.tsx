@@ -38,7 +38,7 @@ import {
 } from "lucide-react";
 
 export function GovernancePage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { toast } = useToast();
   const backend = useBackend();
   const [activeSection, setActiveSection] = useState("proposals");
@@ -141,14 +141,21 @@ export function GovernancePage() {
     if (activeSection === "manifesto") {
       loadManifestoData();
     }
-  }, [activeSection]);
+  }, [activeSection, i18n.language]);
 
   const loadManifestoData = async () => {
     try {
       setLoading(true);
-      // Load current manifesto
+      // Load current manifesto with translations
       const manifestoRes = await backend.manifesto.getCurrent();
-      setCurrentManifesto(manifestoRes.manifesto);
+      
+      // Fetch the manifesto with translation for current language
+      const translatedRes = await backend.manifesto.getManifestoWithTranslations(
+        manifestoRes.manifesto.id.toString(),
+        { language: i18n.language }
+      );
+      
+      setCurrentManifesto(translatedRes.manifesto);
       
       // Load active proposals (filter by voting status)
       const proposalsRes = await backend.manifesto.getProposals({ status: "voting" });

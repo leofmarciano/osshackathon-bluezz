@@ -36,15 +36,15 @@ export async function translateManifestoContent(
     try {
       const systemPrompt = `You are a professional translator. Translate the following content from Portuguese to ${getLanguageName(lang)}. 
       Maintain the markdown formatting exactly as it is. Only translate the text content, not the markdown syntax.
-      Return only the translated content without any additional explanation.`;
+      Return only the translated content without any additional explanation, and the full content, not just the translated part.`;
 
       const contentToTranslate = title && description 
         ? `TITLE: ${title}\n\nDESCRIPTION: ${description}\n\nCONTENT:\n${content}`
         : content;
 
       const response = await claude.messages.create({
-        model: "claude-3-5-sonnet-20241022", // Using Claude 3.5 Sonnet as requested
-        max_tokens: 8000,
+        model: "claude-4-sonnet-20240229", // Using Claude 3.5 Sonnet as requested
+        max_tokens: 128000,
         temperature: 0.1,
         system: systemPrompt,
         messages: [
