@@ -16,6 +16,7 @@ import {
   Building,
   Loader2
 } from "lucide-react";
+import { Streamdown } from "streamdown";
 import backend from "~backend/client";
 import { useBackend, useIsSignedIn } from "../../lib/useBackend";
 import { useToast } from "@/components/ui/use-toast";
@@ -187,32 +188,18 @@ export function AnnouncementPage() {
   };
 
   const extractHeadings = (content: string) => {
-    const headingRegex = /^#\s+(.+)$/gm;
-    const headings: { id: string; text: string }[] = [];
+    const headingRegex = /^(#{1,6})\s+(.+)$/gm;
+    const headings: { id: string; text: string; level: number }[] = [];
     let match;
     
     while ((match = headingRegex.exec(content)) !== null) {
-      const text = match[1];
+      const level = match[1].length;
+      const text = match[2].trim();
       const id = text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-      headings.push({ id, text });
+      headings.push({ id, text, level });
     }
     
     return headings;
-  };
-
-  const renderMarkdown = (content: string) => {
-    // Simple markdown parser for demonstration
-    return content
-      .replace(/^# (.+)$/gm, '<h1 id="$1" class="text-3xl font-bold mb-4 mt-8">$1</h1>')
-      .replace(/^## (.+)$/gm, '<h2 class="text-2xl font-semibold mb-3 mt-6">$1</h2>')
-      .replace(/^### (.+)$/gm, '<h3 class="text-xl font-medium mb-2 mt-4">$1</h3>')
-      .replace(/^\- (.+)$/gm, '<li class="ml-4">$1</li>')
-      .replace(/^\d+\. (.+)$/gm, '<li class="ml-4">$1</li>')
-      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\*(.+?)\*/g, '<em>$1</em>')
-      .replace(/\n\n/g, '</p><p class="mb-4">')
-      .replace(/^/, '<p class="mb-4">')
-      .replace(/$/, '</p>');
   };
 
   if (loading) {
@@ -423,7 +410,11 @@ export function AnnouncementPage() {
                         <li key={heading.id}>
                           <a 
                             href={`#${heading.id}`}
-                            className="text-sm text-gray-600 hover:text-blue-600 transition-colors"
+                            className={`block text-sm hover:text-blue-600 transition-colors ${
+                              heading.level === 1 ? 'font-semibold text-gray-900' :
+                              heading.level === 2 ? 'font-medium text-gray-800 ml-2' :
+                              'text-gray-600 ml-4'
+                            }`}
                           >
                             {heading.text}
                           </a>
@@ -440,10 +431,14 @@ export function AnnouncementPage() {
           <div className={headings.length > 0 ? "lg:col-span-3" : "lg:col-span-4"}>
             <Card>
               <CardContent className="p-8">
-                <div 
-                  className="prose prose-lg max-w-none"
-                  dangerouslySetInnerHTML={{ __html: renderMarkdown(announcement.content) }}
-                />
+                <div className="prose prose-lg max-w-none">
+                  <Streamdown 
+                    className="max-w-none"
+                    shikiTheme="github-light"
+                  >
+                    {announcement.content}
+                  </Streamdown>
+                </div>
               </CardContent>
             </Card>
           </div>

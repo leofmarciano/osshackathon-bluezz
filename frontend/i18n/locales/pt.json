@@ -339,6 +339,8 @@
     "shareFacebook": "Compartilhar",
     "shareTwitter": "Tweet",
     "shareGeneric": "Compartilhar",
+    "linkCopied": "Link copiado para a área de transferência!",
+    "linkCopyError": "Não foi possível copiar o link.",
     "aboutOrg": "Sobre a Organização",
     "contents": "Conteúdo"
   },
