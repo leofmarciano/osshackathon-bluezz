@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
@@ -37,24 +37,52 @@ export function AnnouncementPage() {
   const [announcement, setAnnouncement] = useState<AnnouncementDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [reminding, setReminding] = useState(false);
+  const processingCheckoutRef = useRef(false);
 
   useEffect(() => {
     if (slug) {
       fetchAnnouncement();
     }
-    
+  }, [slug, i18n.language]);
+
+  useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
-    if (searchParams.get('donation_success') === 'true') {
-      toast({
-        title: t("common.success"),
-        description: t("donation.successMessage"),
-      });
-      // Clean up URL
-      navigate(`/announcement/${slug}`, { replace: true });
-    }
-  }, [slug, i18n.language, location.search]);
+    const isSuccess = searchParams.get("donation_success") === "true";
+    const checkoutId = searchParams.get("checkout_id");
+
+    if (!isSuccess || processingCheckoutRef.current) return;
+
+    processingCheckoutRef.current = true;
+
+    (async () => {
+      try {
+        // Try to confirm/process the donation server-side (reuses existing backend payments flow).
+        if (checkoutId) {
+          const client = isSignedIn ? authBackend : backend;
+          // Cast to any to avoid tight coupling to the exact request shape.
+          await (client as any).payments.processDonation({ checkoutId });
+        }
+      } catch (error) {
+        console.error("Failed to process donation after checkout:", error);
+        // Even if this step fails, the webhook should reconcile it.
+      } finally {
+        // Refresh the announcement to reflect updated totals/backers.
+        await fetchAnnouncement();
+
+        // Show success message to the user.
+        toast({
+          title: t("common.success"),
+          description: t("donation.successMessage"),
+        });
+
+        // Clean up the URL
+        navigate(`/announcement/${slug}`, { replace: true });
+      }
+    })();
+  }, [location.search, isSignedIn, authBackend, slug, t, toast, navigate]);
 
   const fetchAnnouncement = async () => {
+    if (!slug) return;
     try {
       setLoading(true);
       const response = await backend.announcements.getBySlug({ 
