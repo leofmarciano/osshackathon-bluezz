@@ -15,6 +15,7 @@ export interface ProcessDonationRequest {
   amount: number;
   userEmail: string;
   polarOrderId?: string;
+  userName?: string;
 }
 
 export interface Donation {
@@ -23,6 +24,7 @@ export interface Donation {
   amount: number;
   userEmail: string;
   anonymizedEmail: string;
+  userName?: string;
   polarOrderId?: string;
   status: 'pending' | 'completed' | 'failed';
   createdAt: Date;

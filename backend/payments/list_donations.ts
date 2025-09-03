@@ -23,6 +23,7 @@ export const listDonations = api<ListDonationsRequest, ListDonationsResponse>(
       announcement_id: number;
       amount: number;
       anonymized_email: string;
+      user_name: string | null;
       polar_order_id?: string;
       status: string;
       created_at: Date;
@@ -32,6 +33,7 @@ export const listDonations = api<ListDonationsRequest, ListDonationsResponse>(
         announcement_id,
         amount,
         anonymized_email,
+        user_name,
         polar_order_id,
         status,
         created_at
@@ -47,6 +49,7 @@ export const listDonations = api<ListDonationsRequest, ListDonationsResponse>(
       amount: row.amount,
       userEmail: row.anonymized_email, // Return anonymized email as userEmail for API consistency
       anonymizedEmail: row.anonymized_email,
+      userName: row.user_name ?? undefined,
       polarOrderId: row.polar_order_id,
       status: row.status as 'pending' | 'completed' | 'failed',
       createdAt: row.created_at,
