@@ -886,6 +886,7 @@
         "placeholder": "Use Markdown para formatar sua apresentação...",
         "empty": "Nenhuma apresentação disponível ainda."
       },
+      "adminMode": "Você está visualizando esta página como administrador. Você pode editar a apresentação e criar posts.",
       "info": {
         "title": "Informações de Contato",
         "mission": "Missão",
@@ -951,7 +952,7 @@
       "certificates": "Certificados",
       "other": "Outros"
     },
-    "upload": {
+    "uploadModal": {
       "title": "Fazer Upload de Documentos",
       "description": "Adicione novos documentos ao perfil da organização",
       "select": "Selecionar arquivos",

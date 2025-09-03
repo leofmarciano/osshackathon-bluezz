@@ -9,8 +9,7 @@ const mockCompany = {
   id: "1",
   name: "Ocean Cleanup Brasil",
   type: "ngo" as const,
-  logo: "/logo.png",
-  coverImage: "/cover.jpg",
+  logo: "https://via.placeholder.com/150",
   status: "active" as const,
   category: "ocean_cleanup",
   description: "Dedicated to removing plastic waste from Brazilian coastlines and educating communities about ocean conservation.",
@@ -56,7 +55,7 @@ const mockCompany = {
     posts: 145,
     donations: 450000
   },
-  isOwner: false, // This would be determined by auth
+  isOwner: true, // Set to true to show admin view
   isFollowing: false,
   hasVoted: false
 };

@@ -10,6 +10,15 @@ import { Streamdown } from "streamdown";
 import { useBackend } from "@/lib/useBackend";
 import { ManifestoEditor } from "../manifesto/ManifestoEditor";
 import { ManifestoHistoryModal } from "../manifesto/ManifestoHistoryModal";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import CompanyRegistrationForm from "../companies/CompanyRegistrationForm";
+import { useNavigate, Link } from "react-router-dom";
 import { 
   Vote, 
   Brain, 
@@ -41,10 +50,12 @@ export function GovernancePage() {
   const { t, i18n } = useTranslation();
   const { toast } = useToast();
   const backend = useBackend();
+  const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState("proposals");
   const [loading, setLoading] = useState(false);
   const [editingManifesto, setEditingManifesto] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [showCompanyRegistration, setShowCompanyRegistration] = useState(false);
   const [currentManifesto, setCurrentManifesto] = useState<any>(null);
   const [manifestoProposals, setManifestoProposals] = useState<any[]>([]);
   const [votingProposal, setVotingProposal] = useState<number | null>(null);
@@ -202,27 +213,57 @@ export function GovernancePage() {
     }
   };
 
-  const registeredNGOs = [
+  const handleCompanySubmit = async (data: any) => {
+    console.log("Company registration data:", data);
+    // Here you would submit to your backend
+    toast({
+      title: t("companies.register.success", "Organização submetida"),
+      description: t("companies.register.successDesc", "Sua organização foi submetida para votação."),
+    });
+    setShowCompanyRegistration(false);
+    // Optionally redirect to companies page
+    navigate("/companies");
+  };
+
+  // Mock data for companies - in production this would come from API
+  const registeredCompanies = [
     {
-      name: "Oceano Limpo",
+      id: "1",
+      name: "Ocean Cleanup Brasil",
+      type: "ngo",
+      status: "active",
       verified: true,
       projectsCompleted: 12,
       totalRaised: "R$ 2.3M",
-      rating: 4.8
+      rating: 4.8,
+      followers: 12500,
+      category: "ocean_cleanup"
     },
     {
+      id: "2",
+      name: "Marine Tech Solutions",
+      type: "company",
+      status: "pending",
+      verified: false,
+      projectsCompleted: 0,
+      totalRaised: "R$ 0",
+      rating: 0,
+      followers: 340,
+      category: "technology",
+      votes: { yes: 234, no: 56, total: 290 },
+      votingEndsAt: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000)
+    },
+    {
+      id: "3",
       name: "Guardiões do Mar",
+      type: "ngo",
+      status: "active",
       verified: true,
       projectsCompleted: 8,
       totalRaised: "R$ 1.1M",
-      rating: 4.6
-    },
-    {
-      name: "Projeto Azul",
-      verified: false,
-      projectsCompleted: 3,
-      totalRaised: "R$ 450K",
-      rating: 4.2
+      rating: 4.6,
+      followers: 8900,
+      category: "marine_conservation"
     }
   ];
 
@@ -720,60 +761,176 @@ export function GovernancePage() {
               </>
             )}
 
-            {/* NGOs Section */}
+            {/* NGOs/Companies Section */}
             {activeSection === "ngos" && (
               <>
-                <div className="flex justify-between items-center">
-                  <h2 className="text-2xl font-bold">{t("governance.ngos.title")}</h2>
-                  <Button size="sm">
-                    <Building2 className="w-4 h-4 mr-2" />
-                    {t("governance.ngos.register")}
-                  </Button>
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-2xl font-bold">{t("companies.title", "Organizações Parceiras")}</h2>
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" asChild>
+                      <Link to="/companies">
+                        <Eye className="w-4 h-4 mr-2" />
+                        {t("companies.viewAll", "Ver Todas")}
+                      </Link>
+                    </Button>
+                    <Button size="sm" onClick={() => setShowCompanyRegistration(true)}>
+                      <Plus className="w-4 h-4 mr-2" />
+                      {t("companies.register.title", "Cadastrar Organização")}
+                    </Button>
+                  </div>
                 </div>
 
+                {/* Stats for Active vs Pending */}
+                <div className="grid md:grid-cols-3 gap-4 mb-6">
+                  <Card>
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-muted-foreground">{t("companies.stats.active", "Ativas")}</p>
+                          <p className="text-2xl font-bold">18</p>
+                        </div>
+                        <CheckCircle2 className="h-8 w-8 text-green-500" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-muted-foreground">{t("companies.stats.pending", "Em Votação")}</p>
+                          <p className="text-2xl font-bold">6</p>
+                        </div>
+                        <Clock className="h-8 w-8 text-yellow-500" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-muted-foreground">{t("companies.stats.total", "Total")}</p>
+                          <p className="text-2xl font-bold">24</p>
+                        </div>
+                        <Building2 className="h-8 w-8 text-blue-500" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Companies Grid */}
                 <div className="grid md:grid-cols-2 gap-4">
-                  {registeredNGOs.map((ngo, index) => (
-                    <Card key={index} className="hover:shadow-md transition-shadow">
-                      <CardContent className="p-4">
-                        <div className="flex items-start justify-between mb-3">
-                          <div>
-                            <h3 className="font-semibold text-gray-900">{ngo.name}</h3>
-                            {ngo.verified && (
-                              <Badge variant="default" className="mt-1 bg-green-500">
-                                <CheckCircle2 className="w-3 h-3 mr-1" />
-                                {t("governance.ngos.verified")}
-                              </Badge>
+                  {registeredCompanies.map((company) => {
+                    const votePercentage = company.votes 
+                      ? Math.round((company.votes.yes / company.votes.total) * 100) 
+                      : 0;
+                    const daysLeft = company.votingEndsAt
+                      ? Math.ceil((new Date(company.votingEndsAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+                      : 0;
+
+                    return (
+                      <Card key={company.id} className="hover:shadow-md transition-shadow overflow-hidden">
+                        <CardContent className="p-4">
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2">
+                                <h3 className="font-semibold text-gray-900">{company.name}</h3>
+                                <Badge variant={company.type === "ngo" ? "default" : "secondary"}>
+                                  {company.type === "ngo" ? "ONG" : t("companies.types.company")}
+                                </Badge>
+                              </div>
+                              
+                              <div className="flex items-center gap-2 mt-1">
+                                {company.verified && (
+                                  <Badge variant="default" className="bg-green-500">
+                                    <CheckCircle2 className="w-3 h-3 mr-1" />
+                                    {t("companies.verified", "Verificada")}
+                                  </Badge>
+                                )}
+                                <Badge variant="outline">
+                                  {t(`companies.categories.${company.category}`)}
+                                </Badge>
+                                {company.status === "pending" && (
+                                  <Badge variant="warning" className="bg-yellow-100 text-yellow-800">
+                                    {t("companies.status.pending", "Em Votação")}
+                                  </Badge>
+                                )}
+                              </div>
+                            </div>
+                            {company.rating > 0 && (
+                              <div className="text-right">
+                                <div className="text-sm text-gray-500">⭐ {company.rating}</div>
+                              </div>
                             )}
                           </div>
-                          <div className="text-right">
-                            <div className="text-sm text-gray-500">⭐ {ngo.rating}</div>
+                          
+                          {/* Voting Progress for Pending Companies */}
+                          {company.status === "pending" && company.votes && (
+                            <div className="mb-3 p-3 bg-yellow-50 rounded-lg">
+                              <div className="flex items-center justify-between text-sm mb-2">
+                                <span className="text-gray-600">
+                                  {daysLeft} {t("companies.voting.daysLeft", "dias restantes")}
+                                </span>
+                                <span className="font-medium text-green-600">
+                                  {votePercentage}% {t("companies.approval", "aprovação")}
+                                </span>
+                              </div>
+                              <Progress value={votePercentage} className="h-2" />
+                              <div className="flex justify-between mt-2 text-xs">
+                                <span className="text-green-600">
+                                  ✓ {company.votes.yes} {t("companies.votes.yes", "sim")}
+                                </span>
+                                <span className="text-red-600">
+                                  ✗ {company.votes.no} {t("companies.votes.no", "não")}
+                                </span>
+                              </div>
+                            </div>
+                          )}
+                          
+                          {/* Stats Grid */}
+                          <div className="grid grid-cols-3 gap-2 text-sm mb-3">
+                            <div>
+                              <p className="text-gray-500">{t("companies.stats.followers", "Seguidores")}</p>
+                              <p className="font-medium">{company.followers.toLocaleString()}</p>
+                            </div>
+                            <div>
+                              <p className="text-gray-500">{t("companies.stats.projects", "Projetos")}</p>
+                              <p className="font-medium">{company.projectsCompleted}</p>
+                            </div>
+                            <div>
+                              <p className="text-gray-500">{t("companies.stats.raised", "Arrecadado")}</p>
+                              <p className="font-medium text-green-600">{company.totalRaised}</p>
+                            </div>
                           </div>
-                        </div>
-                        
-                        <div className="grid grid-cols-2 gap-3 text-sm mb-3">
-                          <div>
-                            <p className="text-gray-500">{t("governance.ngos.projects")}</p>
-                            <p className="font-medium">{ngo.projectsCompleted}</p>
+                          
+                          <div className="flex gap-2">
+                            <Button 
+                              variant="outline" 
+                              className="flex-1" 
+                              size="sm"
+                              asChild
+                            >
+                              <Link to={`/companies/${company.id}`}>
+                                {t("companies.viewProfile", "Ver Perfil")}
+                              </Link>
+                            </Button>
+                            {company.status === "pending" && (
+                              <Button size="sm" className="flex-1">
+                                <Vote className="w-3 h-3 mr-1" />
+                                {t("companies.vote", "Votar")}
+                              </Button>
+                            )}
                           </div>
-                          <div>
-                            <p className="text-gray-500">{t("governance.ngos.raised")}</p>
-                            <p className="font-medium text-green-600">{ngo.totalRaised}</p>
-                          </div>
-                        </div>
-                        
-                        <Button variant="outline" className="w-full" size="sm">
-                          {t("governance.ngos.viewProfile")}
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  ))}
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
                 </div>
 
-                <Alert>
+                <Alert className="mt-6">
                   <Shield className="h-4 w-4" />
-                  <AlertTitle>{t("governance.ngos.verification")}</AlertTitle>
+                  <AlertTitle>{t("companies.verification.title", "Processo de Verificação")}</AlertTitle>
                   <AlertDescription>
-                    {t("governance.ngos.verificationDesc")}
+                    {t("companies.verification.desc", "Todas as organizações passam por um rigoroso processo de verificação incluindo análise de documentos, histórico e votação da comunidade. O período de votação é de 30 dias e requer maioria simples para aprovação.")}
                   </AlertDescription>
                 </Alert>
               </>
@@ -862,6 +1019,22 @@ export function GovernancePage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Company Registration Modal */}
+      <Dialog open={showCompanyRegistration} onOpenChange={setShowCompanyRegistration}>
+        <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{t("companies.register.title", "Cadastrar Organização")}</DialogTitle>
+            <DialogDescription>
+              {t("companies.register.description", "Preencha os dados para submeter sua organização para votação.")}
+            </DialogDescription>
+          </DialogHeader>
+          <CompanyRegistrationForm 
+            onSubmit={handleCompanySubmit}
+            onCancel={() => setShowCompanyRegistration(false)}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

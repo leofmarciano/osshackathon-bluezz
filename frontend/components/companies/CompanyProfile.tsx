@@ -6,11 +6,12 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Textarea } from "@/components/ui/textarea";
+import MDEditor from "@uiw/react-md-editor";
+import { Streamdown } from "streamdown";
 import { 
   Globe, Mail, Phone, MapPin, Calendar, Users, Target, 
-  FileText, Edit, Save, X, Eye, Code, ThumbsUp, ThumbsDown,
-  Clock, CheckCircle, AlertCircle, Share2, Heart
+  FileText, Edit, Save, X, ThumbsUp, ThumbsDown,
+  Clock, CheckCircle, AlertCircle, Share2, Heart, Shield
 } from "lucide-react";
 import CompanyTimeline from "./CompanyTimeline";
 import CompanyDocuments from "./CompanyDocuments";
@@ -20,7 +21,6 @@ interface CompanyData {
   name: string;
   type: "ngo" | "company";
   logo?: string;
-  coverImage?: string;
   status: "pending" | "active" | "rejected";
   category: string;
   description: string;
@@ -74,7 +74,6 @@ export default function CompanyProfile({
   const { t } = useTranslation();
   const [isEditing, setIsEditing] = useState(false);
   const [presentation, setPresentation] = useState(company.presentation);
-  const [previewMode, setPreviewMode] = useState<"preview" | "code">("preview");
 
   const handleSave = () => {
     onUpdate(presentation);
@@ -115,61 +114,72 @@ export default function CompanyProfile({
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
-      {/* Header with Cover Image */}
+      {/* Admin Mode Indicator */}
+      {company.isOwner && (
+        <Alert className="mb-4 border-blue-200 bg-blue-50">
+          <Shield className="h-4 w-4" />
+          <AlertDescription className="font-medium">
+            {t("companies.profile.adminMode", "You are viewing this page as an administrator. You can edit the presentation and create posts.")}
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Header with Cover */}
       <div className="relative mb-8 overflow-hidden rounded-xl">
-        <div className="h-64 bg-gradient-to-r from-blue-500 to-purple-600">
-          {company.coverImage && (
-            <img
-              src={company.coverImage}
-              alt="Cover"
-              className="h-full w-full object-cover"
-            />
-          )}
+        <div className="h-48 bg-gradient-to-r from-blue-500 to-purple-600 sm:h-56 md:h-64">
         </div>
         
         {/* Company Info Overlay */}
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-6 text-white">
-          <div className="flex items-end gap-4">
-            <Avatar className="h-24 w-24 border-4 border-white">
+        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4 text-white sm:p-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
+            <Avatar className="h-20 w-20 border-4 border-white sm:h-24 sm:w-24">
               <AvatarImage src={company.logo} />
-              <AvatarFallback className="bg-white text-2xl font-bold text-gray-900">
+              <AvatarFallback className="bg-white text-xl font-bold text-gray-900 sm:text-2xl">
                 {company.name.substring(0, 2).toUpperCase()}
               </AvatarFallback>
             </Avatar>
             
             <div className="flex-1">
-              <div className="flex items-center gap-3">
-                <h1 className="text-3xl font-bold">{company.name}</h1>
-                <Badge className={getStatusColor()}>
-                  {t(`companies.status.${company.status}`)}
-                </Badge>
-                <Badge variant="secondary">
-                  {t(`companies.categories.${company.category}`)}
-                </Badge>
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+                <h1 className="text-2xl font-bold sm:text-3xl">{company.name}</h1>
+                <div className="flex flex-wrap gap-2">
+                  <Badge className={getStatusColor()}>
+                    {t(`companies.status.${company.status}`)}
+                  </Badge>
+                  <Badge variant="secondary">
+                    {t(`companies.categories.${company.category}`)}
+                  </Badge>
+                </div>
               </div>
-              <p className="mt-2 text-white/90">{company.description}</p>
+              <p className="mt-2 line-clamp-2 text-sm text-white/90 sm:line-clamp-none sm:text-base">{company.description}</p>
             </div>
 
             <div className="flex gap-2">
               {company.isOwner && company.status === "active" && (
                 <Button
                   variant="secondary"
+                  size="sm"
                   onClick={() => setIsEditing(!isEditing)}
+                  className="sm:size-default"
                 >
-                  <Edit className="mr-2 h-4 w-4" />
-                  {t("common.edit")}
+                  <Edit className="mr-0 h-4 w-4 sm:mr-2" />
+                  <span className="hidden sm:inline">{t("common.edit")}</span>
                 </Button>
               )}
               {!company.isOwner && (
                 <Button
                   variant={company.isFollowing ? "outline" : "default"}
+                  size="sm"
                   onClick={onFollow}
+                  className="sm:size-default"
                 >
-                  <Heart className={`mr-2 h-4 w-4 ${company.isFollowing ? "fill-current" : ""}`} />
-                  {company.isFollowing ? t("companies.profile.unfollow") : t("companies.profile.follow")}
+                  <Heart className={`mr-0 h-4 w-4 sm:mr-2 ${company.isFollowing ? "fill-current" : ""}`} />
+                  <span className="hidden sm:inline">
+                    {company.isFollowing ? t("companies.profile.unfollow") : t("companies.profile.follow")}
+                  </span>
                 </Button>
               )}
-              <Button variant="outline" size="icon">
+              <Button variant="secondary" size="icon" className="h-8 w-8 sm:h-9 sm:w-9">
                 <Share2 className="h-4 w-4" />
               </Button>
             </div>
@@ -318,47 +328,19 @@ export default function CompanyProfile({
         <TabsContent value="presentation">
           <Card>
             <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>{t("companies.profile.presentation.title")}</CardTitle>
-                {isEditing && (
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      variant={previewMode === "preview" ? "default" : "outline"}
-                      onClick={() => setPreviewMode("preview")}
-                    >
-                      <Eye className="mr-2 h-4 w-4" />
-                      {t("common.preview")}
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant={previewMode === "code" ? "default" : "outline"}
-                      onClick={() => setPreviewMode("code")}
-                    >
-                      <Code className="mr-2 h-4 w-4" />
-                      {t("common.code")}
-                    </Button>
-                  </div>
-                )}
-              </div>
+              <CardTitle>{t("companies.profile.presentation.title")}</CardTitle>
             </CardHeader>
             <CardContent>
               {isEditing ? (
                 <div className="space-y-4">
-                  {previewMode === "code" ? (
-                    <Textarea
+                  <div data-color-mode="light">
+                    <MDEditor
                       value={presentation}
-                      onChange={(e) => setPresentation(e.target.value)}
-                      rows={20}
-                      className="font-mono"
-                      placeholder={t("companies.profile.presentation.placeholder")}
+                      onChange={(val) => setPresentation(val || "")}
+                      height={500}
+                      preview="live"
                     />
-                  ) : (
-                    <div className="prose prose-blue max-w-none">
-                      {/* Here you would render the markdown - for now just showing as text */}
-                      <div dangerouslySetInnerHTML={{ __html: presentation }} />
-                    </div>
-                  )}
+                  </div>
                   
                   <div className="flex gap-2">
                     <Button onClick={handleSave}>
@@ -374,7 +356,9 @@ export default function CompanyProfile({
               ) : (
                 <div className="prose prose-blue max-w-none">
                   {company.presentation ? (
-                    <div dangerouslySetInnerHTML={{ __html: company.presentation }} />
+                    <Streamdown>
+                      {company.presentation}
+                    </Streamdown>
                   ) : (
                     <p className="text-gray-500">
                       {t("companies.profile.presentation.empty")}

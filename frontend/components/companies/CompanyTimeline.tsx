@@ -2,7 +2,8 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
+import MDEditor from "@uiw/react-md-editor";
+import { Streamdown } from "streamdown";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -59,9 +60,9 @@ export default function CompanyTimeline({
       id: "1",
       companyId,
       companyName: "Ocean Cleanup NGO",
-      companyLogo: "/logo.png",
+      companyLogo: "https://via.placeholder.com/150",
       content: "Today we successfully removed 500kg of plastic from the coastal area! 🌊 Our volunteers worked tirelessly to make this happen. Thank you to everyone who participated!",
-      images: ["/cleanup1.jpg", "/cleanup2.jpg"],
+      images: ["https://via.placeholder.com/600x400?text=Beach+Cleanup+1", "https://via.placeholder.com/600x400?text=Beach+Cleanup+2"],
       location: "Praia do Forte, BA",
       createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
       likes: 234,
@@ -99,6 +100,7 @@ export default function CompanyTimeline({
       id: Date.now().toString(),
       companyId,
       companyName: "Your Company",
+      companyLogo: "https://via.placeholder.com/150",
       content: newPost,
       location: postLocation,
       createdAt: new Date(),
@@ -183,12 +185,17 @@ export default function CompanyTimeline({
             <h3 className="font-semibold">{t("timeline.create.title")}</h3>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Textarea
-              placeholder={t("timeline.create.placeholder")}
-              value={newPost}
-              onChange={(e) => setNewPost(e.target.value)}
-              rows={4}
-            />
+            <div data-color-mode="light">
+              <MDEditor
+                value={newPost}
+                onChange={(val) => setNewPost(val || "")}
+                height={200}
+                preview="edit"
+                textareaProps={{
+                  placeholder: t("timeline.create.placeholder")
+                }}
+              />
+            </div>
 
             {/* Selected Images Preview */}
             {selectedImages.length > 0 && (
@@ -354,7 +361,11 @@ export default function CompanyTimeline({
             </div>
 
             {/* Post Content */}
-            <p className="mb-4 whitespace-pre-wrap">{post.content}</p>
+            <div className="prose prose-sm max-w-none mb-4">
+              <Streamdown>
+                {post.content}
+              </Streamdown>
+            </div>
 
             {/* Post Images */}
             {post.images && post.images.length > 0 && (

@@ -886,6 +886,7 @@
         "placeholder": "Use Markdown to format your presentation...",
         "empty": "No presentation available yet."
       },
+      "adminMode": "You are viewing this page as an administrator. You can edit the presentation and create posts.",
       "info": {
         "title": "Contact Information",
         "mission": "Mission",
@@ -951,7 +952,7 @@
       "certificates": "Certificates",
       "other": "Other"
     },
-    "upload": {
+    "uploadModal": {
       "title": "Upload Documents",
       "description": "Add new documents to the organization profile",
       "select": "Select files",

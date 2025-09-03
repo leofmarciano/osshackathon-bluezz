@@ -106,14 +106,14 @@ export default function CompanyDocuments({
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
-                    <DialogTitle>{t("documents.upload.title")}</DialogTitle>
+                    <DialogTitle>{t("documents.uploadModal.title")}</DialogTitle>
                     <DialogDescription>
-                      {t("documents.upload.description")}
+                      {t("documents.uploadModal.description")}
                     </DialogDescription>
                   </DialogHeader>
                   <div className="space-y-4">
                     <div>
-                      <Label htmlFor="file-upload">{t("documents.upload.select")}</Label>
+                      <Label htmlFor="file-upload">{t("documents.uploadModal.select")}</Label>
                       <Input
                         id="file-upload"
                         type="file"
@@ -123,7 +123,7 @@ export default function CompanyDocuments({
                     </div>
                     {selectedFiles.length > 0 && (
                       <div className="space-y-2">
-                        <p className="text-sm font-medium">{t("documents.upload.selected")}:</p>
+                        <p className="text-sm font-medium">{t("documents.uploadModal.selected")}:</p>
                         {selectedFiles.map((file, index) => (
                           <div key={index} className="flex items-center justify-between rounded-lg border p-2">
                             <span className="text-sm">{file.name}</span>
@@ -137,7 +137,7 @@ export default function CompanyDocuments({
                       disabled={selectedFiles.length === 0}
                       className="w-full"
                     >
-                      {t("documents.upload.submit")}
+                      {t("documents.uploadModal.submit")}
                     </Button>
                   </div>
                 </DialogContent>
