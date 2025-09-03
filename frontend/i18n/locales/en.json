@@ -451,7 +451,23 @@
       "pendingChanges": "Pending Changes",
       "change1": "Add section on microplastics",
       "proposedBy": "Proposed by",
-      "voting": "Voting"
+      "voting": "Voting",
+      "version": "Version",
+      "author": "Author",
+      "noContent": "No manifesto available at this time.",
+      "activeProposals": "active proposals",
+      "daysLeft": "days left",
+      "totalVotes": "votes",
+      "approval": "approval",
+      "voteYes": "Approve",
+      "voteNo": "Reject",
+      "abstain": "Abstain",
+      "status": {
+        "voting": "Voting",
+        "approved": "Approved",
+        "rejected": "Rejected",
+        "expired": "Expired"
+      }
     },
     "ngos": {
       "title": "Registered NGOs",
@@ -476,6 +492,50 @@
       "description": "Join thousands of people who are actively participating in decisions about the future of our seas.",
       "joinCommunity": "Join Community",
       "startDiscussion": "Start Discussion"
+    }
+  },
+  "manifesto": {
+    "loadError": "Error loading manifesto",
+    "loadErrorDesc": "Could not load the manifesto. Please try again.",
+    "voteSuccess": "Vote registered",
+    "voteSuccessDesc": "Your vote has been successfully registered!",
+    "voteError": "Error voting",
+    "voteErrorDesc": "Could not register your vote. Please try again.",
+    "editor": {
+      "title": "Propose Manifesto Amendment",
+      "description": "Propose changes to the community manifesto",
+      "proposalTitle": "Proposal Title",
+      "proposalTitlePlaceholder": "E.g., Add section on coral protection",
+      "proposalDescription": "Description",
+      "proposalDescriptionPlaceholder": "Explain the reason and impact of this change...",
+      "content": "Manifesto Content",
+      "votingInfo": "Your proposal will need a simple majority to be approved. The voting period is 60 days.",
+      "reviewChanges": "Review Changes",
+      "reviewTitle": "Review Proposal",
+      "reviewDescription": "Review your changes before submitting",
+      "changesPreview": "Changes Preview",
+      "submitInfo": "Upon submission, your proposal will be open for voting for 60 days.",
+      "submitProposal": "Submit Proposal",
+      "titleRequired": "Title is required",
+      "descriptionRequired": "Description is required",
+      "noChanges": "No changes were made to the manifesto",
+      "proposalCreated": "Proposal created",
+      "proposalCreatedDesc": "Your proposal has been created and is now open for voting",
+      "submitError": "Error creating proposal",
+      "submitErrorDesc": "Could not create the proposal. Please try again.",
+      "loadError": "Error loading",
+      "loadErrorDesc": "Could not load the current manifesto"
+    },
+    "history": {
+      "title": "Manifesto History",
+      "description": "View all previous versions of the manifesto",
+      "version": "Version",
+      "current": "Current",
+      "archived": "Archived",
+      "fromProposal": "Created from proposal",
+      "view": "View",
+      "loadError": "Error loading history",
+      "loadErrorDesc": "Could not load history. Please try again."
     }
   },
   "account": {

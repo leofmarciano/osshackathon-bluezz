@@ -451,7 +451,23 @@
       "pendingChanges": "Alterações Pendentes",
       "change1": "Adicionar seção sobre microplásticos",
       "proposedBy": "Proposto por",
-      "voting": "Em votação"
+      "voting": "Em votação",
+      "version": "Versão",
+      "author": "Autor",
+      "noContent": "Nenhum manifesto disponível no momento.",
+      "activeProposals": "propostas ativas",
+      "daysLeft": "dias restantes",
+      "totalVotes": "votos",
+      "approval": "aprovação",
+      "voteYes": "Aprovar",
+      "voteNo": "Rejeitar",
+      "abstain": "Abster",
+      "status": {
+        "voting": "Em votação",
+        "approved": "Aprovado",
+        "rejected": "Rejeitado",
+        "expired": "Expirado"
+      }
     },
     "ngos": {
       "title": "ONGs Registradas",
@@ -476,6 +492,50 @@
       "description": "Junte-se a milhares de pessoas que estão ativamente participando das decisões sobre o futuro dos nossos mares.",
       "joinCommunity": "Entrar na Comunidade",
       "startDiscussion": "Iniciar Discussão"
+    }
+  },
+  "manifesto": {
+    "loadError": "Erro ao carregar manifesto",
+    "loadErrorDesc": "Não foi possível carregar o manifesto. Tente novamente.",
+    "voteSuccess": "Voto registrado",
+    "voteSuccessDesc": "Seu voto foi registrado com sucesso!",
+    "voteError": "Erro ao votar",
+    "voteErrorDesc": "Não foi possível registrar seu voto. Tente novamente.",
+    "editor": {
+      "title": "Propor Alteração no Manifesto",
+      "description": "Proponha mudanças para o manifesto da comunidade",
+      "proposalTitle": "Título da Proposta",
+      "proposalTitlePlaceholder": "Ex: Adicionar seção sobre proteção de corais",
+      "proposalDescription": "Descrição",
+      "proposalDescriptionPlaceholder": "Explique o motivo e impacto desta mudança...",
+      "content": "Conteúdo do Manifesto",
+      "votingInfo": "Sua proposta precisará de maioria simples para ser aprovada. O período de votação é de 60 dias.",
+      "reviewChanges": "Revisar Alterações",
+      "reviewTitle": "Revisar Proposta",
+      "reviewDescription": "Verifique suas alterações antes de enviar",
+      "changesPreview": "Prévia das Alterações",
+      "submitInfo": "Ao enviar, sua proposta entrará em votação por 60 dias.",
+      "submitProposal": "Enviar Proposta",
+      "titleRequired": "O título é obrigatório",
+      "descriptionRequired": "A descrição é obrigatória",
+      "noChanges": "Nenhuma alteração foi feita no manifesto",
+      "proposalCreated": "Proposta criada",
+      "proposalCreatedDesc": "Sua proposta foi criada e está em votação",
+      "submitError": "Erro ao criar proposta",
+      "submitErrorDesc": "Não foi possível criar a proposta. Tente novamente.",
+      "loadError": "Erro ao carregar",
+      "loadErrorDesc": "Não foi possível carregar o manifesto atual"
+    },
+    "history": {
+      "title": "Histórico do Manifesto",
+      "description": "Visualize todas as versões anteriores do manifesto",
+      "version": "Versão",
+      "current": "Atual",
+      "archived": "Arquivada",
+      "fromProposal": "Criada da proposta",
+      "view": "Visualizar",
+      "loadError": "Erro ao carregar histórico",
+      "loadErrorDesc": "Não foi possível carregar o histórico. Tente novamente."
     }
   },
   "account": {
