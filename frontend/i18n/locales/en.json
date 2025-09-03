@@ -222,18 +222,21 @@
       "oil": "Oil Cleanup",
       "plastic": "Plastic Collection",
       "prevention": "Prevention",
-      "restoration": "Restoration"
+      "restoration": "Restoration",
+      "other": "Others"
     },
     "raised": "Raised",
     "achieved": "achieved",
     "daysLeft": "days left",
     "contributeButton": "Contribute",
-    "noProjects": "No projects found with the applied filters.",
-    "clearFilters": "Clear filters",
+    "organization": "Organization",
     "loading": "Loading projects...",
     "resultsCount": "{{count}} project found",
     "resultsCount_plural": "{{count}} projects found",
-    "supporters": "supporters",
+    "backersCount": "{{count}} backer",
+    "backersCount_plural": "{{count}} backers",
+    "noProjects": "No projects found with the applied filters.",
+    "clearFilters": "Clear filters",
     "cta": {
       "title": "Didn't find what you're looking for?",
       "subtitle": "New projects are added regularly. Sign up to receive notifications.",
@@ -303,18 +306,41 @@
       "goalDesc": "Highest Goal",
       "progress": "Highest Progress"
     },
+    "loading": "Loading...",
     "resultsCount": "{{count}} project found",
     "resultsCount_plural": "{{count}} projects found",
     "organization": "Organization",
     "raised": "Raised",
     "achieved": "achieved",
     "daysLeft": "days left",
+    "backersCount": "{{count}} backer",
+    "backersCount_plural": "{{count}} backers",
     "viewProjectButton": "View Project",
     "noResults": {
       "title": "No projects found",
       "subtitle": "Try adjusting your filters or search terms to find projects.",
       "button": "Clear all filters"
     }
+  },
+  "announcement": {
+    "loading": "Loading project...",
+    "fetchError": "Could not load the project.",
+    "notFoundTitle": "Project not found",
+    "notFoundSubtitle": "The project you are looking for does not exist.",
+    "pledgedOfGoal": "pledged of {{currency}} {{goal}} goal",
+    "backers": "backers",
+    "daysToGo": "days to go",
+    "backButton": "Back this project",
+    "remindButton": "Remind me",
+    "backSuccessDesc": "Your support has been successfully registered!",
+    "backErrorDesc": "Could not process your support. Please try again.",
+    "remindSuccessDesc": "You will be notified about updates to this project.",
+    "remindErrorDesc": "Could not create reminder. Please try again.",
+    "shareFacebook": "Share",
+    "shareTwitter": "Tweet",
+    "shareGeneric": "Share",
+    "aboutOrg": "About the Organization",
+    "contents": "Contents"
   },
   "account": {
     "title": "My Account",
@@ -402,31 +428,11 @@
     "navAriaLabel": "Footer navigation",
     "copyright": "© {{year}} {{app}}. All rights reserved."
   },
-  "announcement": {
-    "loading": "Loading project...",
-    "fetchError": "We couldn't load the project.",
-    "notFoundTitle": "Project not found",
-    "notFoundSubtitle": "The project you're looking for does not exist.",
-    "pledgedOfGoal": "pledged of {{currency}} {{goal}} goal",
-    "backers": "backers",
-    "daysToGo": "days to go",
-    "backButton": "Back this project",
-    "remindButton": "Remind me",
-    "shareFacebook": "Share",
-    "shareTwitter": "Tweet",
-    "shareGeneric": "Share",
-    "aboutOrg": "About the Organization",
-    "contents": "Contents",
-    "backSuccessDesc": "Your support has been recorded successfully!",
-    "backErrorDesc": "We couldn't process your support. Please try again.",
-    "remindSuccessDesc": "You will be notified about updates to this project.",
-    "remindErrorDesc": "We couldn't create the reminder. Please try again."
-  },
   "common": {
     "currency": "$",
     "from": "of",
     "user": "User",
-    "success": "Success",
+    "success": "Success!",
     "error": "Error"
   }
 }

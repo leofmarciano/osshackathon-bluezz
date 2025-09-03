@@ -12,7 +12,7 @@ import backend from "~backend/client";
 import type { AnnouncementSummary } from "~backend/announcements/types";
 
 export function DiscoverPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [announcements, setAnnouncements] = useState<AnnouncementSummary[]>([]);
@@ -34,7 +34,7 @@ export function DiscoverPage() {
       prevention: { label: t('discover.categories.prevention'), variant: "default" as const },
       restoration: { label: t('discover.categories.restoration'), variant: "outline" as const }
     };
-    return badges[category as keyof typeof badges] || { label: t('discover.categories.all'), variant: "outline" as const };
+    return badges[category as keyof typeof badges] || { label: t('discover.categories.other'), variant: "outline" as const };
   };
 
   const fetchAnnouncements = async () => {
@@ -46,6 +46,7 @@ export function DiscoverPage() {
         sortBy: "newest",
         limit: 20,
         offset: 0,
+        language: i18n.language,
       });
       setAnnouncements(response.announcements);
       setTotal(response.total);
@@ -60,7 +61,7 @@ export function DiscoverPage() {
 
   useEffect(() => {
     fetchAnnouncements();
-  }, [searchTerm, categoryFilter]);
+  }, [searchTerm, categoryFilter, i18n.language]);
 
   const getDaysLeft = (campaignEndDate: Date) => {
     const now = new Date();
@@ -109,7 +110,7 @@ export function DiscoverPage() {
         {loading && (
           <div className="flex justify-center items-center py-12">
             <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-            <span className="ml-2 text-gray-600">{t("discover.loading")}</span>
+            <span className="ml-2 text-gray-600">{t('discover.loading')}</span>
           </div>
         )}
 
@@ -117,7 +118,7 @@ export function DiscoverPage() {
         {!loading && (
           <div className="mb-6">
             <p className="text-gray-600">
-              {t("discover.resultsCount", { count: total })}
+              {t('discover.resultsCount', { count: total })}
             </p>
           </div>
         )}
@@ -163,7 +164,7 @@ export function DiscoverPage() {
                     </div>
 
                     <div className="text-sm text-gray-600">
-                      <strong>{t('search.organization')}:</strong> {announcement.organizationName}
+                      <strong>{t('discover.organization')}:</strong> {announcement.organizationName}
                     </div>
 
                     <div className="space-y-2">
@@ -182,7 +183,7 @@ export function DiscoverPage() {
                         </span>
                       </div>
                       <div className="text-sm text-gray-500">
-                        {announcement.backersCount} {t("discover.supporters")}
+                        {t('discover.backersCount', { count: announcement.backersCount })}
                       </div>
                     </div>
 

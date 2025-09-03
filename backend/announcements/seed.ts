@@ -6,7 +6,7 @@ interface SeedResponse {
   count: number;
 }
 
-// Seeds the database with sample announcements (restricted endpoint).
+// Seeds the database with sample announcements and translations (restricted endpoint).
 export const seed = api<void, SeedResponse>(
   { expose: true, method: "POST", path: "/announcements/seed" },
   async () => {
@@ -49,6 +49,35 @@ Com este projeto, esperamos restaurar completamente o ecossistema marinho da reg
         raisedAmount: 89000,
         backersCount: 234,
         imageUrl: "/images/oil-cleanup.jpg",
+        translations: {
+          en: {
+            title: "Oil Spill Cleanup - Northeast Brazil",
+            description: "Emergency project to remove oil that has affected Northeast Brazilian beaches, focusing on local marine life recovery",
+            content: `# Northeast Oil Cleanup Project
+
+## Current Situation
+
+Northeast Brazilian beaches have been severely affected by oil spills that compromise the entire local marine ecosystem. This project aims for complete oil removal and marine life recovery.
+
+## Objectives
+
+- Remove 95% of oil from affected beaches
+- Recover local marine fauna
+- Implement preventive measures
+
+## Methodology
+
+We will use cutting-edge technology to:
+1. Precisely identify affected areas
+2. Safely remove oil
+3. Treat affected fauna
+4. Continuous monitoring
+
+## Expected Impact
+
+With this project, we expect to completely restore the region's marine ecosystem within 6 months.`
+          }
+        }
       },
       {
         slug: "coleta-plastico-atlantico",
@@ -86,6 +115,36 @@ Milhões de toneladas de plástico são despejadas no oceano anualmente, criando
         raisedAmount: 145000,
         backersCount: 567,
         imageUrl: "/images/plastic-cleanup.jpg",
+        translations: {
+          en: {
+            title: "Atlantic Ocean Plastic Collection",
+            description: "Innovative initiative for collecting and recycling plastic accumulated in the ocean using specialized vessels",
+            content: `# Atlantic Ocean Plastic Collection
+
+## The Problem
+
+Millions of tons of plastic are dumped into the ocean annually, creating garbage islands that harm marine life.
+
+## Our Solution
+
+### Advanced Technology
+- Specialized vessels with collection nets
+- Automatic waste separation system
+- Immediate onboard recycling
+
+### Collection Process
+1. **Identification**: Use of satellites to locate plastic concentrations
+2. **Collection**: Vessels collect material without harming marine life
+3. **Processing**: Separation and processing for recycling
+4. **Destination**: Transformation into new products
+
+## Expected Results
+
+- Collection of 500 tons of plastic
+- Recycling of 90% of collected material
+- Protection of thousands of marine animals`
+          }
+        }
       },
       {
         slug: "barreira-anti-poluicao",
@@ -127,6 +186,40 @@ Sistema de IoT para monitoramento em tempo real da eficácia das barreiras.`,
         raisedAmount: 32000,
         backersCount: 128,
         imageUrl: "/images/barrier.jpg",
+        translations: {
+          en: {
+            title: "Marine Anti-Pollution Barrier",
+            description: "Installation of floating barriers to prevent urban waste from reaching the sea through rivers",
+            content: `# Marine Anti-Pollution Barrier
+
+## Prevention is Key
+
+Instead of just cleaning existing pollution, this project focuses on prevention, installing barriers that prevent new waste from reaching the ocean.
+
+## How It Works
+
+### Barrier System
+- Floating barriers in main rivers
+- Automatic waste collection
+- Regular maintenance and monitoring
+
+### Benefits
+- **Prevention**: Prevents 80% of waste from reaching the sea
+- **Sustainability**: Long-term solution
+- **Cost-effectiveness**: Cheaper than ocean cleanup
+
+## Locations
+
+Barriers will be installed in:
+- Tietê River (São Paulo)
+- Guandu River (Rio de Janeiro)
+- Capibaribe River (Pernambuco)
+
+## Monitoring
+
+IoT system for real-time monitoring of barrier effectiveness.`
+          }
+        }
       },
       {
         slug: "recuperacao-corais-noronha",
@@ -172,6 +265,44 @@ Os recifes de Fernando de Noronha sofreram branqueamento devido ao aquecimento g
         raisedAmount: 180000,
         backersCount: 445,
         imageUrl: "/images/coral-restoration.jpg",
+        translations: {
+          en: {
+            title: "Coral Recovery - Fernando de Noronha",
+            description: "Marine reforestation project and recovery of coral reefs degraded by pollution",
+            content: `# Coral Recovery in Fernando de Noronha
+
+## The Importance of Corals
+
+Coral reefs are fundamental to marine biodiversity, hosting 25% of all marine species.
+
+## Current State
+
+Fernando de Noronha reefs have suffered bleaching due to global warming and pollution, losing 40% of their coverage.
+
+## Recovery Plan
+
+### Phase 1: Diagnosis
+- Complete reef mapping
+- Water quality analysis
+- Identification of affected species
+
+### Phase 2: Cultivation
+- Laboratory coral cultivation
+- Selection of resistant species
+- Adaptation tests
+
+### Phase 3: Transplantation
+- Gradual transplantation of young corals
+- Constant monitoring
+- Adjustments as needed
+
+## Impact
+
+- Recovery of 10 hectares of reef
+- Restoration of 50 coral species
+- Protection of hundreds of marine species`
+          }
+        }
       },
       {
         slug: "microplasticos-lagoa-patos",
@@ -216,6 +347,43 @@ A Lagoa dos Patos é o segundo maior complexo lagunar do mundo e fundamental par
         raisedAmount: 45000,
         backersCount: 89,
         imageUrl: "/images/microplastics.jpg",
+        translations: {
+          en: {
+            title: "Microplastics Cleanup - Lagoa dos Patos",
+            description: "Advanced technology for removing microplastics in lagoon ecosystems of southern Brazil",
+            content: `# Microplastics Removal in Lagoa dos Patos
+
+## The Microplastics Challenge
+
+Microplastics are an invisible threat that contaminates the entire marine food chain.
+
+## Innovative Technology
+
+### Filtration System
+- Ultra-fine filters capable of capturing particles smaller than 1mm
+- Continuous water processing
+- Separation by density and size
+
+### System Characteristics
+- **Capacity**: 10,000 liters/hour
+- **Efficiency**: 99.5% removal
+- **Minimal impact**: Does not affect beneficial microorganisms
+
+## Area of Operation
+
+Lagoa dos Patos is the world's second largest lagoon complex and fundamental for:
+- Local fishing
+- Tourism
+- Biodiversity
+
+## Expected Results
+
+- Removal of 95% of microplastics
+- Improvement of water quality
+- Protection of local aquatic fauna
+- Development of replicable protocol`
+          }
+        }
       }
     ];
 
@@ -223,7 +391,8 @@ A Lagoa dos Patos é o segundo maior complexo lagunar do mundo e fundamental par
 
     for (const announcement of sampleAnnouncements) {
       try {
-        await announcementsDB.exec`
+        // Insert the main announcement
+        const announcementRow = await announcementsDB.queryRow<{ id: number }>`
           INSERT INTO announcements (
             slug,
             title,
@@ -240,7 +409,8 @@ A Lagoa dos Patos é o segundo maior complexo lagunar do mundo e fundamental par
             published,
             created_at,
             updated_at,
-            campaign_end_date
+            campaign_end_date,
+            default_language
           ) VALUES (
             ${announcement.slug},
             ${announcement.title},
@@ -257,13 +427,73 @@ A Lagoa dos Patos é o segundo maior complexo lagunar do mundo e fundamental par
             true,
             ${now},
             ${now},
-            ${futureDate}
+            ${futureDate},
+            'pt'
           )
-          ON CONFLICT (slug) DO NOTHING
+          ON CONFLICT (slug) DO UPDATE SET
+            raised_amount = EXCLUDED.raised_amount,
+            backers_count = EXCLUDED.backers_count
+          RETURNING id
         `;
-        insertedCount++;
+
+        if (announcementRow) {
+          // Insert Portuguese translation (default)
+          await announcementsDB.exec`
+            INSERT INTO announcement_translations (
+              announcement_id,
+              language,
+              title,
+              description,
+              content,
+              created_at,
+              updated_at
+            ) VALUES (
+              ${announcementRow.id},
+              'pt',
+              ${announcement.title},
+              ${announcement.description},
+              ${announcement.content},
+              ${now},
+              ${now}
+            )
+            ON CONFLICT (announcement_id, language) DO UPDATE SET
+              title = EXCLUDED.title,
+              description = EXCLUDED.description,
+              content = EXCLUDED.content,
+              updated_at = EXCLUDED.updated_at
+          `;
+
+          // Insert English translations if available
+          if (announcement.translations?.en) {
+            await announcementsDB.exec`
+              INSERT INTO announcement_translations (
+                announcement_id,
+                language,
+                title,
+                description,
+                content,
+                created_at,
+                updated_at
+              ) VALUES (
+                ${announcementRow.id},
+                'en',
+                ${announcement.translations.en.title},
+                ${announcement.translations.en.description},
+                ${announcement.translations.en.content},
+                ${now},
+                ${now}
+              )
+              ON CONFLICT (announcement_id, language) DO UPDATE SET
+                title = EXCLUDED.title,
+                description = EXCLUDED.description,
+                content = EXCLUDED.content,
+                updated_at = EXCLUDED.updated_at
+            `;
+          }
+
+          insertedCount++;
+        }
       } catch (error) {
-        // Continue with other announcements if one fails
         console.error(`Failed to insert announcement ${announcement.slug}:`, error);
       }
     }

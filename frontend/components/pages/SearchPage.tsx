@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
-import { useTranslation } from "react-i18next";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,17 +13,17 @@ import backend from "~backend/client";
 import type { AnnouncementSummary } from "~backend/announcements/types";
 
 export function SearchPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [locationFilter, setLocationFilter] = useState("all");
   const [goalRange, setGoalRange] = useState([0, 500000]);
   const [progressFilter, setProgressFilter] = useState("all");
   const [showFilters, setShowFilters] = useState(false);
-
   const [announcements, setAnnouncements] = useState<AnnouncementSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [total, setTotal] = useState(0);
+  const [sortBy, setSortBy] = useState("relevance");
 
   const categories = [
     { value: "all", label: t('discover.categories.all') },
@@ -35,11 +35,11 @@ export function SearchPage() {
 
   const locations = [
     { value: "all", label: t('search.locations.all') },
-    { value: "northeast", label: t('search.locations.northeast') },
-    { value: "southeast", label: t('search.locations.southeast') },
-    { value: "south", label: t('search.locations.south') },
-    { value: "north", label: t('search.locations.north') },
-    { value: "center-oeste", label: t('search.locations.centerWest') }
+    { value: "nordeste", label: t('search.locations.northeast') },
+    { value: "sudeste", label: t('search.locations.southeast') },
+    { value: "sul", label: t('search.locations.south') },
+    { value: "norte", label: t('search.locations.north') },
+    { value: "centro-oeste", label: t('search.locations.centerWest') }
   ];
 
   const progressOptions = [
@@ -49,6 +49,14 @@ export function SearchPage() {
     { value: "finishing", label: t('search.progressOptions.finishing') }
   ];
 
+  const sortOptions = [
+    { value: "relevance", label: t('search.sorting.relevance') },
+    { value: "newest", label: t('search.sorting.newest') },
+    { value: "goal-asc", label: t('search.sorting.goalAsc') },
+    { value: "goal-desc", label: t('search.sorting.goalDesc') },
+    { value: "progress", label: t('search.sorting.progress') }
+  ];
+
   const getCategoryBadge = (category: string) => {
     const badges = {
       oil: { label: t('discover.categories.oil'), variant: "destructive" as const },
@@ -56,7 +64,7 @@ export function SearchPage() {
       prevention: { label: t('discover.categories.prevention'), variant: "default" as const },
       restoration: { label: t('discover.categories.restoration'), variant: "outline" as const }
     };
-    return badges[category as keyof typeof badges] || { label: t('discover.categories.all'), variant: "outline" as const };
+    return badges[category as keyof typeof badges] || { label: t('discover.categories.other'), variant: "outline" as const };
   };
 
   const getProgressCategory = (progress: number) => {
@@ -68,17 +76,31 @@ export function SearchPage() {
   const fetchAnnouncements = async () => {
     try {
       setLoading(true);
-      const resp = await backend.announcements.listPublished({
+      const response = await backend.announcements.listPublished({
         search: searchTerm || undefined,
         category: categoryFilter === "all" ? undefined : categoryFilter,
-        sortBy: "newest",
-        limit: 50,
+        location: locationFilter === "all" ? undefined : locationFilter,
+        minGoal: goalRange[0],
+        maxGoal: goalRange[1],
+        sortBy: sortBy as any,
+        limit: 20,
         offset: 0,
+        language: i18n.language,
       });
-      setAnnouncements(resp.announcements);
-      setTotal(resp.total);
-    } catch (err) {
-      console.error("Failed to fetch announcements:", err);
+
+      // Filter by progress if needed (since backend doesn't support this filter yet)
+      let filteredAnnouncements = response.announcements;
+      if (progressFilter !== "all") {
+        filteredAnnouncements = response.announcements.filter(announcement => {
+          const progress = (announcement.raisedAmount / announcement.goalAmount) * 100;
+          return getProgressCategory(progress) === progressFilter;
+        });
+      }
+
+      setAnnouncements(filteredAnnouncements);
+      setTotal(filteredAnnouncements.length);
+    } catch (error) {
+      console.error("Failed to fetch announcements:", error);
       setAnnouncements([]);
       setTotal(0);
     } finally {
@@ -88,34 +110,7 @@ export function SearchPage() {
 
   useEffect(() => {
     fetchAnnouncements();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchTerm, categoryFilter]);
-
-  const filteredAnnouncements = useMemo(() => {
-    const mapLocationValueToLabel: Record<string, string> = {
-      "northeast": t('search.locations.northeast'),
-      "southeast": t('search.locations.southeast'),
-      "south": t('search.locations.south'),
-      "north": t('search.locations.north'),
-      "center-oeste": t('search.locations.centerWest'),
-    };
-
-    return announcements.filter(a => {
-      // Location filtering (best-effort substring match)
-      const matchesLocation = locationFilter === "all" 
-        || (a.location || "").toLowerCase().includes((mapLocationValueToLabel[locationFilter] || "").toLowerCase())
-        || (a.location || "").toLowerCase().includes(locationFilter.replace("-", " "));
-
-      // Goal range filtering (by project goal)
-      const matchesGoalRange = a.goalAmount >= goalRange[0] && a.goalAmount <= goalRange[1];
-
-      // Progress filtering
-      const progress = (a.raisedAmount / a.goalAmount) * 100;
-      const matchesProgress = progressFilter === "all" || getProgressCategory(progress) === progressFilter;
-
-      return matchesLocation && matchesGoalRange && matchesProgress;
-    });
-  }, [announcements, locationFilter, goalRange, progressFilter, t]);
+  }, [searchTerm, categoryFilter, locationFilter, goalRange, progressFilter, sortBy, i18n.language]);
 
   const getDaysLeft = (campaignEndDate: Date) => {
     const now = new Date();
@@ -256,50 +251,48 @@ export function SearchPage() {
           </Card>
         )}
 
-        {/* Loading */}
+        {/* Results Header */}
+        <div className="flex justify-between items-center mb-6">
+          <p className="text-gray-600">
+            {loading ? t('search.loading') : t('search.resultsCount', { count: total })}
+          </p>
+          <Select value={sortBy} onValueChange={setSortBy}>
+            <SelectTrigger className="w-48">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {sortOptions.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Loading state */}
         {loading && (
           <div className="flex justify-center items-center py-12">
             <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-            <span className="ml-2 text-gray-600">{t("discover.loading")}</span>
-          </div>
-        )}
-
-        {/* Results Header */}
-        {!loading && (
-          <div className="flex justify-between items-center mb-6">
-            <p className="text-gray-600">
-              {t('search.resultsCount', { count: filteredAnnouncements.length })}
-            </p>
-            <Select defaultValue="relevance">
-              <SelectTrigger className="w-48">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="relevance">{t('search.sorting.relevance')}</SelectItem>
-                <SelectItem value="newest">{t('search.sorting.newest')}</SelectItem>
-                <SelectItem value="goal-asc">{t('search.sorting.goalAsc')}</SelectItem>
-                <SelectItem value="goal-desc">{t('search.sorting.goalDesc')}</SelectItem>
-                <SelectItem value="progress">{t('search.sorting.progress')}</SelectItem>
-              </SelectContent>
-            </Select>
+            <span className="ml-2 text-gray-600">{t('search.loading')}</span>
           </div>
         )}
 
         {/* Results Grid */}
-        {!loading && (filteredAnnouncements.length > 0 ? (
+        {!loading && announcements.length > 0 ? (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredAnnouncements.map((a) => {
-              const progress = (a.raisedAmount / a.goalAmount) * 100;
-              const categoryBadge = getCategoryBadge(a.category);
-              const daysLeft = getDaysLeft(a.campaignEndDate);
+            {announcements.map((announcement) => {
+              const progress = (announcement.raisedAmount / announcement.goalAmount) * 100;
+              const categoryBadge = getCategoryBadge(announcement.category);
+              const daysLeft = getDaysLeft(announcement.campaignEndDate);
 
               return (
-                <Card key={a.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                <Card key={announcement.id} className="overflow-hidden hover:shadow-lg transition-shadow">
                   <div className="h-48 bg-gray-200 relative">
-                    {a.imageUrl && (
+                    {announcement.imageUrl && (
                       <img 
-                        src={a.imageUrl} 
-                        alt={a.title}
+                        src={announcement.imageUrl} 
+                        alt={announcement.title}
                         className="w-full h-full object-cover"
                       />
                     )}
@@ -313,27 +306,27 @@ export function SearchPage() {
                   </div>
                   
                   <CardHeader>
-                    <CardTitle className="line-clamp-2">{a.title}</CardTitle>
+                    <CardTitle className="line-clamp-2">{announcement.title}</CardTitle>
                     <CardDescription className="line-clamp-3">
-                      {a.description}
+                      {announcement.description}
                     </CardDescription>
                   </CardHeader>
 
                   <CardContent className="space-y-4">
                     <div className="flex items-center text-sm text-gray-500">
                       <MapPin className="w-4 h-4 mr-1" />
-                      {a.location}
+                      {announcement.location}
                     </div>
 
                     <div className="text-sm text-gray-600">
-                      <strong>{t('search.organization')}:</strong> {a.organizationName}
+                      <strong>{t('search.organization')}:</strong> {announcement.organizationName}
                     </div>
 
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">
                         <span className="text-gray-600">{t('search.raised')}</span>
                         <span className="font-medium">
-                          {t('common.currency')} {a.raisedAmount.toLocaleString()} {t('common.from')} {t('common.currency')} {a.goalAmount.toLocaleString()}
+                          {t('common.currency')} {announcement.raisedAmount.toLocaleString()} {t('common.from')} {t('common.currency')} {announcement.goalAmount.toLocaleString()}
                         </span>
                       </div>
                       <Progress value={progress} className="h-2" />
@@ -344,10 +337,13 @@ export function SearchPage() {
                           {daysLeft} {t('search.daysLeft')}
                         </span>
                       </div>
+                      <div className="text-sm text-gray-500">
+                        {t('search.backersCount', { count: announcement.backersCount })}
+                      </div>
                     </div>
 
                     <Button className="w-full" asChild>
-                      <Link to={`/announcement/${a.slug}`}>
+                      <Link to={`/announcement/${announcement.slug}`}>
                         <Target className="w-4 h-4 mr-2" />
                         {t('search.viewProjectButton')}
                       </Link>
@@ -357,7 +353,7 @@ export function SearchPage() {
               );
             })}
           </div>
-        ) : (
+        ) : !loading ? (
           <div className="text-center py-16">
             <Search className="w-16 h-16 text-gray-300 mx-auto mb-4" />
             <h3 className="text-xl font-semibold text-gray-900 mb-2">
@@ -379,7 +375,7 @@ export function SearchPage() {
               {t('search.noResults.button')}
             </Button>
           </div>
-        ))}
+        ) : null}
       </div>
     </div>
   );

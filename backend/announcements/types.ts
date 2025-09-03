@@ -12,6 +12,7 @@ export interface AnnouncementSummary {
   imageUrl?: string;
   createdAt: Date;
   campaignEndDate: Date;
+  defaultLanguage: string;
 }
 
 export interface AnnouncementDetail {
@@ -32,6 +33,18 @@ export interface AnnouncementDetail {
   createdAt: Date;
   updatedAt: Date;
   campaignEndDate: Date;
+  defaultLanguage: string;
+}
+
+export interface AnnouncementTranslation {
+  id: number;
+  announcementId: number;
+  language: string;
+  title: string;
+  description: string;
+  content: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface CreateAnnouncementRequest {
@@ -46,6 +59,7 @@ export interface CreateAnnouncementRequest {
   goalAmount: number;
   imageUrl?: string;
   campaignEndDate: Date;
+  defaultLanguage?: string;
 }
 
 export interface UpdateAnnouncementRequest {
@@ -60,6 +74,7 @@ export interface UpdateAnnouncementRequest {
   goalAmount?: number;
   imageUrl?: string;
   campaignEndDate?: Date;
+  defaultLanguage?: string;
 }
 
 export interface ListAnnouncementsRequest {
@@ -71,6 +86,7 @@ export interface ListAnnouncementsRequest {
   sortBy?: "newest" | "goal-asc" | "goal-desc" | "progress" | "relevance";
   limit?: number;
   offset?: number;
+  language?: string;
 }
 
 export interface BackAnnouncementRequest {
@@ -80,4 +96,20 @@ export interface BackAnnouncementRequest {
 
 export interface RemindAnnouncementRequest {
   announcementId: number;
+}
+
+export interface CreateTranslationRequest {
+  announcementId: number;
+  language: string;
+  title: string;
+  description: string;
+  content: string;
+}
+
+export interface UpdateTranslationRequest {
+  announcementId: number;
+  language: string;
+  title?: string;
+  description?: string;
+  content?: string;
 }

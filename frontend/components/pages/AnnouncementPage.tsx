@@ -23,7 +23,7 @@ import type { AnnouncementDetail } from "~backend/announcements/types";
 
 export function AnnouncementPage() {
   const { slug } = useParams<{ slug: string }>();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { toast } = useToast();
   const authBackend = useBackend();
   const [announcement, setAnnouncement] = useState<AnnouncementDetail | null>(null);
@@ -35,12 +35,15 @@ export function AnnouncementPage() {
     if (slug) {
       fetchAnnouncement();
     }
-  }, [slug]);
+  }, [slug, i18n.language]);
 
   const fetchAnnouncement = async () => {
     try {
       setLoading(true);
-      const response = await backend.announcements.getBySlug({ slug: slug! });
+      const response = await backend.announcements.getBySlug({ 
+        slug: slug!,
+        language: i18n.language 
+      });
       setAnnouncement(response);
     } catch (error) {
       console.error("Failed to fetch announcement:", error);
@@ -122,7 +125,7 @@ export function AnnouncementPage() {
       prevention: { label: t("discover.categories.prevention"), variant: "default" as const },
       restoration: { label: t("discover.categories.restoration"), variant: "outline" as const }
     };
-    return badges[category as keyof typeof badges] || { label: t("discover.categories.all"), variant: "outline" as const };
+    return badges[category as keyof typeof badges] || { label: t("discover.categories.other"), variant: "outline" as const };
   };
 
   const extractHeadings = (content: string) => {
