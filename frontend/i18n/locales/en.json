@@ -362,7 +362,8 @@
     "secureNote": "Your payment data is protected with end-to-end encryption.",
     "signInRequired": "You need to be logged in to make a donation.",
     "minimumAmount": "The minimum donation amount is $0.50",
-    "checkoutError": "Error creating payment session. Please try again."
+    "checkoutError": "Error creating payment session. Please try again.",
+    "successMessage": "Thank you for your donation! Your support is greatly appreciated."
   },
   "donations": {
     "title": "Supporters",

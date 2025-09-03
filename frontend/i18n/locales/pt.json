@@ -362,7 +362,8 @@
     "secureNote": "Seus dados de pagamento são protegidos com criptografia de ponta.",
     "signInRequired": "Você precisa estar logado para fazer uma doação.",
     "minimumAmount": "O valor mínimo para doação é $0.50",
-    "checkoutError": "Erro ao criar sessão de pagamento. Tente novamente."
+    "checkoutError": "Erro ao criar sessão de pagamento. Tente novamente.",
+    "successMessage": "Obrigado pela sua doação! Seu apoio é muito importante."
   },
   "donations": {
     "title": "Apoiadores",

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -31,6 +31,7 @@ export function AnnouncementPage() {
   const { t, i18n } = useTranslation();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const location = useLocation();
   const authBackend = useBackend();
   const isSignedIn = useIsSignedIn();
   const [announcement, setAnnouncement] = useState<AnnouncementDetail | null>(null);
@@ -41,7 +42,17 @@ export function AnnouncementPage() {
     if (slug) {
       fetchAnnouncement();
     }
-  }, [slug, i18n.language]);
+    
+    const searchParams = new URLSearchParams(location.search);
+    if (searchParams.get('donation_success') === 'true') {
+      toast({
+        title: t("common.success"),
+        description: t("donation.successMessage"),
+      });
+      // Clean up URL
+      navigate(`/announcement/${slug}`, { replace: true });
+    }
+  }, [slug, i18n.language, location.search]);
 
   const fetchAnnouncement = async () => {
     try {
