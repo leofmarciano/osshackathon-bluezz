@@ -64,12 +64,14 @@ export default function CompanyProfile({
   company, 
   onUpdate,
   onVote,
-  onFollow 
+  onFollow,
+  isAuthenticated = false
 }: {
   company: CompanyData;
   onUpdate: (data: any) => void;
   onVote: (vote: "yes" | "no") => void;
   onFollow: () => void;
+  isAuthenticated?: boolean;
 }) {
   const { t } = useTranslation();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -219,8 +221,8 @@ export default function CompanyProfile({
                 />
               </div>
 
-              {/* Voting Buttons */}
-              {!company.hasVoted && (
+              {/* Voting Buttons - only show if user is authenticated */}
+              {isAuthenticated && !company.hasVoted && (
                 <div className="flex gap-4">
                   <Button
                     className="flex-1"
@@ -239,6 +241,16 @@ export default function CompanyProfile({
                     {t("companies.profile.voting.reject")}
                   </Button>
                 </div>
+              )}
+              
+              {/* Show login prompt if not authenticated */}
+              {!isAuthenticated && !company.hasVoted && (
+                <Alert>
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    {t("companies.profile.voting.loginRequired", "Sign in to vote on this organization")}
+                  </AlertDescription>
+                </Alert>
               )}
 
               {company.hasVoted && (

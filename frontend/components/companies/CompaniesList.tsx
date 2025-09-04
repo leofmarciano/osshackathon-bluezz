@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { useBackend } from "@/lib/useBackend";
+import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -9,7 +11,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Search, Filter, MapPin, Globe, Users, Target,
   Clock, CheckCircle, AlertCircle, ArrowRight,
-  Building2, Heart, ThumbsUp, ThumbsDown, Calendar
+  Building2, Heart, ThumbsUp, ThumbsDown, Calendar,
+  Plus, Sparkles
 } from "lucide-react";
 import {
   Select,
@@ -18,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 interface Company {
   id: string;
@@ -46,86 +49,59 @@ interface Company {
 
 export default function CompaniesList() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const backend = useBackend();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedType, setSelectedType] = useState("all");
+  const [companies, setCompanies] = useState<Company[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Mock data
-  const companies: Company[] = [
-    {
-      id: "1",
-      name: "Ocean Cleanup Brasil",
-      type: "ngo",
-      status: "active",
-      category: "ocean_cleanup",
-      description: "Dedicated to removing plastic waste from Brazilian coastlines and educating communities about ocean conservation.",
-      location: "São Paulo, SP",
-      website: "https://oceancleanup.br",
-      createdAt: new Date(2023, 0, 15),
-      stats: {
-        followers: 12500,
-        donations: 450000
-      },
-      tags: ["plastic", "beaches", "education"]
-    },
-    {
-      id: "2",
-      name: "Marine Tech Solutions",
-      type: "company",
-      status: "pending",
-      category: "technology",
-      description: "Developing innovative AI-powered solutions to track and prevent ocean pollution in real-time.",
-      location: "Rio de Janeiro, RJ",
-      createdAt: new Date(2024, 10, 1),
-      votingEndsAt: new Date(2024, 11, 1),
-      votes: {
-        yes: 234,
-        no: 56,
-        percentage: 81
-      },
-      stats: {
-        followers: 3400,
-        donations: 0
-      },
-      tags: ["AI", "monitoring", "innovation"]
-    },
-    {
-      id: "3",
-      name: "Coral Restoration Foundation",
-      type: "ngo",
-      status: "active",
-      category: "marine_conservation",
-      description: "Working to restore coral reefs damaged by climate change and pollution through scientific research.",
-      location: "Fernando de Noronha, PE",
-      website: "https://coralrestore.org.br",
-      createdAt: new Date(2022, 5, 10),
-      stats: {
-        followers: 8900,
-        donations: 780000
-      },
-      tags: ["coral", "research", "climate"]
-    },
-    {
-      id: "4",
-      name: "Blue Ocean Recycling",
-      type: "company",
-      status: "pending",
-      category: "recycling",
-      description: "Converting ocean plastic into sustainable products and creating circular economy solutions.",
-      location: "Salvador, BA",
-      createdAt: new Date(2024, 10, 15),
-      votingEndsAt: new Date(2024, 11, 15),
-      votes: {
-        yes: 156,
-        no: 89,
-        percentage: 64
-      },
-      stats: {
-        followers: 1200,
-        donations: 0
-      },
-      tags: ["recycling", "circular economy", "products"]
+  useEffect(() => {
+    fetchCompanies();
+  }, []);
+
+  const fetchCompanies = async () => {
+    try {
+      setLoading(true);
+      const result = await backend.companies.getCompanies({});
+      
+      // Transform backend data to match frontend interface
+      const transformedCompanies: Company[] = result.companies.map(c => ({
+        id: c.id.toString(),
+        name: c.name,
+        type: c.type as "ngo" | "company",
+        logo: undefined,
+        status: c.status as "pending" | "active" | "rejected",
+        category: c.category,
+        description: c.description,
+        location: `${c.city}, ${c.state || c.country}`,
+        website: c.website || undefined,
+        created_at: c.created_at,
+        voting_ends_at: c.voting_ends_at || undefined,
+        votes_yes: c.votes_yes,
+        votes_no: c.votes_no,
+        votes_abstain: c.votes_abstain,
+        stats: {
+          followers: 0,
+          donations: 0
+        },
+        tags: []
+      }));
+      
+      setCompanies(transformedCompanies);
+    } catch (error: any) {
+      console.error("Failed to fetch companies:", error);
+      toast.error(t("companies.fetchError", "Failed to load companies"));
+      // Use mock data as fallback
+      setCompanies(mockCompanies);
+    } finally {
+      setLoading(false);
     }
+  };
+
+  // Mock data for fallback
+  const mockCompanies: Company[] = [
   ];
 
   const categories = [
@@ -150,135 +126,191 @@ export default function CompaniesList() {
   const activeCompanies = filteredCompanies.filter(c => c.status === "active");
   const pendingCompanies = filteredCompanies.filter(c => c.status === "pending");
 
-  const calculateDaysLeft = (endDate: Date) => {
+  const calculateDaysLeft = (endDate: string | undefined) => {
+    if (!endDate) return 0;
     const now = new Date();
-    const diff = endDate.getTime() - now.getTime();
+    const end = new Date(endDate);
+    const diff = end.getTime() - now.getTime();
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
     return days > 0 ? days : 0;
   };
 
-  const CompanyCard = ({ company }: { company: Company }) => (
-    <Card className="overflow-hidden transition-all hover:shadow-lg">
-      <CardContent className="p-6">
-        <div className="flex items-start gap-4">
-          <Avatar className="h-16 w-16">
-            <AvatarImage src={company.logo} />
-            <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white">
-              {company.name.substring(0, 2).toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
-          
-          <div className="flex-1">
-            <div className="flex items-start justify-between">
-              <div>
-                <h3 className="text-lg font-semibold">{company.name}</h3>
-                <div className="mt-1 flex items-center gap-2">
-                  <Badge variant={company.type === "ngo" ? "default" : "secondary"}>
-                    {company.type === "ngo" ? "ONG" : t("companies.types.company")}
-                  </Badge>
-                  <Badge variant="outline">
-                    {t(`companies.categories.${company.category}`)}
-                  </Badge>
-                </div>
-              </div>
-              
-              {company.status === "pending" && company.votes && (
-                <div className="text-right">
-                  <p className="text-2xl font-bold text-blue-600">{company.votes.percentage}%</p>
-                  <p className="text-xs text-gray-500">{t("companies.approval")}</p>
-                </div>
-              )}
-            </div>
+  const calculateVotePercentage = (company: Company) => {
+    const yesVotes = company.votes_yes || 0;
+    const noVotes = company.votes_no || 0;
+    const totalVotes = yesVotes + noVotes;
+    if (totalVotes === 0) return 0;
+    return Math.round((yesVotes / totalVotes) * 100);
+  };
 
-            <p className="mt-3 line-clamp-2 text-sm text-gray-600">{company.description}</p>
-
-            {/* Location and Website */}
-            <div className="mt-3 flex flex-wrap items-center gap-4 text-sm text-gray-500">
-              <span className="flex items-center gap-1">
-                <MapPin className="h-3 w-3" />
-                {company.location}
-              </span>
-              {company.website && (
-                <a href={company.website} target="_blank" rel="noreferrer" 
-                   className="flex items-center gap-1 text-blue-600 hover:underline">
-                  <Globe className="h-3 w-3" />
-                  {t("companies.website")}
-                </a>
-              )}
-            </div>
-
-            {/* Tags */}
-            <div className="mt-3 flex flex-wrap gap-2">
-              {company.tags.map((tag, index) => (
-                <Badge key={index} variant="secondary" className="text-xs">
-                  {tag}
-                </Badge>
-              ))}
-            </div>
-
-            {/* Stats or Voting Info */}
-            {company.status === "active" ? (
-              <div className="mt-4 flex items-center gap-6 text-sm">
-                <span className="flex items-center gap-1">
-                  <Users className="h-4 w-4 text-gray-400" />
-                  {company.stats.followers.toLocaleString()} {t("companies.followers")}
-                </span>
-                <span className="flex items-center gap-1">
-                  <Heart className="h-4 w-4 text-gray-400" />
-                  R$ {company.stats.donations.toLocaleString()}
-                </span>
-              </div>
-            ) : (
-              <div className="mt-4 rounded-lg bg-yellow-50 p-3">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="flex items-center gap-2 text-yellow-800">
-                    <Clock className="h-4 w-4" />
-                    {t("companies.voting.daysLeft", { days: calculateDaysLeft(company.votingEndsAt!) })}
-                  </span>
-                  <div className="flex items-center gap-3">
-                    <span className="flex items-center gap-1">
-                      <ThumbsUp className="h-3 w-3 text-green-600" />
-                      <span className="font-semibold text-green-600">{company.votes!.yes}</span>
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <ThumbsDown className="h-3 w-3 text-red-600" />
-                      <span className="font-semibold text-red-600">{company.votes!.no}</span>
-                    </span>
+  const CompanyCard = ({ company }: { company: Company }) => {
+    const votePercentage = calculateVotePercentage(company);
+    const daysLeft = company.voting_ends_at ? calculateDaysLeft(company.voting_ends_at) : 7;
+    
+    return (
+      <Card 
+        className="overflow-hidden transition-all hover:shadow-lg cursor-pointer"
+        onClick={() => navigate(`/companies/${company.id}`)}
+      >
+        <CardContent className="p-6">
+          <div className="flex items-start gap-4">
+            <Avatar className="h-16 w-16 flex-shrink-0">
+              <AvatarImage src={company.logo} />
+              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white">
+                {company.name.substring(0, 2).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            
+            <div className="flex-1 min-w-0">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-lg font-semibold truncate">{company.name}</h3>
+                  <div className="mt-1 flex items-center gap-2">
+                    <Badge variant={company.type === "ngo" ? "default" : "secondary"}>
+                      {company.type === "ngo" ? "ONG" : t("companies.types.company")}
+                    </Badge>
+                    <Badge variant="outline">
+                      {t(`companies.categories.${company.category}`, company.category)}
+                    </Badge>
                   </div>
                 </div>
-                <div className="mt-2 h-2 overflow-hidden rounded-full bg-gray-200">
-                  <div
-                    className="h-full bg-gradient-to-r from-green-500 to-green-600"
-                    style={{ width: `${company.votes!.percentage}%` }}
-                  />
+                
+                {company.status === "pending" && (
+                  <div className="text-right flex-shrink-0">
+                    <p className="text-2xl font-bold text-blue-600">{votePercentage}%</p>
+                    <p className="text-xs text-gray-500">{t("companies.approval", "Approval")}</p>
+                  </div>
+                )}
+              </div>
+
+              <p className="mt-3 line-clamp-2 text-sm text-gray-600">{company.description}</p>
+
+              {/* Location and Website */}
+              <div className="mt-3 flex flex-wrap items-center gap-4 text-sm text-gray-500">
+                <span className="flex items-center gap-1">
+                  <MapPin className="h-3 w-3" />
+                  {company.location}
+                </span>
+                {company.website && (
+                  <a href={company.website} target="_blank" rel="noreferrer" 
+                     className="flex items-center gap-1 text-blue-600 hover:underline">
+                    <Globe className="h-3 w-3" />
+                    {t("companies.website", "Website")}
+                  </a>
+                )}
+              </div>
+
+              {/* Stats or Voting Info */}
+              {company.status === "active" ? (
+                <div className="mt-4 flex items-center gap-6 text-sm">
+                  <span className="flex items-center gap-1">
+                    <Users className="h-4 w-4 text-gray-400" />
+                    {company.stats.followers.toLocaleString()} {t("companies.followers", "followers")}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Heart className="h-4 w-4 text-gray-400" />
+                    R$ {company.stats.donations.toLocaleString()}
+                  </span>
+                </div>
+              ) : (
+                <div className="mt-4 rounded-lg bg-yellow-50 p-3">
+                  <div className="flex items-center justify-between text-sm mb-2">
+                    <span className="flex items-center gap-2 text-yellow-800">
+                      <Clock className="h-4 w-4" />
+                      {t("companies.voting.daysLeft", { days: daysLeft })}
+                    </span>
+                    <div className="flex items-center gap-3">
+                      <span className="flex items-center gap-1">
+                        <ThumbsUp className="h-3 w-3 text-green-600" />
+                        <span className="font-semibold text-green-600">{company.votes_yes || 0}</span>
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <ThumbsDown className="h-3 w-3 text-red-600" />
+                        <span className="font-semibold text-red-600">{company.votes_no || 0}</span>
+                      </span>
+                    </div>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div
+                      className="bg-gradient-to-r from-green-500 to-green-600 h-2 rounded-full transition-all"
+                      style={{ width: `${Math.min(votePercentage, 100)}%` }}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* View Profile Button */}
+              <div className="mt-4">
+                <Button variant="outline" size="sm" asChild>
+                  <Link to={`/companies/${company.id}`}>
+                    {t("companies.viewProfile", "View Profile")}
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Link>
+                </Button>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
+      {/* Hero Section with CTA */}
+      <div className="relative overflow-hidden bg-gradient-to-r from-blue-600 to-cyan-600 text-white py-16">
+        <div className="absolute inset-0 bg-black opacity-10" />
+        <div className="relative mx-auto max-w-7xl px-4">
+          <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
+            <div className="flex-1">
+              <Badge className="mb-4 bg-white/20 text-white border-white/30">
+                <Building2 className="w-3 h-3 mr-1" />
+                {t("companies.badge", "Rede de Parceiros")}
+              </Badge>
+              <h1 className="text-4xl lg:text-5xl font-bold mb-4">
+                {t("companies.title")}
+              </h1>
+              <p className="text-lg text-blue-100 max-w-2xl">
+                {t("companies.subtitle")}
+              </p>
+              <div className="mt-6 flex flex-wrap gap-4">
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="w-5 h-5" />
+                  <span className="font-semibold">{activeCompanies.length}</span>
+                  <span className="text-blue-100">{t("companies.stats.active", "Organizações ativas")}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Clock className="w-5 h-5" />
+                  <span className="font-semibold">{pendingCompanies.length}</span>
+                  <span className="text-blue-100">{t("companies.stats.pending", "Em votação")}</span>
                 </div>
               </div>
-            )}
-
-            {/* View Profile Button */}
-            <div className="mt-4">
-              <Button variant="outline" size="sm" asChild>
-                <Link to={`/companies/${company.id}`}>
-                  {t("companies.viewProfile")}
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
+            </div>
+            
+            <div className="flex-shrink-0">
+              <Card className="bg-white/10 backdrop-blur border-white/20 text-white p-6">
+                <Sparkles className="w-8 h-8 mb-3" />
+                <h3 className="text-xl font-semibold mb-2">
+                  {t("companies.cta.title", "Join the movement!")}
+                </h3>
+                <p className="text-blue-100 mb-4 text-sm">
+                  {t("companies.cta.description", "Register your organization and join the largest ocean protection network.")}
+                </p>
+                <Button 
+                  size="lg" 
+                  className="w-full bg-white text-blue-600 hover:bg-blue-50"
+                  onClick={() => navigate("/companies/register")}
+                >
+                  <Plus className="w-5 h-5 mr-2" />
+                  {t("companies.register.button", "Register Organization")}
+                </Button>
+              </Card>
             </div>
           </div>
         </div>
-      </CardContent>
-    </Card>
-  );
-
-  return (
-    <div className="mx-auto max-w-7xl px-4 py-8">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">{t("companies.title")}</h1>
-        <p className="mt-2 text-gray-600">
-          {t("companies.subtitle")}
-        </p>
       </div>
+
+      <div className="mx-auto max-w-7xl px-4 py-8">
 
       {/* Filters */}
       <Card className="mb-8">
@@ -340,13 +372,24 @@ export default function CompaniesList() {
 
         {/* Active Companies */}
         <TabsContent value="active">
-          <div className="grid gap-6 lg:grid-cols-2">
-            {activeCompanies.map(company => (
-              <CompanyCard key={company.id} company={company} />
-            ))}
-          </div>
+          {loading ? (
+            <Card>
+              <CardContent className="py-12 text-center">
+                <div className="animate-spin mx-auto h-12 w-12 border-4 border-blue-500 border-t-transparent rounded-full" />
+                <p className="mt-4 text-gray-500">
+                  {t("companies.loading", "Loading companies...")}
+                </p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid gap-6 lg:grid-cols-2">
+              {activeCompanies.map(company => (
+                <CompanyCard key={company.id} company={company} />
+              ))}
+            </div>
+          )}
           
-          {activeCompanies.length === 0 && (
+          {!loading && activeCompanies.length === 0 && (
             <Card>
               <CardContent className="py-12 text-center">
                 <Building2 className="mx-auto h-12 w-12 text-gray-400" />
@@ -360,13 +403,24 @@ export default function CompaniesList() {
 
         {/* Pending Companies */}
         <TabsContent value="pending">
+          {loading ? (
+            <Card>
+              <CardContent className="py-12 text-center">
+                <div className="animate-spin mx-auto h-12 w-12 border-4 border-blue-500 border-t-transparent rounded-full" />
+                <p className="mt-4 text-gray-500">
+                  {t("companies.loading", "Loading companies...")}
+                </p>
+              </CardContent>
+            </Card>
+          ) : (
           <div className="grid gap-6 lg:grid-cols-2">
             {pendingCompanies.map(company => (
               <CompanyCard key={company.id} company={company} />
             ))}
           </div>
+          )}
           
-          {pendingCompanies.length === 0 && (
+          {!loading && pendingCompanies.length === 0 && (
             <Card>
               <CardContent className="py-12 text-center">
                 <Clock className="mx-auto h-12 w-12 text-gray-400" />
@@ -378,6 +432,7 @@ export default function CompaniesList() {
           )}
         </TabsContent>
       </Tabs>
+      </div>
     </div>
   );
 }

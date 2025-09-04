@@ -1,123 +1,148 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useAuth } from "@clerk/clerk-react";
 import CompanyProfile from "../companies/CompanyProfile";
 import { Loader2 } from "lucide-react";
-
-// Mock data - In a real app, this would come from an API
-const mockCompany = {
-  id: "1",
-  name: "Ocean Cleanup Brasil",
-  type: "ngo" as const,
-  logo: "https://picsum.photos/150/150?random=1",
-  status: "active" as const,
-  category: "ocean_cleanup",
-  description: "Dedicated to removing plastic waste from Brazilian coastlines and educating communities about ocean conservation.",
-  mission: "Our mission is to remove 1 million tons of plastic from Brazilian oceans by 2030 while educating 100,000 students about marine conservation.",
-  impact: "We have already removed 50 tons of plastic, rescued 200+ marine animals, and educated 5,000 students in coastal communities.",
-  presentation: "# Welcome to Ocean Cleanup Brasil\n\n## Our Story\n\nWe started in 2020 with a simple mission: clean our oceans, one beach at a time...\n\n## Our Impact\n\n- **50 tons** of plastic removed\n- **200+** marine animals rescued\n- **5,000** students educated\n\n## Join Us\n\nTogether, we can make a difference!",
-  website: "https://oceancleanup.br",
-  email: "contact@oceancleanup.br",
-  phone: "+55 11 98765-4321",
-  address: "Av. Paulista, 1000",
-  city: "São Paulo",
-  state: "SP",
-  country: "Brasil",
-  createdAt: new Date(2023, 0, 15),
-  approvedAt: new Date(2023, 1, 15),
-  votes: {
-    yes: 450,
-    no: 50,
-    total: 500
-  },
-  documents: [
-    {
-      id: "1",
-      name: "Estatuto Social",
-      type: "application/pdf",
-      url: "/docs/estatuto.pdf",
-      uploadedAt: new Date(2023, 0, 10),
-      category: "legal",
-      isPublic: true
-    },
-    {
-      id: "2",
-      name: "Relatório Anual 2023",
-      type: "application/pdf",
-      url: "/docs/relatorio2023.pdf",
-      uploadedAt: new Date(2024, 0, 15),
-      category: "reports",
-      isPublic: true
-    }
-  ],
-  stats: {
-    followers: 12500,
-    posts: 145,
-    donations: 450000
-  },
-  isOwner: true, // Set to true to show admin view
-  isFollowing: false,
-  hasVoted: false
-};
-
-const mockPendingCompany = {
-  ...mockCompany,
-  id: "2",
-  name: "Marine Tech Solutions",
-  status: "pending" as const,
-  approvedAt: undefined,
-  votingEndsAt: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000), // 15 days from now
-  votes: {
-    yes: 234,
-    no: 56,
-    total: 290
-  }
-};
+import { useBackend } from "../../lib/useBackend";
 
 export function CompanyDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const { userId } = useAuth();
+  const backend = useBackend();
   const [loading, setLoading] = useState(true);
   const [company, setCompany] = useState<any>(null);
+  const [userVote, setUserVote] = useState<any>(null);
 
   useEffect(() => {
-    // Simulate API call
-    setTimeout(() => {
-      // Mock: return pending company for id "2", active for others
-      if (id === "2") {
-        setCompany(mockPendingCompany);
-      } else {
-        setCompany({ ...mockCompany, id });
+    const fetchCompany = async () => {
+      if (!id) return;
+      
+      try {
+        setLoading(true);
+        const companyId = parseInt(id, 10);
+        
+        // Check if ID is valid
+        if (isNaN(companyId)) {
+          console.error('Invalid company ID:', id);
+          setCompany(null);
+          setLoading(false);
+          return;
+        }
+        
+        console.log('Fetching company with ID:', companyId);
+        
+        // Fetch company data - pass just the ID number
+        const response = await backend.companies.getCompany(companyId);
+        
+        // Transform data to match the expected format
+        const transformedCompany = {
+          ...response.company,
+          logo: response.profile?.logo_url || `https://picsum.photos/150/150?random=${companyId}`,
+          presentation: response.profile?.presentation || '',
+          stats: response.profile?.statistics || {
+            followers: 0,
+            posts: 0,
+            donations: 0
+          },
+          documents: response.documents?.map(doc => ({
+            id: doc.id.toString(),
+            name: doc.file_name,
+            type: doc.mime_type || 'application/pdf',
+            url: doc.file_url,
+            uploadedAt: new Date(doc.uploaded_at),
+            category: doc.document_type,
+            isPublic: true
+          })) || [],
+          votes: {
+            yes: response.company.votes_yes || 0,
+            no: response.company.votes_no || 0,
+            total: (response.company.votes_yes || 0) + (response.company.votes_no || 0)
+          },
+          isOwner: userId === response.company.owner_id,
+          isFollowing: false, // TODO: implement following
+          hasVoted: false,
+          votingEndsAt: response.company.voting_end_date ? new Date(response.company.voting_end_date) : undefined,
+          createdAt: new Date(response.company.created_at),
+          approvedAt: response.company.approved_at ? new Date(response.company.approved_at) : undefined
+        };
+        
+        setCompany(transformedCompany);
+        
+        // TODO: Check if user has voted (if company is pending)
+        // Endpoint getUserVote needs to be implemented in backend
+        // if (response.company.status === 'pending' && userId) {
+        //   try {
+        //     const voteResponse = await backend.companies.getUserVote({ company_id: companyId });
+        //     if (voteResponse.vote) {
+        //       setUserVote(voteResponse.vote.vote_type);
+        //       setCompany(prev => ({ ...prev, hasVoted: true, userVote: voteResponse.vote.vote_type }));
+        //     }
+        //   } catch (error) {
+        //     // User hasn't voted yet
+        //     console.log('User has not voted yet');
+        //   }
+        // }
+      } catch (error) {
+        console.error('Error fetching company:', error);
+        setCompany(null);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
-    }, 500);
-  }, [id]);
+    };
+
+    fetchCompany();
+  }, [id, userId]);
 
   const handleUpdate = async (data: any) => {
-    console.log("Updating company data:", data);
-    // API call to update company information
-    setCompany((prev: any) => ({ ...prev, ...data }));
+    if (!id) return;
+    
+    try {
+      const companyId = parseInt(id, 10);
+      // updateCompany expects id as first param, then the data
+      await backend.companies.updateCompany(companyId, data);
+      
+      // Update local state
+      setCompany((prev: any) => ({ ...prev, ...data }));
+    } catch (error) {
+      console.error('Error updating company:', error);
+      // TODO: Show error toast
+    }
   };
 
   const handleVote = async (vote: "yes" | "no") => {
-    console.log("Voting:", vote);
-    // API call to submit vote
-    setCompany((prev: any) => ({
-      ...prev,
-      hasVoted: true,
-      userVote: vote,
-      votes: {
-        ...prev.votes,
-        [vote]: prev.votes[vote] + 1,
-        total: prev.votes.total + 1
-      }
-    }));
+    if (!id) return;
+    
+    try {
+      const companyId = parseInt(id, 10);
+      // voteOnCompany expects company_id as first param, then the vote data
+      await backend.companies.voteOnCompany(companyId, {
+        vote_type: vote
+      });
+      
+      // Update local state
+      setCompany((prev: any) => ({
+        ...prev,
+        hasVoted: true,
+        userVote: vote,
+        votes: {
+          ...prev.votes,
+          [vote]: prev.votes[vote] + 1,
+          total: prev.votes.total + 1
+        }
+      }));
+      setUserVote(vote);
+    } catch (error) {
+      console.error('Error voting:', error);
+      // TODO: Show error toast
+    }
   };
 
   const handleFollow = async () => {
-    console.log("Toggle follow");
-    // API call to follow/unfollow
+    // TODO: Implement follow/unfollow functionality
+    console.log("Follow functionality not yet implemented");
     setCompany((prev: any) => ({
       ...prev,
       isFollowing: !prev.isFollowing,
@@ -163,6 +188,7 @@ export function CompanyDetailPage() {
       onUpdate={handleUpdate}
       onVote={handleVote}
       onFollow={handleFollow}
+      isAuthenticated={!!userId}
     />
   );
 }

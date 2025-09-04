@@ -796,7 +796,12 @@
       "daysLeft": "{{days}} dias restantes",
       "ended": "Votação encerrada"
     },
+    "cta": {
+      "title": "Faça parte do movimento!",
+      "description": "Cadastre sua organização e junte-se à maior rede de proteção oceânica do Brasil."
+    },
     "register": {
+      "button": "Cadastrar Organização",
       "title": "Cadastrar Organização",
       "description": "Preencha os dados para submeter sua organização para votação.",
       "submit": "Submeter para Votação",

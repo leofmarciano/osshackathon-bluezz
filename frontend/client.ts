@@ -33,6 +33,7 @@ const BROWSER = typeof globalThis === "object" && ("window" in globalThis);
  */
 export default class Client {
     public readonly announcements: announcements.ServiceClient
+    public readonly companies: companies.ServiceClient
     public readonly frontend: frontend.ServiceClient
     public readonly manifesto: manifesto.ServiceClient
     public readonly payments: payments.ServiceClient
@@ -52,6 +53,7 @@ export default class Client {
         this.options = options ?? {}
         const base = new BaseClient(this.target, this.options)
         this.announcements = new announcements.ServiceClient(base)
+        this.companies = new companies.ServiceClient(base)
         this.frontend = new frontend.ServiceClient(base)
         this.manifesto = new manifesto.ServiceClient(base)
         this.payments = new payments.ServiceClient(base)
@@ -255,6 +257,289 @@ export namespace announcements {
 export namespace auth {
     export interface AuthParams {
         authorization?: string
+    }
+}
+
+export namespace companies {
+    export interface Company {
+        id: number
+        name: string
+        type: "ngo" | "company"
+        "registration_number": string
+        category: string
+        email: string
+        phone: string
+        website?: string
+        address: string
+        city: string
+        state?: string
+        "zip_code"?: string
+        country: string
+        description: string
+        mission: string
+        impact: string
+        "target_audience"?: string
+        "owner_id": string
+        status: "pending" | "approved" | "rejected"
+        "is_non_profit": boolean
+        "voting_start_date"?: string
+        "voting_end_date"?: string
+        "voting_ends_at"?: string
+        "votes_yes": number
+        "votes_no": number
+        "votes_abstain": number
+        "created_at": string
+        "updated_at": string
+        "approved_at"?: string
+    }
+
+    export interface CompanyDocument {
+        id: number
+        "company_id": number
+        "document_type": "legal" | "financial" | "reports" | "certificates" | "other"
+        "file_name": string
+        "file_url": string
+        "file_size": number
+        "mime_type"?: string
+        "uploaded_at": string
+    }
+
+    export interface CompanyImage {
+        id: number
+        "company_id": number
+        "image_url": string
+        "image_type"?: string
+        "is_primary": boolean
+        "uploaded_at": string
+    }
+
+    export interface CompanyProfile {
+        id: number
+        "company_id": number
+        presentation?: string
+        "logo_url"?: string
+        "cover_image_url"?: string
+        "social_media"?: { [key: string]: string }
+        "team_members"?: any[]
+        statistics?: { [key: string]: any }
+        "updated_at": string
+    }
+
+    export interface GetCompaniesRequest {
+        status?: "pending" | "approved" | "rejected"
+        type?: "ngo" | "company"
+        category?: string
+        "owner_id"?: string
+        limit?: number
+        offset?: number
+    }
+
+    export interface GetCompaniesResponse {
+        companies: {
+            id: number
+            name: string
+            type: "ngo" | "company"
+            "registration_number": string
+            category: string
+            email: string
+            phone: string
+            website?: string
+            address: string
+            city: string
+            state?: string
+            "zip_code"?: string
+            country: string
+            description: string
+            mission: string
+            impact: string
+            "target_audience"?: string
+            "owner_id": string
+            status: "pending" | "approved" | "rejected"
+            "is_non_profit": boolean
+            "voting_start_date"?: string
+            "voting_end_date"?: string
+            "voting_ends_at"?: string
+            "votes_yes": number
+            "votes_no": number
+            "votes_abstain": number
+            "created_at": string
+            "updated_at": string
+            "approved_at"?: string
+            documents?: CompanyDocument[]
+            images?: CompanyImage[]
+            profile?: CompanyProfile
+        }[]
+        total: number
+    }
+
+    export interface GetCompanyResponse {
+        company: Company
+        documents: CompanyDocument[]
+        images: CompanyImage[]
+        profile?: CompanyProfile
+        "can_edit": boolean
+    }
+
+    export interface RegisterCompanyRequest {
+        name: string
+        type: "ngo" | "company"
+        "registration_number": string
+        category: string
+        email: string
+        phone: string
+        website?: string
+        address: string
+        city: string
+        state?: string
+        "zip_code"?: string
+        country: string
+        description: string
+        mission: string
+        impact: string
+        "target_audience"?: string
+        "is_non_profit": boolean
+        documents?: {
+            filename: string
+            data: string
+            "document_type": string
+        }[]
+        images?: {
+            filename: string
+            data: string
+        }[]
+    }
+
+    export interface RegisterCompanyResponse {
+        company: Company
+        message: string
+    }
+
+    export interface UpdateCompanyProfileRequest {
+        "user_id": string
+        presentation?: string
+        "logo_url"?: string
+        "cover_image_url"?: string
+        "social_media"?: { [key: string]: string }
+        "team_members"?: any[]
+        statistics?: { [key: string]: any }
+    }
+
+    export interface UpdateCompanyProfileResponse {
+        profile: CompanyProfile
+        message: string
+    }
+
+    export interface UpdateCompanyRequest {
+        "user_id": string
+        name?: string
+        email?: string
+        phone?: string
+        website?: string
+        address?: string
+        city?: string
+        state?: string
+        "zip_code"?: string
+        country?: string
+        description?: string
+        mission?: string
+        impact?: string
+        "target_audience"?: string
+    }
+
+    export interface UpdateCompanyResponse {
+        company: Company
+        message: string
+    }
+
+    export interface VoteOnCompanyRequest {
+        "vote_type": "yes" | "no" | "abstain"
+    }
+
+    export interface VoteOnCompanyResponse {
+        message: string
+        votes: {
+            yes: number
+            no: number
+            abstain: number
+        }
+    }
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.getCompanies = this.getCompanies.bind(this)
+            this.getCompany = this.getCompany.bind(this)
+            this.registerCompany = this.registerCompany.bind(this)
+            this.updateCompany = this.updateCompany.bind(this)
+            this.updateCompanyProfile = this.updateCompanyProfile.bind(this)
+            this.voteOnCompany = this.voteOnCompany.bind(this)
+        }
+
+        /**
+         * API: Get companies list
+         */
+        public async getCompanies(params: GetCompaniesRequest): Promise<GetCompaniesResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                category:   params.category,
+                limit:      params.limit === undefined ? undefined : String(params.limit),
+                offset:     params.offset === undefined ? undefined : String(params.offset),
+                "owner_id": params["owner_id"],
+                status:     params.status === undefined ? undefined : String(params.status),
+                type:       params.type === undefined ? undefined : String(params.type),
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/companies`, undefined, {query})
+            return await resp.json() as GetCompaniesResponse
+        }
+
+        /**
+         * API: Get single company details
+         */
+        public async getCompany(id: number): Promise<GetCompanyResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/companies/${encodeURIComponent(id)}`)
+            return await resp.json() as GetCompanyResponse
+        }
+
+        /**
+         * API: Register a new company
+         */
+        public async registerCompany(params: RegisterCompanyRequest): Promise<RegisterCompanyResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/companies/register`, JSON.stringify(params))
+            return await resp.json() as RegisterCompanyResponse
+        }
+
+        /**
+         * API: Update company (only owner can update)
+         */
+        public async updateCompany(id: number, params: UpdateCompanyRequest): Promise<UpdateCompanyResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("PUT", `/companies/${encodeURIComponent(id)}`, JSON.stringify(params))
+            return await resp.json() as UpdateCompanyResponse
+        }
+
+        /**
+         * API: Update company profile (only owner can update)
+         */
+        public async updateCompanyProfile(company_id: number, params: UpdateCompanyProfileRequest): Promise<UpdateCompanyProfileResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("PUT", `/companies/${encodeURIComponent(company_id)}/profile`, JSON.stringify(params))
+            return await resp.json() as UpdateCompanyProfileResponse
+        }
+
+        /**
+         * API: Vote on a company
+         */
+        public async voteOnCompany(company_id: number, params: VoteOnCompanyRequest): Promise<VoteOnCompanyResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/companies/${encodeURIComponent(company_id)}/vote`, JSON.stringify(params))
+            return await resp.json() as VoteOnCompanyResponse
+        }
     }
 }
 

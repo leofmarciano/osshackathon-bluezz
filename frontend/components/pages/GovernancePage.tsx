@@ -10,14 +10,6 @@ import { Streamdown } from "streamdown";
 import { useBackend } from "@/lib/useBackend";
 import { ManifestoEditor } from "../manifesto/ManifestoEditor";
 import { ManifestoHistoryModal } from "../manifesto/ManifestoHistoryModal";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import CompanyRegistrationForm from "../companies/CompanyRegistrationForm";
 import { useNavigate, Link } from "react-router-dom";
 import { 
   Vote, 
@@ -55,7 +47,6 @@ export function GovernancePage() {
   const [loading, setLoading] = useState(false);
   const [editingManifesto, setEditingManifesto] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
-  const [showCompanyRegistration, setShowCompanyRegistration] = useState(false);
   const [currentManifesto, setCurrentManifesto] = useState<any>(null);
   const [manifestoProposals, setManifestoProposals] = useState<any[]>([]);
   const [votingProposal, setVotingProposal] = useState<number | null>(null);
@@ -213,17 +204,6 @@ export function GovernancePage() {
     }
   };
 
-  const handleCompanySubmit = async (data: any) => {
-    console.log("Company registration data:", data);
-    // Here you would submit to your backend
-    toast({
-      title: t("companies.register.success", "Organização submetida"),
-      description: t("companies.register.successDesc", "Sua organização foi submetida para votação."),
-    });
-    setShowCompanyRegistration(false);
-    // Optionally redirect to companies page
-    navigate("/companies");
-  };
 
   // Mock data for companies - in production this would come from API
   const registeredCompanies = [
@@ -773,7 +753,7 @@ export function GovernancePage() {
                         {t("companies.viewAll", "Ver Todas")}
                       </Link>
                     </Button>
-                    <Button size="sm" onClick={() => setShowCompanyRegistration(true)}>
+                    <Button size="sm" onClick={() => navigate("/companies/register")}>
                       <Plus className="w-4 h-4 mr-2" />
                       {t("companies.register.title", "Cadastrar Organização")}
                     </Button>
@@ -1020,21 +1000,6 @@ export function GovernancePage() {
         </Card>
       </div>
 
-      {/* Company Registration Modal */}
-      <Dialog open={showCompanyRegistration} onOpenChange={setShowCompanyRegistration}>
-        <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>{t("companies.register.title", "Cadastrar Organização")}</DialogTitle>
-            <DialogDescription>
-              {t("companies.register.description", "Preencha os dados para submeter sua organização para votação.")}
-            </DialogDescription>
-          </DialogHeader>
-          <CompanyRegistrationForm 
-            onSubmit={handleCompanySubmit}
-            onCancel={() => setShowCompanyRegistration(false)}
-          />
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

@@ -796,7 +796,12 @@
       "daysLeft": "{{days}} days left",
       "ended": "Voting ended"
     },
+    "cta": {
+      "title": "Join the movement!",
+      "description": "Register your organization and join the largest ocean protection network."
+    },
     "register": {
+      "button": "Register Organization",
       "title": "Register Organization",
       "description": "Fill in the data to submit your organization for voting.",
       "submit": "Submit for Voting",
