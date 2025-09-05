@@ -431,6 +431,46 @@ export const getComments = api(
   }
 );
 
+// API: Delete a post (only post owner)
+export const deletePost = api(
+  { expose: true, auth: true, method: "DELETE", path: "/posts/:post_id" },
+  async (req: { post_id: number }): Promise<{ success: boolean }> => {
+    const authData = getAuthData();
+    if (!authData) {
+      throw APIError.unauthenticated("Authentication required");
+    }
+
+    try {
+      // Check if post exists and user is the owner
+      const post = await db.queryRow<{ id: number; author_id: string; image_url?: string }>`
+        SELECT id, author_id, image_url FROM company_posts WHERE id = ${req.post_id}
+      `;
+      
+      if (!post) {
+        throw APIError.notFound("Post not found");
+      }
+
+      if (post.author_id !== authData.userID) {
+        throw APIError.permissionDenied("You can only delete your own posts");
+      }
+
+      // Delete the post (cascades to likes and comments due to foreign keys)
+      await db.exec`
+        DELETE FROM company_posts WHERE id = ${req.post_id}
+      `;
+
+      // If there was an image, we could delete it from bucket here
+      // But keeping it for now in case of audit needs
+
+      return { success: true };
+    } catch (error) {
+      log.error("Failed to delete post", error as Error);
+      if (error instanceof APIError) throw error;
+      throw APIError.internal("Failed to delete post");
+    }
+  }
+);
+
 // API: Upload image separately (for markdown editor)
 export const uploadImage = api(
   { expose: true, auth: true, method: "POST", path: "/companies/upload-image" },

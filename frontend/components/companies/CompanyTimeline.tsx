@@ -11,15 +11,9 @@ import { Input } from "@/components/ui/input";
 import { useBackend } from "../../lib/useBackend";
 import { sanitizeHTML, sanitizeText, validateContentLength } from "../../lib/sanitize";
 import {
-  Heart, MessageCircle, Share2, Image, FileText, MapPin,
-  MoreHorizontal, Send, X, Loader2, Calendar, Eye, AlertTriangle
+  Heart, MessageCircle, Image, FileText,
+  Trash2, Send, X, Loader2, AlertTriangle
 } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface TimelinePost {
@@ -300,6 +294,22 @@ export default function CompanyTimeline({
     }
   };
 
+  const handleDeletePost = async (postId: number) => {
+    if (!confirm(t("companies.timeline.confirmDelete", "Are you sure you want to delete this post?"))) {
+      return;
+    }
+
+    try {
+      await backend.companies.deletePost(postId, {});
+      
+      // Remove post from local state
+      setPosts(posts.filter(post => post.id !== postId));
+    } catch (error) {
+      console.error("Error deleting post:", error);
+      setError(t("companies.timeline.deleteError", "Failed to delete post. Please try again."));
+    }
+  };
+
   const formatTimeAgo = (date: string) => {
     const now = new Date();
     const postDate = new Date(date);
@@ -431,20 +441,15 @@ export default function CompanyTimeline({
                   </div>
                 </div>
                 
-                {isOwner && (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent>
-                      <DropdownMenuItem>{t("common.edit")}</DropdownMenuItem>
-                      <DropdownMenuItem className="text-red-600">
-                        {t("common.delete")}
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                {isOwner && post.author_id === userId && (
+                  <Button 
+                    variant="ghost" 
+                    size="icon"
+                    onClick={() => handleDeletePost(post.id)}
+                    className="text-red-600 hover:text-red-700"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 )}
               </div>
 
@@ -484,11 +489,6 @@ export default function CompanyTimeline({
                   >
                     <MessageCircle className="mr-1 h-4 w-4" />
                     {post.comments_count || 0}
-                  </Button>
-                  
-                  <Button variant="ghost" size="sm">
-                    <Share2 className="mr-1 h-4 w-4" />
-                    {t("common.share")}
                   </Button>
                 </div>
               </div>

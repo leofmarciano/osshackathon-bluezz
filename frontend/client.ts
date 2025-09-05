@@ -335,11 +335,7 @@ export namespace companies {
 
     export interface CreatePostRequest {
         content: string
-        image?: {
-            filename: string
-            data: string
-            contentType: string
-        }
+        "image_url"?: string
     }
 
     export interface CreatePostResponse {
@@ -431,9 +427,9 @@ export namespace companies {
         "company_id": number
         "author_id": string
         "author_name": string
-        "author_avatar"?: string
+        "author_avatar"?: string | null
         content: string
-        "image_url"?: string
+        "image_url"?: string | null
         "created_at": string
         "updated_at": string
         "likes_count"?: number
@@ -446,7 +442,7 @@ export namespace companies {
         "post_id": number
         "user_id": string
         "user_name": string
-        "user_avatar"?: string
+        "user_avatar"?: string | null
         content: string
         "created_at": string
     }
@@ -552,6 +548,7 @@ export namespace companies {
             this.baseClient = baseClient
             this.addComment = this.addComment.bind(this)
             this.createPost = this.createPost.bind(this)
+            this.deletePost = this.deletePost.bind(this)
             this.getComments = this.getComments.bind(this)
             this.getCompanies = this.getCompanies.bind(this)
             this.getCompany = this.getCompany.bind(this)
@@ -580,6 +577,19 @@ export namespace companies {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("POST", `/companies/${encodeURIComponent(company_id)}/posts`, JSON.stringify(params))
             return await resp.json() as CreatePostResponse
+        }
+
+        /**
+         * API: Delete a post (only post owner)
+         */
+        public async deletePost(post_id: number): Promise<{
+    success: boolean
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("DELETE", `/posts/${encodeURIComponent(post_id)}`)
+            return await resp.json() as {
+    success: boolean
+}
         }
 
         /**

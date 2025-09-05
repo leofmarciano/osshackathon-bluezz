@@ -957,7 +957,9 @@
       "securityError": "Seu conteúdo foi bloqueado por razões de segurança. Por favor, remova scripts ou HTML perigoso.",
       "lengthError": "Seu conteúdo é muito longo ou muito curto.",
       "genericError": "Falha ao criar publicação. Por favor, tente novamente.",
-      "genericCommentError": "Falha ao adicionar comentário. Por favor, tente novamente."
+      "genericCommentError": "Falha ao adicionar comentário. Por favor, tente novamente.",
+      "confirmDelete": "Tem certeza que deseja excluir esta publicação?",
+      "deleteError": "Falha ao excluir publicação. Por favor, tente novamente."
     }
   },
   "timeline": {
