@@ -953,7 +953,7 @@
       "addComment": "Write a comment...",
       "loadMore": "Load more",
       "imageTooLarge": "Image must be less than 5MB",
-      "contentTooLong": "Content must be between 1 and 5000 characters",
+      "contentTooLong": "Content must be between 1 and 50000 characters",
       "commentTooLong": "Comment must be between 1 and 1000 characters",
       "dangerousContent": "Your post contains potentially dangerous content. Please remove any scripts or HTML tags.",
       "dangerousComment": "Your comment contains potentially dangerous content.",

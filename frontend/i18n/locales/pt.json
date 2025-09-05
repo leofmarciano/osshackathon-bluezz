@@ -950,7 +950,7 @@
       "noPosts": "Nenhuma publicação ainda.",
       "addComment": "Adicionar comentário...",
       "imageTooLarge": "A imagem deve ter menos de 5MB",
-      "contentTooLong": "O conteúdo deve ter entre 1 e 5000 caracteres",
+      "contentTooLong": "O conteúdo deve ter entre 1 e 50000 caracteres",
       "commentTooLong": "O comentário deve ter entre 1 e 1000 caracteres",
       "dangerousContent": "Sua publicação contém conteúdo potencialmente perigoso. Por favor, remova scripts ou tags HTML.",
       "dangerousComment": "Seu comentário contém conteúdo potencialmente perigoso.",

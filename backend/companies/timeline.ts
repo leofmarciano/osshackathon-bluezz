@@ -120,32 +120,34 @@ async function isCompanyOwner(companyId: number, userId: string): Promise<boolea
 
 // Helper function to sanitize content
 function sanitizeContent(content: string): string {
-  const originalContent = content;
+  // For markdown content, we'll be more permissive
+  // Only remove actual executable script tags, not mentions in code blocks
   
-  // Remove any potential script tags or dangerous HTML
-  // Allow only basic markdown characters
-  const sanitized = content
-    .replace(/<script[^>]*>.*?<\/script>/gi, '')
-    .replace(/<iframe[^>]*>.*?<\/iframe>/gi, '')
-    .replace(/<object[^>]*>.*?<\/object>/gi, '')
-    .replace(/<embed[^>]*>/gi, '')
-    .replace(/javascript:/gi, '')
-    .replace(/on\w+\s*=/gi, '') // Remove event handlers
-    .trim();
+  let sanitized = content;
   
-  // Check if content was modified (potentially dangerous content detected)
-  if (originalContent !== sanitized && 
-      (originalContent.includes('<script') || 
-       originalContent.includes('javascript:') || 
-       /on\w+\s*=/gi.test(originalContent))) {
-    throw APIError.invalidArgument("Content contains potentially dangerous scripts or HTML. Please use plain text or markdown.");
-  }
+  // Remove only actual script tags that would execute (not in code blocks)
+  // This regex looks for script tags that are likely to be HTML, not in markdown code
+  sanitized = sanitized.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '[removed script]');
   
-  return sanitized;
+  // Remove actual iframe tags
+  sanitized = sanitized.replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '[removed iframe]');
+  
+  // Remove object and embed tags that would execute
+  sanitized = sanitized.replace(/<object\b[^<]*(?:(?!<\/object>)<[^<]*)*<\/object>/gi, '[removed object]');
+  sanitized = sanitized.replace(/<embed\b[^>]*>/gi, '[removed embed]');
+  
+  // Remove javascript: in href or src attributes (actual executable JS)
+  sanitized = sanitized.replace(/(?:href|src)\s*=\s*["']?\s*javascript:[^"'\s>]*/gi, 'href="#"');
+  
+  // Remove actual event handlers in HTML attributes
+  sanitized = sanitized.replace(/\s+on(?:click|mouse|key|load|error|focus|blur|change|submit|scroll|resize|drag|drop|touch)\s*=\s*["'][^"']*["']/gi, '');
+  sanitized = sanitized.replace(/\s+on(?:click|mouse|key|load|error|focus|blur|change|submit|scroll|resize|drag|drop|touch)\s*=\s*[^\s>]*/gi, '');
+  
+  return sanitized.trim();
 }
 
 // Helper function to validate content length
-function validateContentLength(content: string, maxLength: number = 10000): void {
+function validateContentLength(content: string, maxLength: number = 50000): void {
   if (!content || content.trim().length === 0) {
     throw APIError.invalidArgument("Content cannot be empty");
   }
@@ -164,8 +166,8 @@ export const createPost = api(
     }
 
     try {
-      // Validate and sanitize content
-      validateContentLength(req.content, 5000);
+      // Validate and sanitize content - increased limit for README posts
+      validateContentLength(req.content, 50000);
       const sanitizedContent = sanitizeContent(req.content);
 
       // Validate company_id

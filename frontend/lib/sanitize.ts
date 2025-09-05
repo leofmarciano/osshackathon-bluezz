@@ -68,6 +68,6 @@ export function sanitizeURL(url: string): string | null {
 /**
  * Validate content length
  */
-export function validateContentLength(content: string, maxLength: number = 5000): boolean {
+export function validateContentLength(content: string, maxLength: number = 50000): boolean {
   return content.length <= maxLength && content.trim().length > 0;
 }

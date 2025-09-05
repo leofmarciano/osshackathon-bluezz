@@ -4,7 +4,8 @@ import { useAuth } from "@clerk/clerk-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import MDEditor from "@uiw/react-md-editor";
-import { Streamdown } from "streamdown";
+import ReactMarkdown from 'react-markdown';
+import rehypeRaw from 'rehype-raw';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -15,6 +16,52 @@ import {
   Trash2, Send, X, Loader2, AlertTriangle
 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import DOMPurify from 'dompurify';
+
+// Component to render markdown with HTML support
+function PostContent({ content }: { content: string }) {
+  // Sanitize content before rendering
+  const sanitizedContent = DOMPurify.sanitize(content, {
+    ALLOWED_TAGS: [
+      'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+      'p', 'br', 'hr',
+      'ul', 'ol', 'li',
+      'a', 'img', 'picture', 'source',
+      'strong', 'b', 'em', 'i', 'u', 's', 'del',
+      'code', 'pre', 'blockquote',
+      'table', 'thead', 'tbody', 'tr', 'th', 'td',
+      'div', 'span', 'section', 'article',
+      'sup', 'sub', 'kbd', 'mark'
+    ],
+    ALLOWED_ATTR: [
+      'href', 'src', 'alt', 'title', 'target', 'rel',
+      'srcset', 'media', 'style', 'class', 'id', 'type',
+      'width', 'height', 'colspan', 'rowspan',
+      'sizes', 'loading', 'decoding'
+    ],
+    ALLOW_DATA_ATTR: true,
+    ALLOW_UNKNOWN_PROTOCOLS: false,
+  });
+  
+  return (
+    <div className="prose prose-blue max-w-none prose-img:max-w-full prose-img:h-auto [&_picture]:block [&_img]:max-w-full [&_img]:h-auto markdown-content">
+      <ReactMarkdown 
+        rehypePlugins={[rehypeRaw]}
+        components={{
+          // Custom renderers for better control
+          img: ({node, ...props}) => <img {...props} className="max-w-full h-auto" />,
+          a: ({node, ...props}) => <a {...props} target="_blank" rel="noopener noreferrer" />,
+          code: ({node, inline, ...props}) => 
+            inline 
+              ? <code {...props} className="px-1 py-0.5 bg-gray-100 rounded text-sm" />
+              : <code {...props} className="block p-3 bg-gray-100 rounded-md overflow-x-auto" />
+        }}
+      >
+        {sanitizedContent}
+      </ReactMarkdown>
+    </div>
+  );
+}
 
 interface TimelinePost {
   id: number;
@@ -99,22 +146,9 @@ export default function CompanyTimeline({
     // Clear previous errors
     setError("");
 
-    // Check for dangerous content patterns
-    const dangerousPatterns = [
-      /<script[^>]*>/gi,
-      /<iframe[^>]*>/gi,
-      /javascript:/gi,
-      /on\w+\s*=/gi
-    ];
-    
-    if (dangerousPatterns.some(pattern => pattern.test(newPost))) {
-      setError(t("companies.timeline.dangerousContent", "Your post contains potentially dangerous content. Please remove any scripts or HTML tags."));
-      return;
-    }
-
-    // Validate content length
-    if (!validateContentLength(newPost, 5000)) {
-      setError(t("companies.timeline.contentTooLong", "Content must be between 1 and 5000 characters"));
+    // Validate content length - increased limit for README/markdown posts
+    if (!validateContentLength(newPost, 50000)) {
+      setError(t("companies.timeline.contentTooLong", "Content must be between 1 and 50000 characters"));
       return;
     }
 
@@ -150,12 +184,10 @@ export default function CompanyTimeline({
         imageUrl = uploadResponse.url;
       }
 
-      // Sanitize content before sending
-      const sanitizedPost = sanitizeText(newPost);
-
-      // Create post with sanitized content and image URL
+      // Create post with content and image URL
+      // Backend will handle sanitization
       await backend.companies.createPost(parseInt(companyId), {
-        content: sanitizedPost,
+        content: newPost,
         image_url: imageUrl
       });
 
@@ -227,22 +259,6 @@ export default function CompanyTimeline({
     // Clear previous errors
     setCommentErrors({ ...commentErrors, [postId]: "" });
 
-    // Check for dangerous content
-    const dangerousPatterns = [
-      /<script[^>]*>/gi,
-      /<iframe[^>]*>/gi,
-      /javascript:/gi,
-      /on\w+\s*=/gi
-    ];
-    
-    if (dangerousPatterns.some(pattern => pattern.test(content))) {
-      setCommentErrors({ 
-        ...commentErrors, 
-        [postId]: t("companies.timeline.dangerousComment", "Your comment contains potentially dangerous content.") 
-      });
-      return;
-    }
-
     // Validate comment length
     if (!validateContentLength(content, 1000)) {
       setCommentErrors({ 
@@ -253,11 +269,9 @@ export default function CompanyTimeline({
     }
 
     try {
-      // Sanitize comment before sending
-      const sanitizedComment = sanitizeText(content);
-      
+      // Backend will handle sanitization
       const response = await backend.companies.addComment(postId, {
-        content: sanitizedComment
+        content
       });
       
       // Add new comment to local state
@@ -454,9 +468,7 @@ export default function CompanyTimeline({
               </div>
 
               {/* Post Content - Already sanitized on backend */}
-              <div className="prose prose-blue max-w-none">
-                <Streamdown>{post.content}</Streamdown>
-              </div>
+              <PostContent content={post.content} />
 
               {/* Post Image */}
               {post.image_url && (
