@@ -261,6 +261,14 @@ export namespace auth {
 }
 
 export namespace companies {
+    export interface AddCommentRequest {
+        content: string
+    }
+
+    export interface AddCommentResponse {
+        comment: PostComment
+    }
+
     export interface Company {
         id: number
         name: string
@@ -325,6 +333,29 @@ export namespace companies {
         "updated_at": string
     }
 
+    export interface CreatePostRequest {
+        content: string
+        image?: {
+            filename: string
+            data: string
+            contentType: string
+        }
+    }
+
+    export interface CreatePostResponse {
+        post: Post
+    }
+
+    export interface GetCommentsRequest {
+        limit?: number
+        offset?: number
+    }
+
+    export interface GetCommentsResponse {
+        comments: PostComment[]
+        total: number
+    }
+
     export interface GetCompaniesRequest {
         status?: "pending" | "approved" | "rejected"
         type?: "ngo" | "company"
@@ -378,6 +409,46 @@ export namespace companies {
         images: CompanyImage[]
         profile?: CompanyProfile
         "can_edit": boolean
+    }
+
+    export interface GetPostsRequest {
+        limit?: number
+        offset?: number
+    }
+
+    export interface GetPostsResponse {
+        posts: Post[]
+        total: number
+    }
+
+    export interface LikePostResponse {
+        success: boolean
+        "likes_count": number
+    }
+
+    export interface Post {
+        id: number
+        "company_id": number
+        "author_id": string
+        "author_name": string
+        "author_avatar"?: string
+        content: string
+        "image_url"?: string
+        "created_at": string
+        "updated_at": string
+        "likes_count"?: number
+        "comments_count"?: number
+        "has_liked"?: boolean
+    }
+
+    export interface PostComment {
+        id: number
+        "post_id": number
+        "user_id": string
+        "user_name": string
+        "user_avatar"?: string
+        content: string
+        "created_at": string
     }
 
     export interface RegisterCompanyRequest {
@@ -451,6 +522,16 @@ export namespace companies {
         message: string
     }
 
+    export interface UploadImageRequest {
+        filename: string
+        data: string
+        contentType: string
+    }
+
+    export interface UploadImageResponse {
+        url: string
+    }
+
     export interface VoteOnCompanyRequest {
         "vote_type": "yes" | "no" | "abstain"
     }
@@ -469,12 +550,51 @@ export namespace companies {
 
         constructor(baseClient: BaseClient) {
             this.baseClient = baseClient
+            this.addComment = this.addComment.bind(this)
+            this.createPost = this.createPost.bind(this)
+            this.getComments = this.getComments.bind(this)
             this.getCompanies = this.getCompanies.bind(this)
             this.getCompany = this.getCompany.bind(this)
+            this.getPosts = this.getPosts.bind(this)
+            this.likePost = this.likePost.bind(this)
             this.registerCompany = this.registerCompany.bind(this)
             this.updateCompany = this.updateCompany.bind(this)
             this.updateCompanyProfile = this.updateCompanyProfile.bind(this)
+            this.uploadImage = this.uploadImage.bind(this)
             this.voteOnCompany = this.voteOnCompany.bind(this)
+        }
+
+        /**
+         * API: Add a comment to a post
+         */
+        public async addComment(post_id: number, params: AddCommentRequest): Promise<AddCommentResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/posts/${encodeURIComponent(post_id)}/comments`, JSON.stringify(params))
+            return await resp.json() as AddCommentResponse
+        }
+
+        /**
+         * API: Create a new post (only company owner)
+         */
+        public async createPost(company_id: number, params: CreatePostRequest): Promise<CreatePostResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/companies/${encodeURIComponent(company_id)}/posts`, JSON.stringify(params))
+            return await resp.json() as CreatePostResponse
+        }
+
+        /**
+         * API: Get comments for a post
+         */
+        public async getComments(post_id: number, params: GetCommentsRequest): Promise<GetCommentsResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                limit:  params.limit === undefined ? undefined : String(params.limit),
+                offset: params.offset === undefined ? undefined : String(params.offset),
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/posts/${encodeURIComponent(post_id)}/comments`, undefined, {query})
+            return await resp.json() as GetCommentsResponse
         }
 
         /**
@@ -506,6 +626,30 @@ export namespace companies {
         }
 
         /**
+         * API: Get posts for a company
+         */
+        public async getPosts(company_id: number, params: GetPostsRequest): Promise<GetPostsResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                limit:  params.limit === undefined ? undefined : String(params.limit),
+                offset: params.offset === undefined ? undefined : String(params.offset),
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/companies/${encodeURIComponent(company_id)}/posts`, undefined, {query})
+            return await resp.json() as GetPostsResponse
+        }
+
+        /**
+         * API: Like/unlike a post
+         */
+        public async likePost(post_id: number): Promise<LikePostResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/posts/${encodeURIComponent(post_id)}/like`)
+            return await resp.json() as LikePostResponse
+        }
+
+        /**
          * API: Register a new company
          */
         public async registerCompany(params: RegisterCompanyRequest): Promise<RegisterCompanyResponse> {
@@ -530,6 +674,15 @@ export namespace companies {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("PUT", `/companies/${encodeURIComponent(company_id)}/profile`, JSON.stringify(params))
             return await resp.json() as UpdateCompanyProfileResponse
+        }
+
+        /**
+         * API: Upload image separately (for markdown editor)
+         */
+        public async uploadImage(params: UploadImageRequest): Promise<UploadImageResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/companies/upload-image`, JSON.stringify(params))
+            return await resp.json() as UploadImageResponse
         }
 
         /**

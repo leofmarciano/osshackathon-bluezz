@@ -943,7 +943,25 @@
       }
     }
   },
-  "timeline": {
+  "companies": {
+    "timeline": {
+      "createPost": "Create Post",
+      "addImage": "Add Image",
+      "post": "Post",
+      "loading": "Loading posts...",
+      "noPosts": "No posts yet. Be the first to share an update!",
+      "addComment": "Write a comment...",
+      "loadMore": "Load more",
+      "imageTooLarge": "Image must be less than 5MB",
+      "contentTooLong": "Content must be between 1 and 5000 characters",
+      "commentTooLong": "Comment must be between 1 and 1000 characters",
+      "dangerousContent": "Your post contains potentially dangerous content. Please remove any scripts or HTML tags.",
+      "dangerousComment": "Your comment contains potentially dangerous content.",
+      "securityError": "Your content was blocked for security reasons. Please remove any scripts or dangerous HTML.",
+      "lengthError": "Your content is too long or too short.",
+      "genericError": "Failed to create post. Please try again.",
+      "genericCommentError": "Failed to add comment. Please try again."
+    },
     "create": {
       "title": "Create Post",
       "placeholder": "Share an update with the community...",

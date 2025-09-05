@@ -941,6 +941,23 @@
         "requirements": "JPG, PNG ou GIF. Tamanho máximo de 2MB. Recomendado: 400x400px",
         "reset": "Restaurar logo original"
       }
+    },
+    "timeline": {
+      "createPost": "Criar Publicação",
+      "addImage": "Adicionar Imagem",
+      "post": "Publicar",
+      "loading": "Carregando...",
+      "noPosts": "Nenhuma publicação ainda.",
+      "addComment": "Adicionar comentário...",
+      "imageTooLarge": "A imagem deve ter menos de 5MB",
+      "contentTooLong": "O conteúdo deve ter entre 1 e 5000 caracteres",
+      "commentTooLong": "O comentário deve ter entre 1 e 1000 caracteres",
+      "dangerousContent": "Sua publicação contém conteúdo potencialmente perigoso. Por favor, remova scripts ou tags HTML.",
+      "dangerousComment": "Seu comentário contém conteúdo potencialmente perigoso.",
+      "securityError": "Seu conteúdo foi bloqueado por razões de segurança. Por favor, remova scripts ou HTML perigoso.",
+      "lengthError": "Seu conteúdo é muito longo ou muito curto.",
+      "genericError": "Falha ao criar publicação. Por favor, tente novamente.",
+      "genericCommentError": "Falha ao adicionar comentário. Por favor, tente novamente."
     }
   },
   "timeline": {
@@ -1019,8 +1036,14 @@
     "next": "Próximo",
     "save": "Salvar",
     "edit": "Editar",
+    "delete": "Excluir",
     "preview": "Visualizar",
     "code": "Código",
-    "submitting": "Enviando..."
+    "submitting": "Enviando...",
+    "share": "Compartilhar",
+    "daysAgo": "dias atrás",
+    "hoursAgo": "horas atrás",
+    "minutesAgo": "minutos atrás",
+    "justNow": "agora mesmo"
   }
 }
