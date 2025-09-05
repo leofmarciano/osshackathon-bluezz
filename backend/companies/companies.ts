@@ -137,6 +137,7 @@ interface GetCompanyResponse {
   images: CompanyImage[];
   profile?: CompanyProfile;
   can_edit: boolean;
+  userVote?: CompanyVote;
 }
 
 interface UpdateCompanyRequest {
@@ -472,16 +473,32 @@ export const getCompany = api(
         SELECT * FROM company_profiles WHERE company_id = ${req.id}
       `;
 
-      // For now, we'll determine can_edit based on the request
-      // In production, you'd get the current user from authentication
-      const can_edit = false; // This should check if current user is the owner
+      // Get current user info if authenticated
+      const authData = getAuthData();
+      let userVote: CompanyVote | null = null;
+      let can_edit = false;
+
+      if (authData) {
+        // Check if current user is the owner
+        can_edit = company.owner_id === authData.userID;
+        
+        // Check if user has voted (only for pending companies)
+        if (company.status === 'pending') {
+          const vote = await db.queryRow<CompanyVote>`
+            SELECT * FROM company_votes 
+            WHERE company_id = ${req.id} AND user_id = ${authData.userID}
+          `;
+          userVote = vote;
+        }
+      }
 
       return {
         company,
         documents: docsArray,
         images: imagesArray,
         profile: profile || undefined,
-        can_edit
+        can_edit,
+        userVote: userVote || undefined
       };
     } catch (error) {
       log.error("Failed to get company", error as Error);

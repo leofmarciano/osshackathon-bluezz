@@ -879,12 +879,14 @@
       "voting": {
         "title": "Voting in Progress",
         "timeLeft": "{{days}} days and {{hours}} hours remaining",
+        "ended": "Voting ended",
         "approval": "approval",
         "yes": "Yes",
         "no": "No",
         "approve": "Approve",
         "reject": "Reject",
-        "voted": "You voted: {{vote}}"
+        "voted": "You voted: {{vote}}",
+        "loginRequired": "Sign in to vote on this organization"
       },
       "presentation": {
         "title": "Presentation",

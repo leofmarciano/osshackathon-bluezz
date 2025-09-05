@@ -879,12 +879,14 @@
       "voting": {
         "title": "Votação em Andamento",
         "timeLeft": "{{days}} dias e {{hours}} horas restantes",
+        "ended": "Votação encerrada",
         "approval": "de aprovação",
         "yes": "Sim",
         "no": "Não",
         "approve": "Aprovar",
         "reject": "Rejeitar",
-        "voted": "Você votou: {{vote}}"
+        "voted": "Você votou: {{vote}}",
+        "loginRequired": "Faça login para votar nesta organização"
       },
       "presentation": {
         "title": "Apresentação",

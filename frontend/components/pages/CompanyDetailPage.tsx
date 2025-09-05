@@ -63,7 +63,8 @@ export function CompanyDetailPage() {
           },
           isOwner: userId === response.company.owner_id,
           isFollowing: false, // TODO: implement following
-          hasVoted: false,
+          hasVoted: !!response.userVote,
+          userVote: response.userVote?.vote_type as "yes" | "no" | undefined,
           votingEndsAt: response.company.voting_end_date ? new Date(response.company.voting_end_date) : undefined,
           createdAt: new Date(response.company.created_at),
           approvedAt: response.company.approved_at ? new Date(response.company.approved_at) : undefined
@@ -71,20 +72,10 @@ export function CompanyDetailPage() {
         
         setCompany(transformedCompany);
         
-        // TODO: Check if user has voted (if company is pending)
-        // Endpoint getUserVote needs to be implemented in backend
-        // if (response.company.status === 'pending' && userId) {
-        //   try {
-        //     const voteResponse = await backend.companies.getUserVote({ company_id: companyId });
-        //     if (voteResponse.vote) {
-        //       setUserVote(voteResponse.vote.vote_type);
-        //       setCompany(prev => ({ ...prev, hasVoted: true, userVote: voteResponse.vote.vote_type }));
-        //     }
-        //   } catch (error) {
-        //     // User hasn't voted yet
-        //     console.log('User has not voted yet');
-        //   }
-        // }
+        // Set user vote state if exists
+        if (response.userVote) {
+          setUserVote(response.userVote.vote_type);
+        }
       } catch (error) {
         console.error('Error fetching company:', error);
         setCompany(null);
