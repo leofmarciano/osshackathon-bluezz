@@ -359,7 +359,7 @@ export default function CompanyProfile({
 
         {/* Documents Tab */}
         <TabsContent value="documents">
-          <CompanyDocuments documents={company.documents} isOwner={company.isOwner} />
+          <CompanyDocuments companyId={company.id} isOwner={company.isOwner} />
         </TabsContent>
 
         {/* Info Tab */}

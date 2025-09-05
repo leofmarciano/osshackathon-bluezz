@@ -74,6 +74,14 @@ interface CompanyProfile {
   updated_at: Date;
 }
 
+interface CompanyVote {
+  id: number;
+  company_id: number;
+  user_id: string;
+  vote_type: "yes" | "no" | "abstain";
+  voted_at: Date;
+}
+
 // API Request/Response types
 interface RegisterCompanyRequest {
   name: string;

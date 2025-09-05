@@ -312,6 +312,19 @@ export namespace companies {
         "uploaded_at": string
     }
 
+    export interface CompanyDocument {
+        id: number
+        "company_id": number
+        "document_type": "legal" | "financial" | "reports" | "certificates" | "other"
+        "file_name": string
+        "file_key": string
+        "file_size": number
+        "mime_type": string
+        "uploaded_by": string
+        "uploaded_at": string
+        "is_public": boolean
+    }
+
     export interface CompanyImage {
         id: number
         "company_id": number
@@ -333,6 +346,14 @@ export namespace companies {
         "updated_at": string
     }
 
+    export interface CompanyVote {
+        id: number
+        "company_id": number
+        "user_id": string
+        "vote_type": "yes" | "no" | "abstain"
+        "voted_at": string
+    }
+
     export interface CreatePostRequest {
         content: string
         "image_url"?: string
@@ -340,6 +361,11 @@ export namespace companies {
 
     export interface CreatePostResponse {
         post: Post
+    }
+
+    export interface DeleteDocumentResponse {
+        success: boolean
+        message: string
     }
 
     export interface GetCommentsRequest {
@@ -405,6 +431,20 @@ export namespace companies {
         images: CompanyImage[]
         profile?: CompanyProfile
         "can_edit": boolean
+        userVote?: CompanyVote
+    }
+
+    export interface GetDocumentUrlResponse {
+        url: string
+        "expires_in": number
+    }
+
+    export interface GetDocumentsRequest {
+        "document_type"?: string
+    }
+
+    export interface GetDocumentsResponse {
+        documents: CompanyDocument[]
     }
 
     export interface GetPostsRequest {
@@ -518,6 +558,18 @@ export namespace companies {
         message: string
     }
 
+    export interface UploadDocumentRequest {
+        "document_type": "legal" | "financial" | "reports" | "certificates" | "other"
+        "file_name": string
+        data: string
+        "mime_type": string
+    }
+
+    export interface UploadDocumentResponse {
+        document: CompanyDocument
+        message: string
+    }
+
     export interface UploadImageRequest {
         filename: string
         data: string
@@ -548,15 +600,20 @@ export namespace companies {
             this.baseClient = baseClient
             this.addComment = this.addComment.bind(this)
             this.createPost = this.createPost.bind(this)
+            this.deleteDocument = this.deleteDocument.bind(this)
             this.deletePost = this.deletePost.bind(this)
             this.getComments = this.getComments.bind(this)
             this.getCompanies = this.getCompanies.bind(this)
             this.getCompany = this.getCompany.bind(this)
+            this.getDocumentUrl = this.getDocumentUrl.bind(this)
+            this.getDocuments = this.getDocuments.bind(this)
             this.getPosts = this.getPosts.bind(this)
+            this.getUploadUrl = this.getUploadUrl.bind(this)
             this.likePost = this.likePost.bind(this)
             this.registerCompany = this.registerCompany.bind(this)
             this.updateCompany = this.updateCompany.bind(this)
             this.updateCompanyProfile = this.updateCompanyProfile.bind(this)
+            this.uploadDocument = this.uploadDocument.bind(this)
             this.uploadImage = this.uploadImage.bind(this)
             this.voteOnCompany = this.voteOnCompany.bind(this)
         }
@@ -577,6 +634,15 @@ export namespace companies {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("POST", `/companies/${encodeURIComponent(company_id)}/posts`, JSON.stringify(params))
             return await resp.json() as CreatePostResponse
+        }
+
+        /**
+         * API: Delete a document (only company owner)
+         */
+        public async deleteDocument(document_id: number): Promise<DeleteDocumentResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("DELETE", `/documents/${encodeURIComponent(document_id)}`)
+            return await resp.json() as DeleteDocumentResponse
         }
 
         /**
@@ -636,6 +702,29 @@ export namespace companies {
         }
 
         /**
+         * API: Get signed URL for document download (authenticated users only)
+         */
+        public async getDocumentUrl(document_id: number): Promise<GetDocumentUrlResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/documents/${encodeURIComponent(document_id)}/url`)
+            return await resp.json() as GetDocumentUrlResponse
+        }
+
+        /**
+         * API: Get documents for a company (authenticated users only)
+         */
+        public async getDocuments(company_id: number, params: GetDocumentsRequest): Promise<GetDocumentsResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                "document_type": params["document_type"],
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/companies/${encodeURIComponent(company_id)}/documents`, undefined, {query})
+            return await resp.json() as GetDocumentsResponse
+        }
+
+        /**
          * API: Get posts for a company
          */
         public async getPosts(company_id: number, params: GetPostsRequest): Promise<GetPostsResponse> {
@@ -648,6 +737,26 @@ export namespace companies {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("GET", `/companies/${encodeURIComponent(company_id)}/posts`, undefined, {query})
             return await resp.json() as GetPostsResponse
+        }
+
+        /**
+         * API: Get signed URL for direct upload (only company owner)
+         */
+        public async getUploadUrl(company_id: number, params: {
+    "file_name": string
+    "mime_type": string
+}): Promise<{
+    url: string
+    "file_key": string
+    "expires_in": number
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/companies/${encodeURIComponent(company_id)}/documents/upload-url`, JSON.stringify(params))
+            return await resp.json() as {
+    url: string
+    "file_key": string
+    "expires_in": number
+}
         }
 
         /**
@@ -684,6 +793,15 @@ export namespace companies {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("PUT", `/companies/${encodeURIComponent(company_id)}/profile`, JSON.stringify(params))
             return await resp.json() as UpdateCompanyProfileResponse
+        }
+
+        /**
+         * API: Upload a document (only company owner)
+         */
+        public async uploadDocument(company_id: number, params: UploadDocumentRequest): Promise<UploadDocumentResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/companies/${encodeURIComponent(company_id)}/documents`, JSON.stringify(params))
+            return await resp.json() as UploadDocumentResponse
         }
 
         /**
