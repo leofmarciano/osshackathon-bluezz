@@ -87,6 +87,7 @@ export function GovernancePage() {
   const [selectedDetection, setSelectedDetection] = useState<AggregatedDetection | null>(null);
   const [detectionDetails, setDetectionDetails] = useState<DetectionDetails | null>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [expandedImage, setExpandedImage] = useState<{ url: string; alt: string } | null>(null);
 
   // Load AI detections from backend
   const loadAIDetections = async () => {
@@ -591,7 +592,7 @@ export function GovernancePage() {
                                   <div>
                                     <h3 className="font-semibold text-gray-900">{detection.areaName}</h3>
                                     <p className="text-sm text-gray-600 mt-1">
-                                      {detection.detectionCount} detecções de {pollutionType} em {detection.totalAreaKm2.toFixed(1)} km²
+                                      {detection.detectionCount} {t("governance.aiDetection.detectionsOf", "detecções de")} {pollutionType} {t("governance.aiDetection.in", "em")} {detection.totalAreaKm2.toFixed(1)} km²
                                     </p>
                                   </div>
                                   <Badge variant={getSeverityColor(detection.maxSeverity)}>
@@ -637,7 +638,7 @@ export function GovernancePage() {
                 ) : (
                   <Alert>
                     <AlertDescription>
-                      {t("governance.aiDetection.noDetections", "Nenhuma detecção de poluição encontrada nos últimos 7 dias.")}
+                      {t("governance.aiDetection.noDetections")}
                     </AlertDescription>
                   </Alert>
                 )}
@@ -1076,15 +1077,42 @@ export function GovernancePage() {
         </Card>
       </div>
 
+      {/* Image Zoom Modal */}
+      <Dialog open={!!expandedImage} onOpenChange={(open) => !open && setExpandedImage(null)}>
+        <DialogContent className="max-w-5xl p-0 overflow-hidden">
+          {expandedImage && (
+            <div className="relative">
+              <button
+                onClick={() => setExpandedImage(null)}
+                className="absolute top-4 right-4 z-10 bg-black/50 text-white rounded-full p-2 hover:bg-black/70 transition-colors"
+              >
+                <XCircle className="w-6 h-6" />
+              </button>
+              <img 
+                src={expandedImage.url}
+                alt={expandedImage.alt}
+                className="w-full h-auto max-h-[90vh] object-contain"
+                onError={(e) => {
+                  e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2RkZCIvPjx0ZXh0IHRleHQtYW5jaG9yPSJtaWRkbGUiIHg9IjIwMCIgeT0iMTUwIiBzdHlsZT0iZmlsbDojOTk5O2ZvbnQtd2VpZ2h0OmJvbGQ7Zm9udC1zaXplOjIwcHg7Zm9udC1mYW1pbHk6QXJpYWwsSGVsdmV0aWNhLHNhbnMtc2VyaWYiPkltYWdlIG5vdCBmb3VuZDwvdGV4dD48L3N2Zz4=';
+                }}
+              />
+              <div className="absolute bottom-0 left-0 right-0 bg-black/70 text-white p-4">
+                <p className="text-center">{expandedImage.alt}</p>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
       {/* Detection Details Modal */}
       <Dialog open={showDetailsModal} onOpenChange={setShowDetailsModal}>
         <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{selectedDetection?.areaName}</DialogTitle>
             <DialogDescription>
-              {selectedDetection?.detectionCount} detecções • 
+              {selectedDetection?.detectionCount} {t("governance.aiDetection.detections", "detecções")} • 
               {selectedDetection?.totalAreaKm2.toFixed(1)} km² • 
-              Severidade: {selectedDetection?.maxSeverity}
+              {t("governance.aiDetection.severity", "Severidade")}: {selectedDetection?.maxSeverity}
             </DialogDescription>
           </DialogHeader>
 
@@ -1092,27 +1120,34 @@ export function GovernancePage() {
             <div className="space-y-6">
               {/* Images Grid */}
               <div>
-                <h3 className="font-semibold mb-3">Imagens Capturadas</h3>
+                <h3 className="font-semibold mb-3">{t("governance.aiDetection.capturedImages", "Imagens Capturadas")}</h3>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                   {detectionDetails.images.map((image) => {
                     // Use the backend base URL for the image
-                    const imageUrl = `${import.meta.env.VITE_ENCORE_API_URL || 'http://localhost:4000'}/ocean-monitor/images/${encodeURIComponent(image.objectKey)}`;
+                    const baseUrl = (window as any).VITE_ENCORE_API_URL || 'http://localhost:4000';
+                    const imageUrl = `${baseUrl}/ocean-monitor/images/${encodeURIComponent(image.objectKey)}`;
+                    const imageAlt = `Tile ${image.tileX},${image.tileY}`;
                     
                     return (
-                      <div key={image.imageId} className="relative group">
+                      <div 
+                        key={image.imageId} 
+                        className="relative group cursor-pointer"
+                        onClick={() => setExpandedImage({ url: imageUrl, alt: imageAlt })}
+                      >
                         <img 
                           src={imageUrl}
-                          alt={`Tile ${image.tileX},${image.tileY}`}
-                          className="w-full h-32 object-cover rounded-lg border"
+                          alt={imageAlt}
+                          className="w-full h-32 object-cover rounded-lg border hover:opacity-90 transition-opacity"
                           onError={(e) => {
                             console.error('Failed to load image:', image.objectKey);
                             e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2RkZCIvPjx0ZXh0IHRleHQtYW5jaG9yPSJtaWRkbGUiIHg9IjIwMCIgeT0iMTUwIiBzdHlsZT0iZmlsbDojOTk5O2ZvbnQtd2VpZ2h0OmJvbGQ7Zm9udC1zaXplOjIwcHg7Zm9udC1mYW1pbHk6QXJpYWwsSGVsdmV0aWNhLHNhbnMtc2VyaWYiPkltYWdlIG5vdCBmb3VuZDwvdGV4dD48L3N2Zz4=';
                           }}
                         />
-                        <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
-                          <div className="text-white text-xs text-center">
-                            <p>Tile: {image.tileX},{image.tileY}</p>
-                            <p>{new Date(image.detectedAt).toLocaleDateString()}</p>
+                        <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center pointer-events-none">
+                          <div className="text-white text-center">
+                            <p className="text-sm font-medium mb-1">{t("governance.aiDetection.clickToZoom", "Clique para ampliar")}</p>
+                            <p className="text-xs">Tile: {image.tileX},{image.tileY}</p>
+                            <p className="text-xs">{new Date(image.detectedAt).toLocaleDateString()}</p>
                           </div>
                         </div>
                       </div>
@@ -1123,7 +1158,7 @@ export function GovernancePage() {
 
               {/* Detections List */}
               <div>
-                <h3 className="font-semibold mb-3">Detecções Individuais</h3>
+                <h3 className="font-semibold mb-3">{t("governance.aiDetection.individualDetections", "Detecções Individuais")}</h3>
                 <div className="space-y-3">
                   {detectionDetails.detections.map((det: any) => (
                     <Card key={det.id}>
@@ -1132,18 +1167,18 @@ export function GovernancePage() {
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-1">
                               <Badge variant={det.pollutionType === 'oil' ? 'destructive' : 'default'}>
-                                {det.pollutionType === 'oil' ? 'Óleo' : 'Plástico'}
+                                {det.pollutionType === 'oil' ? t("governance.aiDetection.oil", "Óleo") : t("governance.aiDetection.plastic", "Plástico")}
                               </Badge>
                               <Badge variant={getSeverityColor(det.severity)}>
                                 {det.severity}
                               </Badge>
                               <span className="text-sm text-gray-500">
-                                {(det.confidence * 100).toFixed(0)}% confiança
+                                {(det.confidence * 100).toFixed(0)}% {t("governance.aiDetection.confidence", "confiança")}
                               </span>
                             </div>
                             <p className="text-sm text-gray-600">{det.description}</p>
                             <p className="text-xs text-gray-500 mt-1">
-                              Área afetada: {det.estimatedAreaKm2.toFixed(2)} km² • 
+                              {t("governance.aiDetection.affectedArea", "Área afetada")}: {det.estimatedAreaKm2.toFixed(2)} km² • 
                               Tile: {det.tileX},{det.tileY}
                             </p>
                           </div>
