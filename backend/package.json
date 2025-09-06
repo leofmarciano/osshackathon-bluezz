@@ -10,7 +10,9 @@
     "@anthropic-ai/sdk": "^0.61.0",
     "@clerk/backend": "^2.12.0",
     "@polar-sh/sdk": "^0.34.8",
+    "@sentinel-hub/sentinelhub-js": "^0.9.0",
     "@types/node": "^24.3.0",
+    "dotenv": "^17.2.2",
     "encore.dev": "^1.49.3"
   },
   "devDependencies": {
