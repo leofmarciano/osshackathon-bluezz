@@ -72,7 +72,7 @@ Return ONLY this JSON structure:
 
   try {
     const message = await anthropic.messages.create({
-      model: 'claude-opus-4-1-20250805', // OPUS 4.1 - O MODELO MAIS AVANÇADO
+      model: 'claude-opus-4-1-20250805',
       max_tokens: 1024,
       temperature: 0.05, // Even lower temp for more consistent analysis
       system: systemPrompt,

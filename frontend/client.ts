@@ -36,7 +36,9 @@ export default class Client {
     public readonly companies: companies.ServiceClient
     public readonly frontend: frontend.ServiceClient
     public readonly manifesto: manifesto.ServiceClient
+    public readonly ocean_monitor: ocean_monitor.ServiceClient
     public readonly payments: payments.ServiceClient
+    public readonly pollution_detector: pollution_detector.ServiceClient
     public readonly user: user.ServiceClient
     private readonly options: ClientOptions
     private readonly target: string
@@ -56,7 +58,9 @@ export default class Client {
         this.companies = new companies.ServiceClient(base)
         this.frontend = new frontend.ServiceClient(base)
         this.manifesto = new manifesto.ServiceClient(base)
+        this.ocean_monitor = new ocean_monitor.ServiceClient(base)
         this.payments = new payments.ServiceClient(base)
+        this.pollution_detector = new pollution_detector.ServiceClient(base)
         this.user = new user.ServiceClient(base)
     }
 
@@ -1082,6 +1086,113 @@ export namespace manifesto {
     }
 }
 
+export namespace ocean_monitor {
+    export interface AddAreaRequest {
+        name: string
+        centerLat: number
+        centerLon: number
+        radiusKm: number
+        target: "oil" | "plastic"
+        priority?: number
+    }
+
+    export interface AddAreaResponse {
+        areaId: string
+        tilesCount: number
+    }
+
+    export interface BoundingBox {
+        minLon: number
+        minLat: number
+        maxLon: number
+        maxLat: number
+    }
+
+    export interface ListAreasResponse {
+        areas: ScanArea[]
+    }
+
+    export interface ScanArea {
+        id: string
+        name: string
+        center: {
+            lat: number
+            lon: number
+        }
+        radiusKm: number
+        bbox: BoundingBox
+        target: "oil" | "plastic"
+        priority: number
+        active: boolean
+    }
+
+    export interface ScanStatusResponse {
+        areaId: string
+        lastScanned?: string
+        hasRecentScan: boolean
+        totalImages: number
+    }
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.addScanArea = this.addScanArea.bind(this)
+            this.downloadImage = this.downloadImage.bind(this)
+            this.getScanStatus = this.getScanStatus.bind(this)
+            this.listScanAreas = this.listScanAreas.bind(this)
+            this.triggerScan = this.triggerScan.bind(this)
+        }
+
+        public async addScanArea(params: AddAreaRequest): Promise<AddAreaResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/ocean-monitor/areas`, JSON.stringify(params))
+            return await resp.json() as AddAreaResponse
+        }
+
+        /**
+         * Download captured image
+         */
+        public async downloadImage(method: "GET", objectKey: string[], body?: RequestInit["body"], options?: CallParameters): Promise<globalThis.Response> {
+            return this.baseClient.callAPI(method, `/ocean-monitor/images/${objectKey.map(encodeURIComponent).join("/")}`, body, options)
+        }
+
+        public async getScanStatus(areaId: string): Promise<ScanStatusResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/ocean-monitor/areas/${encodeURIComponent(areaId)}/status`)
+            return await resp.json() as ScanStatusResponse
+        }
+
+        public async listScanAreas(): Promise<ListAreasResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/ocean-monitor/areas`)
+            return await resp.json() as ListAreasResponse
+        }
+
+        /**
+         * Manual trigger endpoint for testing
+         */
+        public async triggerScan(): Promise<{
+    message: string
+    result: {
+        scannedAreas: number
+        totalImages: number
+    }
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/ocean-monitor/trigger-scan`)
+            return await resp.json() as {
+    message: string
+    result: {
+        scannedAreas: number
+        totalImages: number
+    }
+}
+        }
+    }
+}
+
 export namespace payments {
     export interface CheckoutResponse {
         checkoutUrl: string
@@ -1155,6 +1266,173 @@ export namespace payments {
          */
         public async webhook(method: "POST", body?: RequestInit["body"], options?: CallParameters): Promise<globalThis.Response> {
             return this.baseClient.callAPI(method, `/payments/webhook`, body, options)
+        }
+    }
+}
+
+export namespace pollution_detector {
+    export interface AggregatedDetection {
+        areaId: string
+        areaName: string
+        centerLat: number
+        centerLon: number
+        detectionCount: number
+        maxSeverity: "low" | "medium" | "high" | "critical"
+        totalAreaKm2: number
+        pollutionTypes: string[]
+        avgConfidence: number
+        latestDetection: string
+        imageIds: string[]
+    }
+
+    export interface AreaDetectionsResponse {
+        detections: PollutionDetection[]
+        images: {
+            imageId: string
+            objectKey: string
+            tileX: number
+            tileY: number
+            detectedAt: string
+        }[]
+    }
+
+    export interface GetDetectionResponse {
+        found: boolean
+        detection?: PollutionDetection
+    }
+
+    export interface GetDetectionsResponse {
+        detections: PollutionDetection[]
+        summary: {
+            total: number
+            oil: number
+            plastic: number
+            critical: number
+            high: number
+            medium: number
+            low: number
+        }
+    }
+
+    export interface ImageAnalysisRequest {
+        imageId: string
+        areaId: string
+        objectKey: string
+        tileX: number
+        tileY: number
+        target: "oil" | "plastic"
+        bbox: {
+            minLat: number
+            minLon: number
+            maxLat: number
+            maxLon: number
+        }
+    }
+
+    export interface PollutionDetection {
+        id: string
+        imageId: string
+        areaId: string
+        tileX: number
+        tileY: number
+        pollutionType: "oil" | "plastic"
+        confidence: number
+        severity: "low" | "medium" | "high" | "critical"
+        estimatedAreaKm2: number
+        description: string
+        affectedRegions: any
+        bbox: {
+            minLat: number
+            minLon: number
+            maxLat: number
+            maxLon: number
+        }
+        detectedAt: string
+        verified: boolean
+    }
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.analyzeSingleImage = this.analyzeSingleImage.bind(this)
+            this.getAggregatedDetections = this.getAggregatedDetections.bind(this)
+            this.getDetectionById = this.getDetectionById.bind(this)
+            this.getDetections = this.getDetections.bind(this)
+            this.getDetectionsByArea = this.getDetectionsByArea.bind(this)
+            this.triggerAnalysis = this.triggerAnalysis.bind(this)
+        }
+
+        /**
+         * Analyze a specific image
+         */
+        public async analyzeSingleImage(params: ImageAnalysisRequest): Promise<{
+    detected: boolean
+    detectionId?: string
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/pollution-detector/analyze-image`, JSON.stringify(params))
+            return await resp.json() as {
+    detected: boolean
+    detectionId?: string
+}
+        }
+
+        public async getAggregatedDetections(): Promise<{
+    detections: AggregatedDetection[]
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/pollution-detector/aggregated`)
+            return await resp.json() as {
+    detections: AggregatedDetection[]
+}
+        }
+
+        public async getDetectionById(id: string): Promise<GetDetectionResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/pollution-detector/detections/${encodeURIComponent(id)}`)
+            return await resp.json() as GetDetectionResponse
+        }
+
+        public async getDetections(params: {
+    limit?: number
+}): Promise<GetDetectionsResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                limit: params.limit === undefined ? undefined : String(params.limit),
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/pollution-detector/detections`, undefined, {query})
+            return await resp.json() as GetDetectionsResponse
+        }
+
+        public async getDetectionsByArea(areaId: string): Promise<AreaDetectionsResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/pollution-detector/areas/${encodeURIComponent(areaId)}/detections`)
+            return await resp.json() as AreaDetectionsResponse
+        }
+
+        /**
+         * Manual trigger for immediate analysis
+         */
+        public async triggerAnalysis(params: {
+    limit?: number
+}): Promise<{
+    message: string
+    analyzed: number
+    detections: number
+    jobId: string
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/pollution-detector/analyze`, JSON.stringify(params))
+            return await resp.json() as {
+    message: string
+    analyzed: number
+    detections: number
+    jobId: string
+}
         }
     }
 }

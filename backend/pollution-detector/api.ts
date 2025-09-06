@@ -126,3 +126,61 @@ export const getDetectionById = api(
     };
   }
 );
+
+// Get aggregated detections grouped by area
+interface AggregatedDetection {
+  areaId: string;
+  areaName: string;
+  centerLat: number;
+  centerLon: number;
+  detectionCount: number;
+  maxSeverity: 'low' | 'medium' | 'high' | 'critical';
+  totalAreaKm2: number;
+  pollutionTypes: string[];
+  avgConfidence: number;
+  latestDetection: Date;
+  imageIds: string[];
+}
+
+export const getAggregatedDetections = api(
+  { expose: true, method: "GET", path: "/pollution-detector/aggregated", auth: false },
+  async (): Promise<{ detections: AggregatedDetection[] }> => {
+    const { getAggregatedDetections } = await import("./database");
+    const detections = await getAggregatedDetections();
+    return { detections };
+  }
+);
+
+// Get all detections for a specific area
+interface AreaDetectionsResponse {
+  detections: PollutionDetection[];
+  images: Array<{
+    imageId: string;
+    objectKey: string;
+    tileX: number;
+    tileY: number;
+    detectedAt: Date;
+  }>;
+}
+
+export const getDetectionsByArea = api(
+  { expose: true, method: "GET", path: "/pollution-detector/areas/:areaId/detections", auth: false },
+  async (req: { areaId: string }): Promise<AreaDetectionsResponse> => {
+    log.info("getDetectionsByArea called", { areaId: req.areaId });
+    
+    // Validate UUID format
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(req.areaId)) {
+      log.warn("Invalid UUID format", { areaId: req.areaId });
+      // Return empty result for invalid UUID
+      return {
+        detections: [],
+        images: []
+      };
+    }
+    
+    const { getDetectionsByArea } = await import("./database");
+    const result = await getDetectionsByArea(req.areaId);
+    return result;
+  }
+);

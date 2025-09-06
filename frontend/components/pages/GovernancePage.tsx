@@ -11,6 +11,13 @@ import { useBackend } from "@/lib/useBackend";
 import { ManifestoEditor } from "../manifesto/ManifestoEditor";
 import { ManifestoHistoryModal } from "../manifesto/ManifestoHistoryModal";
 import { useNavigate, Link } from "react-router-dom";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { 
   Vote, 
   Brain, 
@@ -38,6 +45,31 @@ import {
   ArrowRight
 } from "lucide-react";
 
+interface AggregatedDetection {
+  areaId: string;
+  areaName: string;
+  centerLat: number;
+  centerLon: number;
+  detectionCount: number;
+  maxSeverity: 'low' | 'medium' | 'high' | 'critical';
+  totalAreaKm2: number;
+  pollutionTypes: string[];
+  avgConfidence: number;
+  latestDetection: string;
+  imageIds: string[];
+}
+
+interface DetectionDetails {
+  detections: any[];
+  images: Array<{
+    imageId: string;
+    objectKey: string;
+    tileX: number;
+    tileY: number;
+    detectedAt: string;
+  }>;
+}
+
 export function GovernancePage() {
   const { t, i18n } = useTranslation();
   const { toast } = useToast();
@@ -50,40 +82,50 @@ export function GovernancePage() {
   const [currentManifesto, setCurrentManifesto] = useState<any>(null);
   const [manifestoProposals, setManifestoProposals] = useState<any[]>([]);
   const [votingProposal, setVotingProposal] = useState<number | null>(null);
+  const [aiDetections, setAiDetections] = useState<AggregatedDetection[]>([]);
+  const [loadingDetections, setLoadingDetections] = useState(false);
+  const [selectedDetection, setSelectedDetection] = useState<AggregatedDetection | null>(null);
+  const [detectionDetails, setDetectionDetails] = useState<DetectionDetails | null>(null);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
 
-  // Mock data for demonstration
-  const aiDetectedProblems = [
-    {
-      id: 1,
-      location: "Baía de Guanabara, RJ",
-      severity: "critical",
-      type: "oil",
-      description: "Manchas de óleo detectadas próximas à entrada da baía",
-      detectedAt: "2024-01-15",
-      coordinates: { lat: -22.8, lng: -43.1 },
-      confidence: 95
-    },
-    {
-      id: 2,
-      location: "Litoral de Santos, SP",
-      severity: "high",
-      type: "plastic",
-      description: "Alta concentração de resíduos plásticos",
-      detectedAt: "2024-01-14",
-      coordinates: { lat: -23.9, lng: -46.3 },
-      confidence: 88
-    },
-    {
-      id: 3,
-      location: "Praia de Copacabana, RJ",
-      severity: "medium",
-      type: "sewage",
-      description: "Possível descarga de esgoto não tratado",
-      detectedAt: "2024-01-13",
-      coordinates: { lat: -22.9, lng: -43.2 },
-      confidence: 72
+  // Load AI detections from backend
+  const loadAIDetections = async () => {
+    try {
+      setLoadingDetections(true);
+      const response = await backend.pollution_detector.getAggregatedDetections();
+      setAiDetections(response.detections || []);
+    } catch (error) {
+      console.error('Failed to load AI detections:', error);
+      toast({
+        title: "Error loading detections",
+        description: "Failed to load pollution detections",
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingDetections(false);
     }
-  ];
+  };
+
+  // Load detection details
+  const loadDetectionDetails = async (areaId: string) => {
+    try {
+      const response = await backend.pollution_detector.getDetectionsByArea(areaId);
+      setDetectionDetails(response);
+    } catch (error) {
+      console.error('Failed to load detection details:', error);
+      toast({
+        title: "Error loading details",
+        description: "Failed to load detection details",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleViewDetails = async (detection: AggregatedDetection) => {
+    setSelectedDetection(detection);
+    setShowDetailsModal(true);
+    await loadDetectionDetails(detection.areaId);
+  };
 
   const activeProposals = [
     {
@@ -142,8 +184,15 @@ export function GovernancePage() {
   useEffect(() => {
     if (activeSection === "manifesto") {
       loadManifestoData();
+    } else if (activeSection === "ai") {
+      loadAIDetections();
     }
   }, [activeSection, i18n.language]);
+  
+  // Load AI detections on mount to populate stats
+  useEffect(() => {
+    loadAIDetections();
+  }, []);
 
   const loadManifestoData = async () => {
     try {
@@ -250,8 +299,8 @@ export function GovernancePage() {
   const getSeverityColor = (severity: string) => {
     switch (severity) {
       case "critical": return "destructive";
-      case "high": return "orange";
-      case "medium": return "yellow";
+      case "high": return "destructive";
+      case "medium": return "secondary";
       default: return "secondary";
     }
   };
@@ -266,9 +315,12 @@ export function GovernancePage() {
     }
   };
 
+  const totalDetections = aiDetections.reduce((sum, d) => sum + d.detectionCount, 0);
+  const hasUrgentDetections = aiDetections.some(d => d.maxSeverity === 'critical' || d.maxSeverity === 'high');
+  
   const menuItems = [
     { id: "proposals", label: t("governance.tabs.activeProposals"), icon: Vote, badge: "3" },
-    { id: "ai", label: t("governance.tabs.aiDetection"), icon: Brain, badge: "12", urgent: true },
+    { id: "ai", label: t("governance.tabs.aiDetection"), icon: Brain, badge: totalDetections > 0 ? totalDetections.toString() : undefined, urgent: hasUrgentDetections },
     { id: "manifesto", label: t("governance.tabs.manifesto"), icon: FileText },
     { id: "ngos", label: t("governance.tabs.ngos"), icon: Building2, badge: "24" },
     { id: "history", label: t("governance.tabs.history"), icon: Clock }
@@ -343,7 +395,7 @@ export function GovernancePage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">{t("governance.stats.aiDetections")}</p>
-                  <p className="text-2xl font-bold">12</p>
+                  <p className="text-2xl font-bold">{aiDetections.reduce((sum, d) => sum + d.detectionCount, 0)}</p>
                 </div>
                 <div className="h-10 w-10 rounded-full bg-orange-100 text-orange-600 grid place-items-center">
                   <AlertTriangle className="w-5 h-5" />
@@ -512,59 +564,83 @@ export function GovernancePage() {
                   </Button>
                 </div>
 
-                <div className="grid gap-4">
-                  {aiDetectedProblems.map((problem) => (
-                    <Card key={problem.id} className="overflow-hidden">
-                      <CardContent className="p-4">
-                        <div className="flex items-start gap-4">
-                          <div className={`h-10 w-10 rounded-lg grid place-items-center flex-shrink-0 ${
-                            problem.severity === 'critical' ? 'bg-red-100 text-red-600' :
-                            problem.severity === 'high' ? 'bg-orange-100 text-orange-600' :
-                            'bg-yellow-100 text-yellow-600'
-                          }`}>
-                            <AlertTriangle className="w-5 h-5" />
-                          </div>
-                          <div className="flex-1">
-                            <div className="flex items-start justify-between mb-2">
-                              <div>
-                                <h3 className="font-semibold text-gray-900">{problem.location}</h3>
-                                <p className="text-sm text-gray-600 mt-1">{problem.description}</p>
+                {loadingDetections ? (
+                  <div className="flex items-center justify-center h-64">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                  </div>
+                ) : aiDetections.length > 0 ? (
+                  <div className="grid gap-4">
+                    {aiDetections.map((detection) => {
+                      const pollutionType = detection.pollutionTypes.join(', ');
+                      const formattedDate = new Date(detection.latestDetection).toLocaleDateString('pt-BR');
+                      
+                      return (
+                        <Card key={detection.areaId} className="overflow-hidden">
+                          <CardContent className="p-4">
+                            <div className="flex items-start gap-4">
+                              <div className={`h-10 w-10 rounded-lg grid place-items-center flex-shrink-0 ${
+                                detection.maxSeverity === 'critical' ? 'bg-red-100 text-red-600' :
+                                detection.maxSeverity === 'high' ? 'bg-orange-100 text-orange-600' :
+                                detection.maxSeverity === 'medium' ? 'bg-yellow-100 text-yellow-600' :
+                                'bg-blue-100 text-blue-600'
+                              }`}>
+                                <AlertTriangle className="w-5 h-5" />
                               </div>
-                              <Badge variant={getSeverityColor(problem.severity)}>
-                                {problem.severity.toUpperCase()}
-                              </Badge>
-                            </div>
-                            
-                            <div className="flex items-center gap-4 text-sm text-gray-500 mb-3">
-                              <span className="flex items-center gap-1">
-                                <Calendar className="w-3 h-3" />
-                                {problem.detectedAt}
-                              </span>
-                              <span className="flex items-center gap-1">
-                                <Target className="w-3 h-3" />
-                                {t("governance.aiDetection.confidence")}: {problem.confidence}%
-                              </span>
-                              <span className="text-xs">
-                                {problem.coordinates.lat}, {problem.coordinates.lng}
-                              </span>
-                            </div>
+                              <div className="flex-1">
+                                <div className="flex items-start justify-between mb-2">
+                                  <div>
+                                    <h3 className="font-semibold text-gray-900">{detection.areaName}</h3>
+                                    <p className="text-sm text-gray-600 mt-1">
+                                      {detection.detectionCount} detecções de {pollutionType} em {detection.totalAreaKm2.toFixed(1)} km²
+                                    </p>
+                                  </div>
+                                  <Badge variant={getSeverityColor(detection.maxSeverity)}>
+                                    {detection.maxSeverity.toUpperCase()}
+                                  </Badge>
+                                </div>
+                                
+                                <div className="flex items-center gap-4 text-sm text-gray-500 mb-3">
+                                  <span className="flex items-center gap-1">
+                                    <Calendar className="w-3 h-3" />
+                                    {formattedDate}
+                                  </span>
+                                  <span className="flex items-center gap-1">
+                                    <Target className="w-3 h-3" />
+                                    {t("governance.aiDetection.confidence")}: {Math.round(detection.avgConfidence * 100)}%
+                                  </span>
+                                  <span className="text-xs">
+                                    {detection.centerLat.toFixed(4)}, {detection.centerLon.toFixed(4)}
+                                  </span>
+                                </div>
 
-                            <div className="flex gap-2">
-                              <Button size="sm" variant="default">
-                                <Target className="w-3 h-3 mr-1" />
-                                {t("governance.aiDetection.createAction")}
-                              </Button>
-                              <Button size="sm" variant="outline">
-                                <Info className="w-3 h-3 mr-1" />
-                                {t("governance.aiDetection.moreInfo")}
-                              </Button>
+                                <div className="flex gap-2">
+                                  <Button size="sm" variant="default">
+                                    <Target className="w-3 h-3 mr-1" />
+                                    {t("governance.aiDetection.createAction")}
+                                  </Button>
+                                  <Button 
+                                    size="sm" 
+                                    variant="outline"
+                                    onClick={() => handleViewDetails(detection)}
+                                  >
+                                    <Info className="w-3 h-3 mr-1" />
+                                    {t("governance.aiDetection.moreInfo")}
+                                  </Button>
+                                </div>
+                              </div>
                             </div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <Alert>
+                    <AlertDescription>
+                      {t("governance.aiDetection.noDetections", "Nenhuma detecção de poluição encontrada nos últimos 7 dias.")}
+                    </AlertDescription>
+                  </Alert>
+                )}
 
                 <Alert>
                   <Brain className="h-4 w-4" />
@@ -830,7 +906,7 @@ export function GovernancePage() {
                                   {t(`companies.categories.${company.category}`)}
                                 </Badge>
                                 {company.status === "pending" && (
-                                  <Badge variant="warning" className="bg-yellow-100 text-yellow-800">
+                                  <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
                                     {t("companies.status.pending", "Em Votação")}
                                   </Badge>
                                 )}
@@ -999,6 +1075,88 @@ export function GovernancePage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Detection Details Modal */}
+      <Dialog open={showDetailsModal} onOpenChange={setShowDetailsModal}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{selectedDetection?.areaName}</DialogTitle>
+            <DialogDescription>
+              {selectedDetection?.detectionCount} detecções • 
+              {selectedDetection?.totalAreaKm2.toFixed(1)} km² • 
+              Severidade: {selectedDetection?.maxSeverity}
+            </DialogDescription>
+          </DialogHeader>
+
+          {detectionDetails && (
+            <div className="space-y-6">
+              {/* Images Grid */}
+              <div>
+                <h3 className="font-semibold mb-3">Imagens Capturadas</h3>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  {detectionDetails.images.map((image) => {
+                    // Use the backend base URL for the image
+                    const imageUrl = `${import.meta.env.VITE_ENCORE_API_URL || 'http://localhost:4000'}/ocean-monitor/images/${encodeURIComponent(image.objectKey)}`;
+                    
+                    return (
+                      <div key={image.imageId} className="relative group">
+                        <img 
+                          src={imageUrl}
+                          alt={`Tile ${image.tileX},${image.tileY}`}
+                          className="w-full h-32 object-cover rounded-lg border"
+                          onError={(e) => {
+                            console.error('Failed to load image:', image.objectKey);
+                            e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2RkZCIvPjx0ZXh0IHRleHQtYW5jaG9yPSJtaWRkbGUiIHg9IjIwMCIgeT0iMTUwIiBzdHlsZT0iZmlsbDojOTk5O2ZvbnQtd2VpZ2h0OmJvbGQ7Zm9udC1zaXplOjIwcHg7Zm9udC1mYW1pbHk6QXJpYWwsSGVsdmV0aWNhLHNhbnMtc2VyaWYiPkltYWdlIG5vdCBmb3VuZDwvdGV4dD48L3N2Zz4=';
+                          }}
+                        />
+                        <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
+                          <div className="text-white text-xs text-center">
+                            <p>Tile: {image.tileX},{image.tileY}</p>
+                            <p>{new Date(image.detectedAt).toLocaleDateString()}</p>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Detections List */}
+              <div>
+                <h3 className="font-semibold mb-3">Detecções Individuais</h3>
+                <div className="space-y-3">
+                  {detectionDetails.detections.map((det: any) => (
+                    <Card key={det.id}>
+                      <CardContent className="p-3">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <Badge variant={det.pollutionType === 'oil' ? 'destructive' : 'default'}>
+                                {det.pollutionType === 'oil' ? 'Óleo' : 'Plástico'}
+                              </Badge>
+                              <Badge variant={getSeverityColor(det.severity)}>
+                                {det.severity}
+                              </Badge>
+                              <span className="text-sm text-gray-500">
+                                {(det.confidence * 100).toFixed(0)}% confiança
+                              </span>
+                            </div>
+                            <p className="text-sm text-gray-600">{det.description}</p>
+                            <p className="text-xs text-gray-500 mt-1">
+                              Área afetada: {det.estimatedAreaKm2.toFixed(2)} km² • 
+                              Tile: {det.tileX},{det.tileY}
+                            </p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
     </div>
   );
