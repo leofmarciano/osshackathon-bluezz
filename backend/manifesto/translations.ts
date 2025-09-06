@@ -44,7 +44,7 @@ export async function translateManifestoContent(
 
       // Use streaming for long content to avoid timeout
       const stream = await claude.messages.create({
-        model: "claude-4-sonnet",
+        model: "claude-sonnet-4-20250514",
         max_tokens: 128000, // just for development, a real use case would be ilimited
         temperature: 0.1,
         system: systemPrompt,

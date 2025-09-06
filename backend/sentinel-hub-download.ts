@@ -6,9 +6,11 @@ import {
   MimeTypes,
   ApiType,
   S1GRDAWSEULayer,
+  S2L2ALayer,
   AcquisitionMode,
   Polarization,
   Resolution,
+  MosaickingOrder,
   setAuthToken,
   requestAuthToken
 } from '@sentinel-hub/sentinelhub-js';
@@ -21,7 +23,7 @@ import {
 async function downloadSentinelHubImage(
   outputPath: string = './oceano.png'
 ): Promise<void> {
-  const evalscript = `//VERSION=3
+  const s1Evalscript = `//VERSION=3
 function setup() {
   return {
     input: ["VV", "VH"],
@@ -37,23 +39,59 @@ function evaluatePixel(sample) {
   return [vvDb, vhDb, vvDb / (vhDb + 0.0001)];
 }`;
 
-  // Configure layer for Sentinel-1 GRD, IW mode, orthorectified, dual polarization
-  const layer = new S1GRDAWSEULayer({
-    evalscript,
-    title: 'S1 GRD IW (custom evalscript)',
-    description: 'Sentinel-1 GRD dual-pol with dB conversion',
-    acquisitionMode: AcquisitionMode.IW,
-    polarization: Polarization.DV,
-    resolution: Resolution.HIGH,
-    orthorectify: true,
-  });
+  // Floating Debris Index (FDI) for plastic detection with Sentinel-2
+  // Uses bands: B04 (Red ~665nm), B08 (NIR ~842nm), B11 (SWIR ~1610nm)
+  const s2EvalscriptFDI = `//VERSION=3
+function setup() {
+  return {
+    input: ["B04", "B08", "B11"],
+    output: { bands: 3 }
+  };
+}
+function evaluatePixel(s) {
+  const red = s.B04;
+  const nir = s.B08; // 842nm
+  const swir = s.B11; // 1610nm
+  // Linear baseline interpolation for NIR between RED and SWIR:
+  const factor = (0.842 - 0.665) / (1.610 - 0.665);
+  const nirBaseline = red + (swir - red) * factor;
+  const fdi = nir - nirBaseline;
+  // Simple visualization: map positive FDI to cyan, negatives to dark
+  const v = Math.max(0, fdi * 5.0); // scale for visibility
+  return [0, v, v];
+}`;
+
+  // Choose target: 'oil' (Sentinel-1) or 'plastic' (Sentinel-2)
+  const target = (process.env.TARGET || 'oil').toLowerCase();
+
+  // Build appropriate layer
+  const layer = target === 'plastic'
+    ? new S2L2ALayer({
+        evalscript: s2EvalscriptFDI,
+        title: 'S2 L2A FDI (floating debris index)',
+        description: 'Sentinel-2 FDI to highlight floating plastic debris',
+        maxCloudCoverPercent: 40,
+        mosaickingOrder: MosaickingOrder.MOST_RECENT,
+      })
+    : new S1GRDAWSEULayer({
+        evalscript: s1Evalscript,
+        title: 'S1 GRD IW (custom evalscript)',
+        description: 'Sentinel-1 GRD dual-pol with dB conversion',
+        acquisitionMode: AcquisitionMode.IW,
+        polarization: Polarization.DV,
+        resolution: Resolution.HIGH,
+        orthorectify: true,
+        mosaickingOrder: MosaickingOrder.MOST_RECENT,
+      });
 
   // Define spatial and temporal parameters
   const bbox = new BBox(CRS_EPSG4326, -50.0, -10.0, -49.0, -9.0);
+  const now = new Date();
+  const fromTimeDynamic = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000); // últimos 90 dias
   const getMapParams = {
     bbox,
-    fromTime: new Date('2025-08-25T00:00:00Z'),
-    toTime: new Date('2025-09-05T23:59:59Z'),
+    fromTime: fromTimeDynamic,
+    toTime: now,
     width: 512,
     height: 512,
     format: MimeTypes.PNG,
@@ -61,7 +99,7 @@ function evaluatePixel(sample) {
   } as const;
 
   try {
-    console.log('Fetching image via sentinelhub-js...');
+    console.log(`Fetching image via sentinelhub-js (target=${target})...`);
     const img: any = await layer.getMap(getMapParams, ApiType.PROCESSING);
     let imageBuffer: Buffer;
     if (Buffer.isBuffer(img)) {
