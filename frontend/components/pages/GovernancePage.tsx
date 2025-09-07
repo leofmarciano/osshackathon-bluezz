@@ -213,9 +213,13 @@ export function GovernancePage() {
     }
   }, [activeSection, i18n.language]);
   
-  // Load AI detections on mount to populate stats
+  // Load all data on mount to populate stats
   useEffect(() => {
     loadAIDetections();
+    loadCompanies();
+    if (!currentManifesto) {
+      loadManifestoData();
+    }
   }, []);
 
   const loadManifestoData = async () => {
