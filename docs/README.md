@@ -187,9 +187,8 @@ The system comes pre-configured with Brazilian coastal areas:
 
 1. Register at [sentinel-hub.com](https://www.sentinel-hub.com/)
 2. Create a new OAuth client
-3. Set redirect URI: `http://localhost:4000/callback`
-4. Copy Client ID and Client Secret
-5. Ensure you have processing units available
+3. Copy Client ID and Client Secret
+4. Ensure you have processing units available
 
 **Free Tier**: Sentinel Hub offers a free tier with limited processing units, sufficient for development.
 
@@ -267,11 +266,11 @@ encore logs --env prod
 4. Run tests
 5. Submit a pull request
 
-## =� License
+## License
 
 MIT License - see [LICENSE](../LICENSE) file for details.
 
-## <� Support
+## Support
 
 - GitHub Issues: [Report bugs or request features](https://github.com/leofmarciano/osshackathon-bluezz/issues)
 - Documentation: You're reading it!
