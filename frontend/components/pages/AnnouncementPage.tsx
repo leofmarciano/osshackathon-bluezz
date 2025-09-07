@@ -24,7 +24,6 @@ import { useBackend, useIsSignedIn } from "../../lib/useBackend";
 import { useToast } from "@/components/ui/use-toast";
 import { DonationModal } from "../DonationModal";
 import { DonationsList } from "../DonationsList";
-import { ThankYouModal } from "../ThankYouModal";
 import type { AnnouncementDetail } from "~backend/announcements/types";
 
 export function AnnouncementPage() {
@@ -38,7 +37,6 @@ export function AnnouncementPage() {
   const [announcement, setAnnouncement] = useState<AnnouncementDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [reminding, setReminding] = useState(false);
-  const [showThankYouModal, setShowThankYouModal] = useState(false);
   const processingCheckoutRef = useRef(false);
 
   useEffect(() => {
@@ -72,10 +70,10 @@ export function AnnouncementPage() {
         await fetchAnnouncement();
 
         // Show success message to the user.
-        triggerConfetti();
-        
-        // Show thank you modal
-        setShowThankYouModal(true);
+        toast({
+          title: t("common.success"),
+          description: t("donation.successMessage"),
+        });
 
         // Clean up the URL
         navigate(`/announcement/${slug}`, { replace: true });
@@ -83,53 +81,12 @@ export function AnnouncementPage() {
     })();
   }, [location.search, isSignedIn, authBackend, slug, t, toast, navigate]);
 
-  function triggerConfetti() {
-    const colors = ["#34D399", "#60A5FA", "#F59E0B", "#EF4444", "#A78BFA"]; // tailwind-esque
-    const pieces = 120;
-    const duration = 2500;
-    const container = document.createElement("div");
-    container.style.position = "fixed";
-    container.style.left = "0";
-    container.style.top = "0";
-    container.style.width = "100%";
-    container.style.height = "0"; // don't block clicks
-    container.style.pointerEvents = "none";
-    container.style.zIndex = "9999";
-    document.body.appendChild(container);
-
-    const now = Date.now();
-    for (let i = 0; i < pieces; i++) {
-      const el = document.createElement("div");
-      const size = Math.random() * 8 + 6;
-      el.style.position = "fixed";
-      el.style.left = Math.random() * 100 + "vw";
-      el.style.top = "-10px";
-      el.style.width = size + "px";
-      el.style.height = size * 0.6 + "px";
-      el.style.background = colors[Math.floor(Math.random() * colors.length)];
-      el.style.opacity = "0.9";
-      el.style.transform = `translateY(0) rotate(${Math.random() * 360}deg)`;
-      el.style.transition = `transform ${1.5 + Math.random() * 1.5}s ease-out, opacity 300ms linear`;
-      el.style.willChange = "transform, opacity";
-      container.appendChild(el);
-      // kick off animation in next frame
-      requestAnimationFrame(() => {
-        const xJitter = (Math.random() * 100 - 50) + "px";
-        el.style.transform = `translateY(100vh) translateX(${xJitter}) rotate(${720 + Math.random() * 720}deg)`;
-        setTimeout(() => (el.style.opacity = "0"), duration - 300);
-        const done = () => el.remove();
-        el.addEventListener("transitionend", done, { once: true });
-        setTimeout(done, duration + 500);
-      });
-    }
-    setTimeout(() => container.remove(), duration + 800);
-  }
-
   const fetchAnnouncement = async () => {
     if (!slug) return;
     try {
       setLoading(true);
-      const response = await backend.announcements.getBySlug(slug!, { 
+      const response = await backend.announcements.getBySlug({ 
+        slug: slug!,
         language: i18n.language 
       });
       setAnnouncement(response);
@@ -518,14 +475,6 @@ export function AnnouncementPage() {
           </div>
         </div>
       </div>
-
-      {/* Thank You Modal */}
-      <ThankYouModal
-        isOpen={showThankYouModal}
-        onClose={() => setShowThankYouModal(false)}
-        announcementTitle={announcement.title}
-        onShare={() => handleShare('generic')}
-      />
     </div>
   );
 }

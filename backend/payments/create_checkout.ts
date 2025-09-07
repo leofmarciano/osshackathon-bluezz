@@ -42,8 +42,7 @@ export const createCheckout = api<CreateCheckoutRequest, CheckoutResponse>(
       const successUrl = `${frontendUrl()}/announcement/${announcement.slug}?donation_success=true&checkout_id={CHECKOUT_ID}`;
 
       // Create a custom checkout session via SDK
-      client.checkouts.create
-      const session = await client.checkouts.create({
+      const session = await client.checkouts.custom.create({
         successUrl,
         customerEmail: req.userEmail || auth.email,
         metadata: {
@@ -51,11 +50,12 @@ export const createCheckout = api<CreateCheckoutRequest, CheckoutResponse>(
           user_id: auth.userID,
         },
         amount: req.amount, // cents
-        products: ["0fbeac25-db41-412c-9765-3312438b397b"],
+        productId: "b26e017c-06ca-4217-9510-ed4b5c529bda",
       });
 
       if (!session || !session.id || !session.url) {
-        throw new Error("Polar SDK returned unexpected session: " + JSON.stringify(session));
+        console.error("Polar SDK returned unexpected session:", session);
+        throw APIError.internal("Failed to create checkout session");
       }
 
       return {

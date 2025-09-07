@@ -23,7 +23,8 @@ export function DonationsList({ announcementId }: DonationsListProps) {
   const fetchDonations = async () => {
     try {
       setLoading(true);
-      const response = await backend.payments.listDonations(announcementId, {
+      const response = await backend.payments.listDonations({
+        announcementId,
         limit: 20,
         offset: 0,
       });
@@ -101,7 +102,7 @@ export function DonationsList({ announcementId }: DonationsListProps) {
                     <Heart className="w-4 h-4 text-green-600" />
                   </div>
                   <div>
-                    <p className="font-medium text-sm">{donation.userName || donation.anonymizedEmail}</p>
+                    <p className="font-medium text-sm">{donation.anonymizedEmail}</p>
                     <p className="text-xs text-gray-500">{formatDate(donation.createdAt)}</p>
                   </div>
                 </div>
