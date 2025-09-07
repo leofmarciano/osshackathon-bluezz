@@ -427,7 +427,7 @@ export function GovernancePage() {
                   <p className="text-sm text-muted-foreground">{t("governance.stats.registeredNGOs")}</p>
                   <p className="text-2xl font-bold">{companies.length}</p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    {companies.filter(c => c.status === 'active').length} {t("governance.stats.verified")}
+                    {companies.filter(c => c.status === 'approved').length} {t("governance.stats.verified")}
                   </p>
                 </div>
                 <div className="h-10 w-10 rounded-full bg-purple-100 text-purple-600 grid place-items-center">
@@ -948,7 +948,7 @@ export function GovernancePage() {
                         <div>
                           <p className="text-sm text-muted-foreground">{t("companies.tabs.active")}</p>
                           <p className="text-2xl font-bold">
-                            {companies.filter(c => c.status === 'active').length}
+                            {companies.filter(c => c.status === 'approved').length}
                           </p>
                         </div>
                         <CheckCircle2 className="h-8 w-8 text-green-500" />
@@ -1010,7 +1010,7 @@ export function GovernancePage() {
                                 </div>
                                 
                                 <div className="flex items-center gap-2 mt-1">
-                                  {company.status === "active" && (
+                                  {company.status === "approved" && (
                                     <Badge variant="default" className="bg-green-500">
                                       <CheckCircle2 className="w-3 h-3 mr-1" />
                                       {t("companies.status.active")}

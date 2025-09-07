@@ -28,7 +28,7 @@ interface Company {
   name: string;
   type: "ngo" | "company";
   logo?: string;
-  status: "active" | "pending";
+  status: "approved" | "pending" | "rejected";
   category: string;
   description: string;
   location: string;
@@ -45,6 +45,10 @@ interface Company {
     donations: number;
   };
   tags: string[];
+  voting_ends_at?: string;
+  votes_yes?: number;
+  votes_no?: number;
+  votes_abstain?: number;
 }
 
 export default function CompaniesList() {
@@ -72,12 +76,12 @@ export default function CompaniesList() {
         name: c.name,
         type: c.type as "ngo" | "company",
         logo: undefined,
-        status: c.status as "pending" | "active" | "rejected",
+        status: c.status as "approved" | "pending" | "rejected",
         category: c.category,
         description: c.description,
         location: `${c.city}, ${c.state || c.country}`,
         website: c.website || undefined,
-        created_at: c.created_at,
+        createdAt: new Date(c.created_at),
         voting_ends_at: c.voting_ends_at || undefined,
         votes_yes: c.votes_yes,
         votes_no: c.votes_no,
@@ -123,7 +127,7 @@ export default function CompaniesList() {
     return matchesSearch && matchesCategory && matchesType;
   });
 
-  const activeCompanies = filteredCompanies.filter(c => c.status === "active");
+  const activeCompanies = filteredCompanies.filter(c => c.status === "approved");
   const pendingCompanies = filteredCompanies.filter(c => c.status === "pending");
 
   const calculateDaysLeft = (endDate: string | undefined) => {
@@ -201,7 +205,7 @@ export default function CompaniesList() {
               </div>
 
               {/* Stats or Voting Info */}
-              {company.status === "active" ? (
+              {company.status === "approved" ? (
                 <div className="mt-4 flex items-center gap-6 text-sm">
                   <span className="flex items-center gap-1">
                     <Users className="h-4 w-4 text-gray-400" />

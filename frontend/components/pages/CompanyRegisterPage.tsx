@@ -114,17 +114,17 @@ export function CompanyRegisterPage() {
             <div className="flex flex-wrap gap-6">
               <div className="flex items-center gap-2">
                 <Building2 className="w-5 h-5" />
-                <span className="font-semibold">24</span>
+                <span className="font-semibold">{t("companies.stats.registeredCount", "24")}</span>
                 <span className="text-blue-100">{t("companies.stats.registered", "Organizações ativas")}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Heart className="w-5 h-5" />
-                <span className="font-semibold">12.5K</span>
+                <span className="font-semibold">{t("companies.stats.supportersCount", "12.5K")}</span>
                 <span className="text-blue-100">{t("companies.stats.supporters", "Apoiadores")}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Award className="w-5 h-5" />
-                <span className="font-semibold">R$ 5.2M</span>
+                <span className="font-semibold">{t("companies.stats.raisedAmount", "R$ 5.2M")}</span>
                 <span className="text-blue-100">{t("companies.stats.raised", "Arrecadados")}</span>
               </div>
             </div>
@@ -200,14 +200,6 @@ export function CompanyRegisterPage() {
 
         {/* Registration Form */}
         <Card className="border-0 shadow-xl">
-          <CardHeader className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-t-lg">
-            <CardTitle className="text-2xl">
-              {t("companies.register.formTitle", "Formulário de Cadastro")}
-            </CardTitle>
-            <CardDescription>
-              {t("companies.register.formDesc", "Preencha com atenção. Informações completas aumentam suas chances de aprovação.")}
-            </CardDescription>
-          </CardHeader>
           <CardContent className="p-8">
             <CompanyRegistrationForm 
               onCancel={() => navigate(-1)}

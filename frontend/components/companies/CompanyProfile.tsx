@@ -139,9 +139,9 @@ export default function CompanyProfile({
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
                 <h1 className="text-2xl font-bold sm:text-3xl">{company.name}</h1>
                 <div className="flex flex-wrap gap-2">
-                  <Badge className={getStatusColor()}>
+                  {/* <Badge className={getStatusColor()}>
                     {t(`companies.status.${company.status}`)}
-                  </Badge>
+                  </Badge> */}
                   <Badge variant="secondary">
                     {t(`companies.categories.${company.category}`)}
                   </Badge>
