@@ -1,7 +1,8 @@
 # 🌊 BluEZZ - The Open Source Revolution Against Ocean Pollution
-
+<center>
 This project is for the OSS Hackathon promoted by Encore and Leap, and is just vibe-coding! Not a single line was written by hand.
-
+</center>
+<br/>
 <div align="center">
   <img src="docs/logo.png" alt="BluEZZ Logo" width="200"/>
   
@@ -14,6 +15,8 @@ This project is for the OSS Hackathon promoted by Encore and Leap, and is just v
 </div>
 
 ---
+
+For setup, please read:   <a href="./docs/README.md"> Setup Documentation</a>
 
 ## 🚨 The Crisis That Demands Open Source Solutions
 
