@@ -258,6 +258,55 @@ interface Mission {
 
 ---
 
+## 📸 Screenshots
+
+<div align="center">
+  <table>
+    <tr>
+      <td width="50%">
+        <img src="docs/1.png" alt="Dashboard" width="100%"/>
+        <p align="center"><b>Landing Page</b></p>
+      </td>
+      <td width="50%">
+        <img src="docs/2.png" alt="AI Detection" width="100%"/>
+        <p align="center"><b>NGOs</b></p>
+      </td>
+    </tr>
+    <tr>
+      <td width="50%">
+        <img src="docs/3.png" alt="Governance" width="100%"/>
+        <p align="center"><b>Community Governance</b></p>
+      </td>
+      <td width="50%">
+        <img src="docs/4.png" alt="NGO Network" width="100%"/>
+        <p align="center"><b>Satellite Monitoring</b></p>
+      </td>
+    </tr>
+    <tr>
+      <td width="50%">
+        <img src="docs/5.png" alt="Satellite Monitoring" width="100%"/>
+        <p align="center"><b>AI Pollution Detection</b></p>
+      </td>
+      <td width="50%">
+        <img src="docs/6.png" alt="Voting System" width="100%"/>
+        <p align="center"><b>Democratic Voting</b></p>
+      </td>
+    </tr>
+    <tr>
+      <td width="50%">
+        <img src="docs/7.png" alt="Impact Reports" width="100%"/>
+        <p align="center"><b>Impact Reports</b></p>
+      </td>
+      <td width="50%">
+        <img src="docs/8.png" alt="Mobile View" width="100%"/>
+        <p align="center"><b>AI Classification</b></p>
+      </td>
+    </tr>
+  </table>
+</div>
+
+---
+
 ### 🌍 Multi-Language Support
 - **UI Languages**: English, Portuguese
 
