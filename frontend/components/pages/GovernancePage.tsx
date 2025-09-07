@@ -90,6 +90,9 @@ export function GovernancePage() {
   const [expandedImage, setExpandedImage] = useState<{ url: string; alt: string } | null>(null);
   const [companies, setCompanies] = useState<any[]>([]);
   const [loadingCompanies, setLoadingCompanies] = useState(false);
+  const [userCompanies, setUserCompanies] = useState<any[]>([]);
+  const [showCreateActionModal, setShowCreateActionModal] = useState(false);
+  const [selectedDetectionForAction, setSelectedDetectionForAction] = useState<AggregatedDetection | null>(null);
 
   // Load AI detections from backend
   const loadAIDetections = async () => {
@@ -151,6 +154,33 @@ export function GovernancePage() {
     } finally {
       setLoadingCompanies(false);
     }
+  };
+
+  // Load user's companies
+  const loadUserCompanies = async () => {
+    try {
+      const userId = localStorage.getItem("userId");
+      if (!userId) return;
+      
+      const result = await backend.companies.getCompanies({ owner_id: userId });
+      setUserCompanies(result.companies.filter(c => c.status === 'active'));
+    } catch (error) {
+      console.error('Failed to load user companies:', error);
+    }
+  };
+
+  // Handle creating action proposal from AI detection
+  const handleCreateAction = (detection: AggregatedDetection) => {
+    if (userCompanies.length === 0) {
+      toast({
+        title: t("governance.ai.noCompany", "No registered company"),
+        description: t("governance.ai.noCompanyDesc", "You need to have a registered company to create action proposals"),
+        variant: "destructive",
+      });
+      return;
+    }
+    setSelectedDetectionForAction(detection);
+    setShowCreateActionModal(true);
   };
 
   const activeProposals = [
