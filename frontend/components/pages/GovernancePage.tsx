@@ -30,7 +30,6 @@ import {
   CheckCircle2,
   XCircle,
   ChevronRight,
-  Map,
   Waves,
   Target,
   Shield,
@@ -97,12 +96,17 @@ export function GovernancePage() {
     try {
       setLoadingDetections(true);
       const response = await backend.pollution_detector.getAggregatedDetections();
-      setAiDetections(response.detections || []);
+      console.log('AI Detections response:', response);
+      // Ensure we're setting an array even if response is malformed
+      const detections = Array.isArray(response?.detections) ? response.detections : [];
+      setAiDetections(detections);
     } catch (error) {
       console.error('Failed to load AI detections:', error);
+      // Set empty array on error instead of keeping stale data
+      setAiDetections([]);
       toast({
-        title: "Error loading detections",
-        description: "Failed to load pollution detections",
+        title: t("governance.ai.loadError", "Error loading detections"),
+        description: t("governance.ai.loadErrorDesc", "Failed to load pollution detections"),
         variant: "destructive",
       });
     } finally {
@@ -184,24 +188,26 @@ export function GovernancePage() {
     }
   ];
 
-  const completedProposals = [
-    {
-      id: 4,
-      title: t("governance.mockData.completed1Title", "Instalação de barreiras de contenção em Santos"),
-      type: "action",
-      result: "approved",
-      votes: { yes: 2341, no: 123, abstain: 56 },
-      completedAt: "2024-01-10"
-    },
-    {
-      id: 5,
-      title: t("governance.mockData.completed2Title", "Criação do Conselho de Transparência"),
-      type: "governance",
-      result: "approved",
-      votes: { yes: 3456, no: 234, abstain: 89 },
-      completedAt: "2024-01-08"
-    }
-  ];
+  // Mock data - commented out for now until we have real historical data
+  const completedProposals: any[] = [];
+  // const completedProposals = [
+  //   {
+  //     id: 4,
+  //     title: t("governance.mockData.completed1Title", "Instalação de barreiras de contenção em Santos"),
+  //     type: "action",
+  //     result: "approved",
+  //     votes: { yes: 2341, no: 123, abstain: 56 },
+  //     completedAt: "2024-01-10"
+  //   },
+  //   {
+  //     id: 5,
+  //     title: t("governance.mockData.completed2Title", "Criação do Conselho de Transparência"),
+  //     type: "governance",
+  //     result: "approved",
+  //     votes: { yes: 3456, no: 234, abstain: 89 },
+  //     completedAt: "2024-01-08"
+  //   }
+  // ];
 
   useEffect(() => {
     if (activeSection === "manifesto") {
@@ -302,15 +308,17 @@ export function GovernancePage() {
     }
   };
 
+  // Count the number of detection areas (groups), not individual detections
+  const aiDetectionAreas = aiDetections.length;
   const totalDetections = aiDetections.reduce((sum, d) => sum + d.detectionCount, 0);
   const hasUrgentDetections = aiDetections.some(d => d.maxSeverity === 'critical' || d.maxSeverity === 'high');
   
   const menuItems = [
-    { id: "proposals", label: t("governance.tabs.activeProposals"), icon: Vote, badge: "3" },
-    { id: "ai", label: t("governance.tabs.aiDetection"), icon: Brain, badge: totalDetections > 0 ? totalDetections.toString() : undefined, urgent: hasUrgentDetections },
-    { id: "manifesto", label: t("governance.tabs.manifesto"), icon: FileText },
+    { id: "proposals", label: t("governance.tabs.activeProposals"), icon: Vote, badge: activeProposals.length > 0 ? activeProposals.length.toString() : undefined },
+    { id: "ai", label: t("governance.tabs.aiDetection"), icon: Brain, badge: aiDetectionAreas > 0 ? aiDetectionAreas.toString() : undefined, urgent: hasUrgentDetections },
+    { id: "manifesto", label: t("governance.tabs.manifesto"), icon: FileText, badge: manifestoProposals.length > 0 ? manifestoProposals.length.toString() : undefined },
     { id: "ngos", label: t("governance.tabs.ngos"), icon: Building2, badge: companies.length > 0 ? companies.length.toString() : undefined },
-    { id: "history", label: t("governance.tabs.history"), icon: Clock }
+    { id: "history", label: t("governance.tabs.history"), icon: Clock, badge: completedProposals.length > 0 ? completedProposals.length.toString() : undefined }
   ];
 
   return (
@@ -395,9 +403,9 @@ export function GovernancePage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">{t("governance.stats.aiDetections")}</p>
-                  <p className="text-2xl font-bold">{totalDetections}</p>
+                  <p className="text-2xl font-bold">{aiDetectionAreas}</p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    {aiDetections.filter(d => d.maxSeverity === 'critical' || d.maxSeverity === 'high').length} {t("governance.stats.criticalIssues")}
+                    {totalDetections} {t("governance.stats.totalDetections", "total detections")} • {aiDetections.filter(d => d.maxSeverity === 'critical' || d.maxSeverity === 'high').length} {t("governance.stats.criticalIssues")}
                   </p>
                 </div>
                 <div className={`h-10 w-10 rounded-full grid place-items-center ${
@@ -576,10 +584,6 @@ export function GovernancePage() {
               <>
                 <div className="flex justify-between items-center">
                   <h2 className="text-2xl font-bold">{t("governance.aiDetection.title")}</h2>
-                  <Button variant="outline" size="sm">
-                    <Map className="w-4 h-4 mr-2" />
-                    {t("governance.aiDetection.viewMap")}
-                  </Button>
                 </div>
 
                 {loadingDetections ? (
@@ -1034,8 +1038,9 @@ export function GovernancePage() {
                   </Button>
                 </div>
 
-                <div className="space-y-3">
-                  {completedProposals.map((proposal) => (
+                {completedProposals.length > 0 ? (
+                  <div className="space-y-3">
+                    {completedProposals.map((proposal) => (
                     <Card key={proposal.id}>
                       <CardContent className="p-4">
                         <div className="flex items-center justify-between">
@@ -1075,8 +1080,17 @@ export function GovernancePage() {
                         </div>
                       </CardContent>
                     </Card>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                ) : (
+                  <Alert>
+                    <Clock className="h-4 w-4" />
+                    <AlertTitle>{t("governance.history.noHistory", "No voting history yet")}</AlertTitle>
+                    <AlertDescription>
+                      {t("governance.history.noHistoryDesc", "Completed proposals will appear here after voting ends.")}
+                    </AlertDescription>
+                  </Alert>
+                )}
               </>
             )}
           </div>

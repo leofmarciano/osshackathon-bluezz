@@ -522,13 +522,13 @@
     "proposeChange": "Propor Mudança",
     "stats": {
       "activeProposals": "Propostas Ativas",
-      "endingSoon": "2 terminando em breve",
+      "endingSoon": "terminando em breve",
       "totalVotes": "Total de Votos",
       "thisMonth": "este mês",
       "registeredNGOs": "ONGs Registradas",
-      "verified": "18 verificadas",
+      "verified": "verificadas",
       "aiDetections": "Detecções por IA",
-      "criticalIssues": "3 críticas"
+      "criticalIssues": "críticas"
     },
     "ai": {
       "alertTitle": "Novos problemas detectados por IA",
@@ -557,6 +557,7 @@
     "createProposal": "Criar Proposta",
     "viewAll": "Ver Todas",
     "menu": "Menu",
+    "lastUpdate": "Última atualização",
     "aiDetection": {
       "title": "Problemas Detectados por IA",
       "viewMap": "Ver Mapa",

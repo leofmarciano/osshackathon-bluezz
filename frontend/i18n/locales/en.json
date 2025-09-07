@@ -525,15 +525,16 @@
     "votes": "votes",
     "createProposal": "Create Proposal",
     "menu": "Menu",
+    "lastUpdate": "Last update",
     "stats": {
       "activeProposals": "Active Proposals",
-      "endingSoon": "2 ending soon",
+      "endingSoon": "ending soon",
       "totalVotes": "Total Votes",
       "thisMonth": "this month",
       "registeredNGOs": "Registered NGOs",
-      "verified": "18 verified",
+      "verified": "verified",
       "aiDetections": "AI Detections",
-      "criticalIssues": "3 critical"
+      "criticalIssues": "critical"
     },
     "ai": {
       "alertTitle": "New AI-detected problems",
@@ -979,9 +980,7 @@
         "requirements": "JPG, PNG or GIF. Maximum size 2MB. Recommended: 400x400px",
         "reset": "Restore original logo"
       }
-    }
-  },
-  "companies": {
+    },
     "timeline": {
       "createPost": "Create Post",
       "addImage": "Add Image",
@@ -1031,11 +1030,6 @@
       "minutes": "{{count}} min ago",
       "hours": "{{count}}h ago",
       "days": "{{count}}d ago"
-    },
-    "loadMore": "Load more",
-    "empty": {
-      "owner": "Create your first post to engage the community!",
-      "visitor": "No posts yet."
     }
   },
   "documents": {
