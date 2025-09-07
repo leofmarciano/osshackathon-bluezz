@@ -513,76 +513,86 @@ export function GovernancePage() {
                   </Button>
                 </div>
 
-                <div className="grid gap-4">
-                  {activeProposals.map((proposal) => {
-                    const total = proposal.votes.yes + proposal.votes.no + proposal.votes.abstain;
-                    const yesPercentage = (proposal.votes.yes / total) * 100;
-                    
-                    return (
-                      <Card key={proposal.id} className="overflow-hidden hover:shadow-md transition-shadow">
-                        <CardContent className="p-4">
-                          <div className="flex items-start gap-4">
-                            <div className="h-12 w-12 rounded-lg bg-blue-50 text-blue-600 grid place-items-center flex-shrink-0">
-                              {getTypeIcon(proposal.type)}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-start justify-between mb-2">
-                                <div className="flex-1">
-                                  <h3 className="font-semibold text-gray-900 mb-1 line-clamp-1">
-                                    {proposal.title}
-                                  </h3>
-                                  <p className="text-sm text-gray-600 line-clamp-2">
-                                    {proposal.description}
-                                  </p>
-                                </div>
+                {activeProposals.length > 0 ? (
+                  <div className="grid gap-4">
+                    {activeProposals.map((proposal) => {
+                      const total = proposal.votes.yes + proposal.votes.no + proposal.votes.abstain;
+                      const yesPercentage = (proposal.votes.yes / total) * 100;
+                      
+                      return (
+                        <Card key={proposal.id} className="overflow-hidden hover:shadow-md transition-shadow">
+                          <CardContent className="p-4">
+                            <div className="flex items-start gap-4">
+                              <div className="h-12 w-12 rounded-lg bg-blue-50 text-blue-600 grid place-items-center flex-shrink-0">
+                                {getTypeIcon(proposal.type)}
                               </div>
-                              
-                              <div className="flex flex-wrap items-center gap-3 text-sm text-gray-500 mb-3">
-                                <span className="flex items-center gap-1">
-                                  <Users className="w-3 h-3" />
-                                  {proposal.proposer}
-                                </span>
-                                <span className="flex items-center gap-1">
-                                  <Clock className="w-3 h-3" />
-                                  {proposal.deadline}
-                                </span>
-                                {proposal.budget && (
-                                  <span className="font-medium text-green-600">
-                                    {proposal.budget}
-                                  </span>
-                                )}
-                              </div>
-
-                              <div className="space-y-2">
-                                <div className="flex items-center justify-between text-sm">
-                                  <span className="text-gray-600">{total} {t("governance.votes", "votos")}</span>
-                                  <span className="font-medium text-green-600">
-                                    {Math.round(yesPercentage)}% {t("governance.approval", "aprovação")}
-                                  </span>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-start justify-between mb-2">
+                                  <div className="flex-1">
+                                    <h3 className="font-semibold text-gray-900 mb-1 line-clamp-1">
+                                      {proposal.title}
+                                    </h3>
+                                    <p className="text-sm text-gray-600 line-clamp-2">
+                                      {proposal.description}
+                                    </p>
+                                  </div>
                                 </div>
-                                <Progress value={yesPercentage} className="h-2" />
                                 
-                                <div className="flex gap-2">
-                                  <Button size="sm" className="flex-1">
-                                    <CheckCircle2 className="w-3 h-3 mr-1" />
-                                    {t("governance.activeProposals.voteYes")}
-                                  </Button>
-                                  <Button size="sm" variant="destructive" className="flex-1">
-                                    <XCircle className="w-3 h-3 mr-1" />
-                                    {t("governance.activeProposals.voteNo")}
-                                  </Button>
-                                  <Button size="sm" variant="outline">
-                                    <ArrowRight className="w-3 h-3" />
-                                  </Button>
+                                <div className="flex flex-wrap items-center gap-3 text-sm text-gray-500 mb-3">
+                                  <span className="flex items-center gap-1">
+                                    <Users className="w-3 h-3" />
+                                    {proposal.proposer}
+                                  </span>
+                                  <span className="flex items-center gap-1">
+                                    <Clock className="w-3 h-3" />
+                                    {proposal.deadline}
+                                  </span>
+                                  {proposal.budget && (
+                                    <span className="font-medium text-green-600">
+                                      {proposal.budget}
+                                    </span>
+                                  )}
+                                </div>
+
+                                <div className="space-y-2">
+                                  <div className="flex items-center justify-between text-sm">
+                                    <span className="text-gray-600">{total} {t("governance.votes", "votos")}</span>
+                                    <span className="font-medium text-green-600">
+                                      {Math.round(yesPercentage)}% {t("governance.approval", "aprovação")}
+                                    </span>
+                                  </div>
+                                  <Progress value={yesPercentage} className="h-2" />
+                                  
+                                  <div className="flex gap-2">
+                                    <Button size="sm" className="flex-1">
+                                      <CheckCircle2 className="w-3 h-3 mr-1" />
+                                      {t("governance.activeProposals.voteYes")}
+                                    </Button>
+                                    <Button size="sm" variant="destructive" className="flex-1">
+                                      <XCircle className="w-3 h-3 mr-1" />
+                                      {t("governance.activeProposals.voteNo")}
+                                    </Button>
+                                    <Button size="sm" variant="outline">
+                                      <ArrowRight className="w-3 h-3" />
+                                    </Button>
+                                  </div>
                                 </div>
                               </div>
                             </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    );
-                  })}
-                </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <Alert>
+                    <Vote className="h-4 w-4" />
+                    <AlertTitle>{t("governance.activeProposals.noProposals", "No active proposals")}</AlertTitle>
+                    <AlertDescription>
+                      {t("governance.activeProposals.noProposalsDesc", "There are no proposals currently open for voting. Check back later or create a new proposal.")}
+                    </AlertDescription>
+                  </Alert>
+                )}
               </>
             )}
 
