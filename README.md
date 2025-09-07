@@ -256,39 +256,8 @@ interface Mission {
 
 ---
 
-## ✅ Completeness: Ready for Global Deployment
-
-### 🎯 Project Status
-- **Launch Date**: 2025 (In Development)
-- **GitHub**: [https://github.com/yourusername/osshackathon-bluezz](https://github.com/yourusername/osshackathon-bluezz)
-- **Tech Demo**: Available for testing
-
-### 📚 Comprehensive Documentation
-
-```bash
-/docs
-├── getting-started/       # 5-minute setup guide
-├── api-reference/         # Complete API docs
-├── governance/           # Voting mechanisms explained
-├── contributing/         # How to contribute
-├── deployment/          # Production deployment guide
-└── case-studies/        # Real mission examples
-```
-
-### 🔧 One-Command Setup
-
-```bash
-# Clone and run in under 60 seconds
-git clone https://github.com/yourusername/osshackathon-bluezz
-cd osshackathon-bluezz
-./setup.sh              # Automated setup script
-encore run             # You're live!
-```
-
 ### 🌍 Multi-Language Support
 - **UI Languages**: English, Portuguese
-- **Documentation**: Available in 10 languages
-- **Community Support**: 24/7 in multiple timezones
 
 ### 📊 Platform Capabilities
 
@@ -340,12 +309,12 @@ encore version  # Latest
 # Setup (60 seconds)
 git clone https://github.com/leofmarciano/osshackathon-bluezz
 cd osshackathon-bluezz
-npm install
+bun install
 # Setup the env credentials in Encore Secrets
 
 # Run locally
 encore run                    # Backend at :4000
-cd frontend && npm run dev   # Frontend at :5173
+cd frontend && bunx vite dev   # Frontend at :5173
 
 ```
 
@@ -358,8 +327,6 @@ cd frontend && npm run dev   # Frontend at :5173
 ✅ **Global Reach**: Connect with worldwide supporters  
 ✅ **Zero Fees**: 100% of donations reach you  
 ✅ **Tech Support**: Free satellite data and AI detection  
-
-[Join Waitlist →](#)
 
 ### For Developers
 🛠️ **Contribute Code**: open issues  
