@@ -334,12 +334,19 @@ export function GovernancePage() {
       {/* Stats Cards */}
       <div className="container mx-auto px-4 -mt-8 relative z-10 mb-8">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card className="border-0 shadow-lg">
+          <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow cursor-pointer" onClick={() => setActiveSection("proposals")}>
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">{t("governance.stats.activeProposals")}</p>
-                  <p className="text-2xl font-bold">3</p>
+                  <p className="text-2xl font-bold">{activeProposals.length}</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {activeProposals.filter(p => {
+                      const deadline = new Date(p.deadline);
+                      const daysLeft = Math.ceil((deadline.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+                      return daysLeft <= 3;
+                    }).length} {t("governance.stats.endingSoon")}
+                  </p>
                 </div>
                 <div className="h-10 w-10 rounded-full bg-blue-100 text-blue-600 grid place-items-center">
                   <TrendingUp className="w-5 h-5" />
@@ -347,12 +354,15 @@ export function GovernancePage() {
               </div>
             </CardContent>
           </Card>
-          <Card className="border-0 shadow-lg">
+          <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow cursor-pointer" onClick={() => setActiveSection("proposals")}>
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">{t("governance.stats.totalVotes")}</p>
-                  <p className="text-2xl font-bold">8,742</p>
+                  <p className="text-2xl font-bold">
+                    {activeProposals.reduce((sum, p) => sum + p.votes.yes + p.votes.no + p.votes.abstain, 0).toLocaleString()}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">{t("governance.stats.thisMonth")}</p>
                 </div>
                 <div className="h-10 w-10 rounded-full bg-green-100 text-green-600 grid place-items-center">
                   <Users className="w-5 h-5" />
@@ -360,12 +370,15 @@ export function GovernancePage() {
               </div>
             </CardContent>
           </Card>
-          <Card className="border-0 shadow-lg">
+          <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow cursor-pointer" onClick={() => setActiveSection("ngos")}>
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">{t("governance.stats.registeredNGOs")}</p>
-                  <p className="text-2xl font-bold">24</p>
+                  <p className="text-2xl font-bold">{companies.length}</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {companies.filter(c => c.status === 'active').length} {t("governance.stats.verified")}
+                  </p>
                 </div>
                 <div className="h-10 w-10 rounded-full bg-purple-100 text-purple-600 grid place-items-center">
                   <CheckCircle2 className="w-5 h-5" />
@@ -373,14 +386,19 @@ export function GovernancePage() {
               </div>
             </CardContent>
           </Card>
-          <Card className="border-0 shadow-lg">
+          <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow cursor-pointer" onClick={() => setActiveSection("ai")}>
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">{t("governance.stats.aiDetections")}</p>
-                  <p className="text-2xl font-bold">{aiDetections.reduce((sum, d) => sum + d.detectionCount, 0)}</p>
+                  <p className="text-2xl font-bold">{totalDetections}</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {aiDetections.filter(d => d.maxSeverity === 'critical' || d.maxSeverity === 'high').length} {t("governance.stats.criticalIssues")}
+                  </p>
                 </div>
-                <div className="h-10 w-10 rounded-full bg-orange-100 text-orange-600 grid place-items-center">
+                <div className={`h-10 w-10 rounded-full grid place-items-center ${
+                  hasUrgentDetections ? 'bg-red-100 text-red-600 animate-pulse' : 'bg-orange-100 text-orange-600'
+                }`}>
                   <AlertTriangle className="w-5 h-5" />
                 </div>
               </div>
@@ -394,32 +412,39 @@ export function GovernancePage() {
         <div className="grid lg:grid-cols-4 gap-8">
           {/* Sidebar Navigation */}
           <div className="lg:col-span-1">
-            <Card className="sticky top-4">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg">{t("governance.menu", "Menu")}</CardTitle>
-              </CardHeader>
-              <CardContent className="p-2">
-                <nav className="space-y-1">
+            <Card className="sticky top-4 border-0 shadow-lg">
+              
+              <CardContent className="p-3">
+                <nav className="space-y-2">
                   {menuItems.map((item) => {
                     const Icon = item.icon;
+                    const isActive = activeSection === item.id;
                     return (
                       <button
                         key={item.id}
                         onClick={() => setActiveSection(item.id)}
-                        className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-colors ${
-                          activeSection === item.id
-                            ? "bg-blue-50 text-blue-600 font-medium"
-                            : "hover:bg-gray-50 text-gray-700"
+                        className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200 ${
+                          isActive
+                            ? "bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-md transform scale-[1.02]"
+                            : "hover:bg-gray-50 text-gray-700 hover:shadow-sm"
                         }`}
                       >
                         <div className="flex items-center gap-3">
-                          <Icon className="w-4 h-4" />
-                          <span className="text-sm">{item.label}</span>
+                          <div className={`p-1.5 rounded-lg ${
+                            isActive ? 'bg-white/20' : 'bg-gray-100'
+                          }`}>
+                            <Icon className={`w-4 h-4 ${isActive ? 'text-white' : ''}`} />
+                          </div>
+                          <span className="text-sm font-medium">{item.label}</span>
                         </div>
                         {item.badge && (
                           <Badge 
-                            variant={item.urgent ? "destructive" : "secondary"} 
-                            className="ml-auto h-5 px-1.5 min-w-[20px] flex items-center justify-center"
+                            variant={item.urgent ? "destructive" : isActive ? "secondary" : "outline"} 
+                            className={`ml-auto h-6 px-2 min-w-[24px] flex items-center justify-center ${
+                              isActive && !item.urgent ? 'bg-white/20 text-white border-white/30' : ''
+                            } ${
+                              item.urgent ? 'animate-pulse' : ''
+                            }`}
                           >
                             {item.badge}
                           </Badge>
@@ -429,11 +454,17 @@ export function GovernancePage() {
                   })}
                 </nav>
 
-                <div className="mt-6 pt-6 border-t">
-                  <Button className="w-full" size="sm">
+                <div className="mt-6 pt-6 border-t border-gray-100">
+                  <Button 
+                    className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 shadow-md" 
+                    size="sm"
+                  >
                     <Plus className="w-4 h-4 mr-2" />
-                    {t("governance.createProposal", "Criar Proposta")}
+                    {t("governance.createProposal")}
                   </Button>
+                  <p className="text-xs text-center text-gray-500 mt-3">
+                    {t("governance.lastUpdate", "Last update")}: {new Date().toLocaleTimeString()}
+                  </p>
                 </div>
               </CardContent>
             </Card>
