@@ -552,6 +552,11 @@
       "voteNo": "Rejeitar",
       "details": "Detalhes"
     },
+    "approval": "aprovação",
+    "votes": "votos",
+    "createProposal": "Criar Proposta",
+    "viewAll": "Ver Todas",
+    "menu": "Menu",
     "aiDetection": {
       "title": "Problemas Detectados por IA",
       "viewMap": "Ver Mapa",
@@ -560,7 +565,25 @@
       "moreInfo": "Mais Info",
       "reportFalse": "Reportar Falso Positivo",
       "howItWorks": "Como funciona",
-      "description": "Nossa IA monitora imagens de satélite e dados oceanográficos 24/7 para identificar poluição, manchas de óleo e outras ameaças aos oceanos."
+      "description": "Nossa IA monitora imagens de satélite e dados oceanográficos 24/7 para identificar poluição, manchas de óleo e outras ameaças aos oceanos.",
+      "detections": "detecções",
+      "detectionsOf": "detecções de",
+      "in": "em",
+      "severity": "Severidade",
+      "oil": "Óleo",
+      "plastic": "Plástico",
+      "affectedArea": "Área afetada",
+      "capturedImages": "Imagens Capturadas",
+      "individualDetections": "Detecções Individuais",
+      "clickToZoom": "Clique para ampliar",
+      "noDetections": "Nenhuma detecção de poluição encontrada nos últimos 7 dias.",
+      "area": "Área",
+      "severityLevels": {
+        "critical": "Crítico",
+        "high": "Alto",
+        "medium": "Médio",
+        "low": "Baixo"
+      }
     },
     "manifesto": {
       "title": "Manifesto Bluezz",

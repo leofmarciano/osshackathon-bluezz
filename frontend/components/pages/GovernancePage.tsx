@@ -42,7 +42,8 @@ import {
   Info,
   Plus,
   Eye,
-  ArrowRight
+  ArrowRight,
+  Globe
 } from "lucide-react";
 
 interface AggregatedDetection {
@@ -88,6 +89,8 @@ export function GovernancePage() {
   const [detectionDetails, setDetectionDetails] = useState<DetectionDetails | null>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [expandedImage, setExpandedImage] = useState<{ url: string; alt: string } | null>(null);
+  const [companies, setCompanies] = useState<any[]>([]);
+  const [loadingCompanies, setLoadingCompanies] = useState(false);
 
   // Load AI detections from backend
   const loadAIDetections = async () => {
@@ -128,13 +131,31 @@ export function GovernancePage() {
     await loadDetectionDetails(detection.areaId);
   };
 
+  // Load companies from backend
+  const loadCompanies = async () => {
+    try {
+      setLoadingCompanies(true);
+      const result = await backend.companies.getCompanies({});
+      setCompanies(result.companies);
+    } catch (error) {
+      console.error('Failed to load companies:', error);
+      toast({
+        title: t("companies.fetchError", "Error loading organizations"),
+        description: t("companies.fetchErrorDesc", "Failed to load organizations"),
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingCompanies(false);
+    }
+  };
+
   const activeProposals = [
     {
       id: 1,
-      title: "Limpeza emergencial da Baía de Guanabara",
+      title: t("governance.mockData.proposal1Title", "Limpeza emergencial da Baía de Guanabara"),
       type: "action",
       proposer: "ONG Oceano Limpo",
-      description: "Mobilização de equipes para remoção de óleo detectado pela IA",
+      description: t("governance.mockData.proposal1Desc", "Mobilização de equipes para remoção de óleo detectado pela IA"),
       budget: "R$ 150.000",
       votes: { yes: 1234, no: 87, abstain: 23 },
       deadline: "2024-01-20",
@@ -142,21 +163,21 @@ export function GovernancePage() {
     },
     {
       id: 2,
-      title: "Alteração no Manifesto: Inclusão de metas de microplásticos",
+      title: t("governance.mockData.proposal2Title", "Alteração no Manifesto: Inclusão de metas de microplásticos"),
       type: "manifesto",
-      proposer: "Comunidade",
-      description: "Adicionar seção específica sobre combate a microplásticos",
+      proposer: t("governance.mockData.community", "Comunidade"),
+      description: t("governance.mockData.proposal2Desc", "Adicionar seção específica sobre combate a microplásticos"),
       votes: { yes: 892, no: 234, abstain: 45 },
       deadline: "2024-01-22",
       status: "voting"
     },
     {
       id: 3,
-      title: "Registro de ONG: Instituto Mar Azul",
+      title: t("governance.mockData.proposal3Title", "Registro de ONG: Instituto Mar Azul"),
       type: "ngo",
       proposer: "Instituto Mar Azul",
-      description: "Aprovação para participação no programa de limpeza oceânica",
-      documents: ["CNPJ", "Estatuto", "Certidões"],
+      description: t("governance.mockData.proposal3Desc", "Aprovação para participação no programa de limpeza oceânica"),
+      documents: ["CNPJ", t("governance.mockData.statute", "Estatuto"), t("governance.mockData.certificates", "Certidões")],
       votes: { yes: 567, no: 12, abstain: 8 },
       deadline: "2024-01-18",
       status: "voting"
@@ -166,7 +187,7 @@ export function GovernancePage() {
   const completedProposals = [
     {
       id: 4,
-      title: "Instalação de barreiras de contenção em Santos",
+      title: t("governance.mockData.completed1Title", "Instalação de barreiras de contenção em Santos"),
       type: "action",
       result: "approved",
       votes: { yes: 2341, no: 123, abstain: 56 },
@@ -174,7 +195,7 @@ export function GovernancePage() {
     },
     {
       id: 5,
-      title: "Criação do Conselho de Transparência",
+      title: t("governance.mockData.completed2Title", "Criação do Conselho de Transparência"),
       type: "governance",
       result: "approved",
       votes: { yes: 3456, no: 234, abstain: 89 },
@@ -187,6 +208,8 @@ export function GovernancePage() {
       loadManifestoData();
     } else if (activeSection === "ai") {
       loadAIDetections();
+    } else if (activeSection === "ngos") {
+      loadCompanies();
     }
   }, [activeSection, i18n.language]);
   
@@ -255,47 +278,6 @@ export function GovernancePage() {
   };
 
 
-  // Mock data for companies - in production this would come from API
-  const registeredCompanies = [
-    {
-      id: "1",
-      name: "Ocean Cleanup Brasil",
-      type: "ngo",
-      status: "active",
-      verified: true,
-      projectsCompleted: 12,
-      totalRaised: "R$ 2.3M",
-      rating: 4.8,
-      followers: 12500,
-      category: "ocean_cleanup"
-    },
-    {
-      id: "2",
-      name: "Marine Tech Solutions",
-      type: "company",
-      status: "pending",
-      verified: false,
-      projectsCompleted: 0,
-      totalRaised: "R$ 0",
-      rating: 0,
-      followers: 340,
-      category: "technology",
-      votes: { yes: 234, no: 56, total: 290 },
-      votingEndsAt: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000)
-    },
-    {
-      id: "3",
-      name: "Guardiões do Mar",
-      type: "ngo",
-      status: "active",
-      verified: true,
-      projectsCompleted: 8,
-      totalRaised: "R$ 1.1M",
-      rating: 4.6,
-      followers: 8900,
-      category: "marine_conservation"
-    }
-  ];
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
@@ -323,7 +305,7 @@ export function GovernancePage() {
     { id: "proposals", label: t("governance.tabs.activeProposals"), icon: Vote, badge: "3" },
     { id: "ai", label: t("governance.tabs.aiDetection"), icon: Brain, badge: totalDetections > 0 ? totalDetections.toString() : undefined, urgent: hasUrgentDetections },
     { id: "manifesto", label: t("governance.tabs.manifesto"), icon: FileText },
-    { id: "ngos", label: t("governance.tabs.ngos"), icon: Building2, badge: "24" },
+    { id: "ngos", label: t("governance.tabs.ngos"), icon: Building2, badge: companies.length > 0 ? companies.length.toString() : undefined },
     { id: "history", label: t("governance.tabs.history"), icon: Clock }
   ];
 
@@ -523,9 +505,9 @@ export function GovernancePage() {
 
                               <div className="space-y-2">
                                 <div className="flex items-center justify-between text-sm">
-                                  <span className="text-gray-600">{total} votos</span>
+                                  <span className="text-gray-600">{total} {t("governance.votes", "votos")}</span>
                                   <span className="font-medium text-green-600">
-                                    {Math.round(yesPercentage)}% aprovação
+                                    {Math.round(yesPercentage)}% {t("governance.approval", "aprovação")}
                                   </span>
                                 </div>
                                 <Progress value={yesPercentage} className="h-2" />
@@ -572,7 +554,11 @@ export function GovernancePage() {
                 ) : aiDetections.length > 0 ? (
                   <div className="grid gap-4">
                     {aiDetections.map((detection) => {
-                      const pollutionType = detection.pollutionTypes.join(', ');
+                      const pollutionType = detection.pollutionTypes.map(type => 
+                        type === 'oil' ? t("governance.aiDetection.oil") : 
+                        type === 'plastic' ? t("governance.aiDetection.plastic") : 
+                        type
+                      ).join(', ');
                       const formattedDate = new Date(detection.latestDetection).toLocaleDateString('pt-BR');
                       
                       return (
@@ -592,11 +578,11 @@ export function GovernancePage() {
                                   <div>
                                     <h3 className="font-semibold text-gray-900">{detection.areaName}</h3>
                                     <p className="text-sm text-gray-600 mt-1">
-                                      {detection.detectionCount} {t("governance.aiDetection.detectionsOf", "detecções de")} {pollutionType} {t("governance.aiDetection.in", "em")} {detection.totalAreaKm2.toFixed(1)} km²
+                                      {detection.detectionCount} {t("governance.aiDetection.detectionsOf")} {pollutionType} {t("governance.aiDetection.in")} {detection.totalAreaKm2.toFixed(1)} km²
                                     </p>
                                   </div>
                                   <Badge variant={getSeverityColor(detection.maxSeverity)}>
-                                    {detection.maxSeverity.toUpperCase()}
+                                    {t(`governance.aiDetection.severityLevels.${detection.maxSeverity}`).toUpperCase()}
                                   </Badge>
                                 </div>
                                 
@@ -822,17 +808,17 @@ export function GovernancePage() {
             {activeSection === "ngos" && (
               <>
                 <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-2xl font-bold">{t("companies.title", "Organizações Parceiras")}</h2>
+                  <h2 className="text-2xl font-bold">{t("companies.title")}</h2>
                   <div className="flex gap-2">
                     <Button variant="outline" size="sm" asChild>
                       <Link to="/companies">
                         <Eye className="w-4 h-4 mr-2" />
-                        {t("companies.viewAll", "Ver Todas")}
+                        {t("governance.viewAll")}
                       </Link>
                     </Button>
                     <Button size="sm" onClick={() => navigate("/companies/register")}>
                       <Plus className="w-4 h-4 mr-2" />
-                      {t("companies.register.title", "Cadastrar Organização")}
+                      {t("companies.register.button")}
                     </Button>
                   </div>
                 </div>
@@ -843,8 +829,10 @@ export function GovernancePage() {
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-sm text-muted-foreground">{t("companies.stats.active", "Ativas")}</p>
-                          <p className="text-2xl font-bold">18</p>
+                          <p className="text-sm text-muted-foreground">{t("companies.tabs.active")}</p>
+                          <p className="text-2xl font-bold">
+                            {companies.filter(c => c.status === 'active').length}
+                          </p>
                         </div>
                         <CheckCircle2 className="h-8 w-8 text-green-500" />
                       </div>
@@ -854,8 +842,10 @@ export function GovernancePage() {
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-sm text-muted-foreground">{t("companies.stats.pending", "Em Votação")}</p>
-                          <p className="text-2xl font-bold">6</p>
+                          <p className="text-sm text-muted-foreground">{t("companies.tabs.pending")}</p>
+                          <p className="text-2xl font-bold">
+                            {companies.filter(c => c.status === 'pending').length}
+                          </p>
                         </div>
                         <Clock className="h-8 w-8 text-yellow-500" />
                       </div>
@@ -865,8 +855,8 @@ export function GovernancePage() {
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-sm text-muted-foreground">{t("companies.stats.total", "Total")}</p>
-                          <p className="text-2xl font-bold">24</p>
+                          <p className="text-sm text-muted-foreground">Total</p>
+                          <p className="text-2xl font-bold">{companies.length}</p>
                         </div>
                         <Building2 className="h-8 w-8 text-blue-500" />
                       </div>
@@ -875,119 +865,124 @@ export function GovernancePage() {
                 </div>
 
                 {/* Companies Grid */}
-                <div className="grid md:grid-cols-2 gap-4">
-                  {registeredCompanies.map((company) => {
-                    const votePercentage = company.votes 
-                      ? Math.round((company.votes.yes / company.votes.total) * 100) 
-                      : 0;
-                    const daysLeft = company.votingEndsAt
-                      ? Math.ceil((new Date(company.votingEndsAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
-                      : 0;
+                {loadingCompanies ? (
+                  <div className="flex items-center justify-center h-64">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                  </div>
+                ) : (
+                  <div className="grid md:grid-cols-2 gap-4">
+                    {companies.slice(0, 6).map((company) => {
+                      const totalVotes = (company.votes_yes || 0) + (company.votes_no || 0) + (company.votes_abstain || 0);
+                      const votePercentage = totalVotes > 0 
+                        ? Math.round((company.votes_yes / totalVotes) * 100) 
+                        : 0;
+                      const daysLeft = company.voting_ends_at
+                        ? Math.ceil((new Date(company.voting_ends_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+                        : 0;
 
-                    return (
-                      <Card key={company.id} className="hover:shadow-md transition-shadow overflow-hidden">
-                        <CardContent className="p-4">
-                          <div className="flex items-start justify-between mb-3">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2">
-                                <h3 className="font-semibold text-gray-900">{company.name}</h3>
-                                <Badge variant={company.type === "ngo" ? "default" : "secondary"}>
-                                  {company.type === "ngo" ? "ONG" : t("companies.types.company")}
-                                </Badge>
-                              </div>
-                              
-                              <div className="flex items-center gap-2 mt-1">
-                                {company.verified && (
-                                  <Badge variant="default" className="bg-green-500">
-                                    <CheckCircle2 className="w-3 h-3 mr-1" />
-                                    {t("companies.verified", "Verificada")}
+                      return (
+                        <Card key={company.id} className="hover:shadow-md transition-shadow overflow-hidden">
+                          <CardContent className="p-4">
+                            <div className="flex items-start justify-between mb-3">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2">
+                                  <h3 className="font-semibold text-gray-900">{company.name}</h3>
+                                  <Badge variant={company.type === "ngo" ? "default" : "secondary"}>
+                                    {company.type === "ngo" ? "ONG" : t("companies.types.company")}
                                   </Badge>
-                                )}
-                                <Badge variant="outline">
-                                  {t(`companies.categories.${company.category}`)}
-                                </Badge>
-                                {company.status === "pending" && (
-                                  <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
-                                    {t("companies.status.pending", "Em Votação")}
+                                </div>
+                                
+                                <div className="flex items-center gap-2 mt-1">
+                                  {company.status === "active" && (
+                                    <Badge variant="default" className="bg-green-500">
+                                      <CheckCircle2 className="w-3 h-3 mr-1" />
+                                      {t("companies.status.active")}
+                                    </Badge>
+                                  )}
+                                  <Badge variant="outline">
+                                    {t(`companies.categories.${company.category}`)}
                                   </Badge>
-                                )}
+                                  {company.status === "pending" && (
+                                    <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
+                                      {t("companies.status.pending")}
+                                    </Badge>
+                                  )}
+                                </div>
                               </div>
                             </div>
-                            {company.rating > 0 && (
-                              <div className="text-right">
-                                <div className="text-sm text-gray-500">⭐ {company.rating}</div>
+                            
+                            {/* Description */}
+                            <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+                              {company.description}
+                            </p>
+                            
+                            {/* Voting Progress for Pending Companies */}
+                            {company.status === "pending" && totalVotes > 0 && (
+                              <div className="mb-3 p-3 bg-yellow-50 rounded-lg">
+                                <div className="flex items-center justify-between text-sm mb-2">
+                                  <span className="text-gray-600">
+                                    {daysLeft > 0 ? `${daysLeft} ${t("governance.manifesto.daysLeft")}` : t("companies.voting.ended")}
+                                  </span>
+                                  <span className="font-medium text-green-600">
+                                    {votePercentage}% {t("companies.approval")}
+                                  </span>
+                                </div>
+                                <Progress value={votePercentage} className="h-2" />
+                                <div className="flex justify-between mt-2 text-xs">
+                                  <span className="text-green-600">
+                                    ✓ {company.votes_yes || 0} {t("companies.profile.voting.yes")}
+                                  </span>
+                                  <span className="text-red-600">
+                                    ✗ {company.votes_no || 0} {t("companies.profile.voting.no")}
+                                  </span>
+                                </div>
                               </div>
                             )}
-                          </div>
-                          
-                          {/* Voting Progress for Pending Companies */}
-                          {company.status === "pending" && company.votes && (
-                            <div className="mb-3 p-3 bg-yellow-50 rounded-lg">
-                              <div className="flex items-center justify-between text-sm mb-2">
-                                <span className="text-gray-600">
-                                  {daysLeft} {t("companies.voting.daysLeft", "dias restantes")}
-                                </span>
-                                <span className="font-medium text-green-600">
-                                  {votePercentage}% {t("companies.approval", "aprovação")}
-                                </span>
-                              </div>
-                              <Progress value={votePercentage} className="h-2" />
-                              <div className="flex justify-between mt-2 text-xs">
-                                <span className="text-green-600">
-                                  ✓ {company.votes.yes} {t("companies.votes.yes", "sim")}
-                                </span>
-                                <span className="text-red-600">
-                                  ✗ {company.votes.no} {t("companies.votes.no", "não")}
-                                </span>
-                              </div>
+                            
+                            {/* Location and Website */}
+                            <div className="text-sm text-gray-500 mb-3">
+                              <p className="flex items-center gap-1">
+                                <Building2 className="w-3 h-3" />
+                                {company.city}, {company.state || company.country}
+                              </p>
+                              {company.website && (
+                                <p className="flex items-center gap-1 mt-1">
+                                  <Globe className="w-3 h-3" />
+                                  {company.website}
+                                </p>
+                              )}
                             </div>
-                          )}
-                          
-                          {/* Stats Grid */}
-                          <div className="grid grid-cols-3 gap-2 text-sm mb-3">
-                            <div>
-                              <p className="text-gray-500">{t("companies.stats.followers", "Seguidores")}</p>
-                              <p className="font-medium">{company.followers.toLocaleString()}</p>
-                            </div>
-                            <div>
-                              <p className="text-gray-500">{t("companies.stats.projects", "Projetos")}</p>
-                              <p className="font-medium">{company.projectsCompleted}</p>
-                            </div>
-                            <div>
-                              <p className="text-gray-500">{t("companies.stats.raised", "Arrecadado")}</p>
-                              <p className="font-medium text-green-600">{company.totalRaised}</p>
-                            </div>
-                          </div>
-                          
-                          <div className="flex gap-2">
-                            <Button 
-                              variant="outline" 
-                              className="flex-1" 
-                              size="sm"
-                              asChild
-                            >
-                              <Link to={`/companies/${company.id}`}>
-                                {t("companies.viewProfile", "Ver Perfil")}
-                              </Link>
-                            </Button>
-                            {company.status === "pending" && (
-                              <Button size="sm" className="flex-1">
-                                <Vote className="w-3 h-3 mr-1" />
-                                {t("companies.vote", "Votar")}
+                            
+                            <div className="flex gap-2">
+                              <Button 
+                                variant="outline" 
+                                className="flex-1" 
+                                size="sm"
+                                asChild
+                              >
+                                <Link to={`/companies/${company.id}`}>
+                                  {t("companies.viewProfile")}
+                                </Link>
                               </Button>
-                            )}
-                          </div>
-                        </CardContent>
-                      </Card>
-                    );
-                  })}
-                </div>
+                              {company.status === "pending" && (
+                                <Button size="sm" className="flex-1" onClick={() => navigate(`/companies/${company.id}`)}>
+                                  <Vote className="w-3 h-3 mr-1" />
+                                  {t("governance.voteNow")}
+                                </Button>
+                              )}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                )}
 
                 <Alert className="mt-6">
                   <Shield className="h-4 w-4" />
-                  <AlertTitle>{t("companies.verification.title", "Processo de Verificação")}</AlertTitle>
+                  <AlertTitle>{t("governance.ngos.verification")}</AlertTitle>
                   <AlertDescription>
-                    {t("companies.verification.desc", "Todas as organizações passam por um rigoroso processo de verificação incluindo análise de documentos, histórico e votação da comunidade. O período de votação é de 30 dias e requer maioria simples para aprovação.")}
+                    {t("governance.ngos.verificationDesc")}
                   </AlertDescription>
                 </Alert>
               </>
@@ -1110,9 +1105,9 @@ export function GovernancePage() {
           <DialogHeader>
             <DialogTitle>{selectedDetection?.areaName}</DialogTitle>
             <DialogDescription>
-              {selectedDetection?.detectionCount} {t("governance.aiDetection.detections", "detecções")} • 
+              {selectedDetection?.detectionCount} {t("governance.aiDetection.detections")} • 
               {selectedDetection?.totalAreaKm2.toFixed(1)} km² • 
-              {t("governance.aiDetection.severity", "Severidade")}: {selectedDetection?.maxSeverity}
+              {t("governance.aiDetection.severity")}: {selectedDetection?.maxSeverity && t(`governance.aiDetection.severityLevels.${selectedDetection.maxSeverity}`)}
             </DialogDescription>
           </DialogHeader>
 
@@ -1120,7 +1115,7 @@ export function GovernancePage() {
             <div className="space-y-6">
               {/* Images Grid */}
               <div>
-                <h3 className="font-semibold mb-3">{t("governance.aiDetection.capturedImages", "Imagens Capturadas")}</h3>
+                <h3 className="font-semibold mb-3">{t("governance.aiDetection.capturedImages")}</h3>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                   {detectionDetails.images.map((image) => {
                     // Use the backend base URL for the image
@@ -1145,7 +1140,7 @@ export function GovernancePage() {
                         />
                         <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center pointer-events-none">
                           <div className="text-white text-center">
-                            <p className="text-sm font-medium mb-1">{t("governance.aiDetection.clickToZoom", "Clique para ampliar")}</p>
+                            <p className="text-sm font-medium mb-1">{t("governance.aiDetection.clickToZoom")}</p>
                             <p className="text-xs">Tile: {image.tileX},{image.tileY}</p>
                             <p className="text-xs">{new Date(image.detectedAt).toLocaleDateString()}</p>
                           </div>
@@ -1158,7 +1153,7 @@ export function GovernancePage() {
 
               {/* Detections List */}
               <div>
-                <h3 className="font-semibold mb-3">{t("governance.aiDetection.individualDetections", "Detecções Individuais")}</h3>
+                <h3 className="font-semibold mb-3">{t("governance.aiDetection.individualDetections")}</h3>
                 <div className="space-y-3">
                   {detectionDetails.detections.map((det: any) => (
                     <Card key={det.id}>
@@ -1167,18 +1162,18 @@ export function GovernancePage() {
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-1">
                               <Badge variant={det.pollutionType === 'oil' ? 'destructive' : 'default'}>
-                                {det.pollutionType === 'oil' ? t("governance.aiDetection.oil", "Óleo") : t("governance.aiDetection.plastic", "Plástico")}
+                                {det.pollutionType === 'oil' ? t("governance.aiDetection.oil") : t("governance.aiDetection.plastic")}
                               </Badge>
                               <Badge variant={getSeverityColor(det.severity)}>
-                                {det.severity}
+                                {t(`governance.aiDetection.severityLevels.${det.severity}`)}
                               </Badge>
                               <span className="text-sm text-gray-500">
-                                {(det.confidence * 100).toFixed(0)}% {t("governance.aiDetection.confidence", "confiança")}
+                                {(det.confidence * 100).toFixed(0)}% {t("governance.aiDetection.confidence")}
                               </span>
                             </div>
                             <p className="text-sm text-gray-600">{det.description}</p>
                             <p className="text-xs text-gray-500 mt-1">
-                              {t("governance.aiDetection.affectedArea", "Área afetada")}: {det.estimatedAreaKm2.toFixed(2)} km² • 
+                              {t("governance.aiDetection.affectedArea")}: {det.estimatedAreaKm2.toFixed(2)} km² • 
                               Tile: {det.tileX},{det.tileY}
                             </p>
                           </div>

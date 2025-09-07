@@ -520,6 +520,11 @@
     "subtitle": "Participate in decisions that shape the future of our oceans. Every voice matters.",
     "voteNow": "Vote Now",
     "proposeChange": "Propose Change",
+    "viewAll": "View All",
+    "approval": "approval",
+    "votes": "votes",
+    "createProposal": "Create Proposal",
+    "menu": "Menu",
     "stats": {
       "activeProposals": "Active Proposals",
       "endingSoon": "2 ending soon",
@@ -560,7 +565,25 @@
       "moreInfo": "More Info",
       "reportFalse": "Report False Positive",
       "howItWorks": "How it works",
-      "description": "Our AI monitors satellite imagery and oceanographic data 24/7 to identify pollution, oil spills and other threats to the oceans."
+      "description": "Our AI monitors satellite imagery and oceanographic data 24/7 to identify pollution, oil spills and other threats to the oceans.",
+      "detections": "detections",
+      "detectionsOf": "detections of",
+      "in": "in",
+      "severity": "Severity",
+      "oil": "Oil",
+      "plastic": "Plastic",
+      "affectedArea": "Affected area",
+      "capturedImages": "Captured Images",
+      "individualDetections": "Individual Detections",
+      "clickToZoom": "Click to zoom",
+      "noDetections": "No pollution detections found in the last 7 days.",
+      "area": "Area",
+      "severityLevels": {
+        "critical": "Critical",
+        "high": "High",
+        "medium": "Medium",
+        "low": "Low"
+      }
     },
     "manifesto": {
       "title": "Bluezz Manifesto",
@@ -623,6 +646,19 @@
       "description": "Join thousands of people who are actively participating in decisions about the future of our seas.",
       "joinCommunity": "Join Community",
       "startDiscussion": "Start Discussion"
+    },
+    "mockData": {
+      "proposal1Title": "Emergency cleanup of Guanabara Bay",
+      "proposal1Desc": "Mobilization of teams to remove oil detected by AI",
+      "proposal2Title": "Manifesto Amendment: Include microplastics goals",
+      "proposal2Desc": "Add specific section on combating microplastics",
+      "proposal3Title": "NGO Registration: Instituto Mar Azul",
+      "proposal3Desc": "Approval for participation in ocean cleanup program",
+      "community": "Community",
+      "statute": "Statute",
+      "certificates": "Certificates",
+      "completed1Title": "Installation of containment barriers in Santos",
+      "completed2Title": "Creation of Transparency Council"
     }
   },
   "manifesto": {
