@@ -190,40 +190,7 @@ export function GovernancePage() {
     setShowCreateActionModal(true);
   };
 
-  const activeProposals = [
-    {
-      id: 1,
-      title: t("governance.mockData.proposal1Title", "Limpeza emergencial da Baía de Guanabara"),
-      type: "action",
-      proposer: "ONG Oceano Limpo",
-      description: t("governance.mockData.proposal1Desc", "Mobilização de equipes para remoção de óleo detectado pela IA"),
-      budget: "R$ 150.000",
-      votes: { yes: 1234, no: 87, abstain: 23 },
-      deadline: "2024-01-20",
-      status: "voting"
-    },
-    {
-      id: 2,
-      title: t("governance.mockData.proposal2Title", "Alteração no Manifesto: Inclusão de metas de microplásticos"),
-      type: "manifesto",
-      proposer: t("governance.mockData.community", "Comunidade"),
-      description: t("governance.mockData.proposal2Desc", "Adicionar seção específica sobre combate a microplásticos"),
-      votes: { yes: 892, no: 234, abstain: 45 },
-      deadline: "2024-01-22",
-      status: "voting"
-    },
-    {
-      id: 3,
-      title: t("governance.mockData.proposal3Title", "Registro de ONG: Instituto Mar Azul"),
-      type: "ngo",
-      proposer: "Instituto Mar Azul",
-      description: t("governance.mockData.proposal3Desc", "Aprovação para participação no programa de limpeza oceânica"),
-      documents: ["CNPJ", t("governance.mockData.statute", "Estatuto"), t("governance.mockData.certificates", "Certidões")],
-      votes: { yes: 567, no: 12, abstain: 8 },
-      deadline: "2024-01-18",
-      status: "voting"
-    }
-  ];
+  const activeProposals: any[] = [];
 
   // Mock data - commented out for now until we have real historical data
   const completedProposals: any[] = [];
@@ -410,7 +377,9 @@ export function GovernancePage() {
                 <div>
                   <p className="text-sm text-muted-foreground">{t("governance.stats.totalVotes")}</p>
                   <p className="text-2xl font-bold">
-                    {activeProposals.reduce((sum, p) => sum + p.votes.yes + p.votes.no + p.votes.abstain, 0).toLocaleString()}
+                    {activeProposals.length > 0 
+                      ? activeProposals.reduce((sum, p) => sum + p.votes.yes + p.votes.no + p.votes.abstain, 0).toLocaleString()
+                      : "0"}
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">{t("governance.stats.thisMonth")}</p>
                 </div>
