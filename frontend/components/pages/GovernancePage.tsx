@@ -11,6 +11,8 @@ import { useBackend } from "@/lib/useBackend";
 import { ManifestoEditor } from "../manifesto/ManifestoEditor";
 import { ManifestoHistoryModal } from "../manifesto/ManifestoHistoryModal";
 import { useNavigate, Link } from "react-router-dom";
+import MDEditor from "@uiw/react-md-editor";
+import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
@@ -160,10 +162,13 @@ export function GovernancePage() {
   const loadUserCompanies = async () => {
     try {
       const userId = localStorage.getItem("userId");
-      if (!userId) return;
+      if (!userId) {
+        return;
+      }
       
       const result = await backend.companies.getCompanies({ owner_id: userId });
-      setUserCompanies(result.companies.filter(c => c.status === 'active'));
+      const approvedCompanies = result.companies.filter(c => c.status === 'approved');
+      setUserCompanies(approvedCompanies);
     } catch (error) {
       console.error('Failed to load user companies:', error);
     }
@@ -171,6 +176,7 @@ export function GovernancePage() {
 
   // Handle creating action proposal from AI detection
   const handleCreateAction = (detection: AggregatedDetection) => {
+    // ONLY users with approved companies can create proposals
     if (userCompanies.length === 0) {
       toast({
         title: t("governance.ai.noCompany", "No registered company"),
@@ -179,6 +185,7 @@ export function GovernancePage() {
       });
       return;
     }
+    
     setSelectedDetectionForAction(detection);
     setShowCreateActionModal(true);
   };
@@ -253,6 +260,7 @@ export function GovernancePage() {
   useEffect(() => {
     loadAIDetections();
     loadCompanies();
+    loadUserCompanies();
     if (!currentManifesto) {
       loadManifestoData();
     }
@@ -616,6 +624,22 @@ export function GovernancePage() {
                   <h2 className="text-2xl font-bold">{t("governance.aiDetection.title")}</h2>
                 </div>
 
+                {/* Warning if user has no companies */}
+                {userCompanies.length === 0 && aiDetections.length > 0 && (
+                  <Alert className="mb-4 border-yellow-200 bg-yellow-50">
+                    <AlertTriangle className="h-4 w-4 text-yellow-600" />
+                    <AlertTitle className="text-yellow-800">
+                      {t("governance.ai.noCompanyTitle", "Company Registration Required")}
+                    </AlertTitle>
+                    <AlertDescription className="text-yellow-700">
+                      {t("governance.ai.noCompanyMessage", "To create action proposals from AI detections, you need to have a registered and approved company.")}
+                      <Link to="/companies/register" className="ml-2 font-semibold text-blue-600 hover:underline">
+                        {t("governance.ai.registerNow", "Register your company now →")}
+                      </Link>
+                    </AlertDescription>
+                  </Alert>
+                )}
+
                 {loadingDetections ? (
                   <div className="flex items-center justify-center h-64">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -670,10 +694,34 @@ export function GovernancePage() {
                                 </div>
 
                                 <div className="flex gap-2">
-                                  <Button size="sm" variant="default">
-                                    <Target className="w-3 h-3 mr-1" />
-                                    {t("governance.aiDetection.createAction")}
-                                  </Button>
+                                  <div className="relative group">
+                                    <Button 
+                                      size="sm" 
+                                      variant={userCompanies.length === 0 ? "secondary" : "default"}
+                                      onClick={() => handleCreateAction(detection)}
+                                      disabled={userCompanies.length === 0}
+                                      className={userCompanies.length === 0 ? "opacity-50 cursor-not-allowed" : ""}
+                                    >
+                                      <Target className="w-3 h-3 mr-1" />
+                                      {t("governance.aiDetection.createAction")}
+                                    </Button>
+                                    {userCompanies.length === 0 && (
+                                      <div className="absolute bottom-full left-0 mb-2 hidden group-hover:block z-50">
+                                        <div className="bg-gray-900 text-white text-xs rounded-lg py-2 px-3 whitespace-nowrap">
+                                          <div className="font-semibold mb-1">{t("governance.ai.noCompany")}</div>
+                                          <div>{t("governance.ai.noCompanyDesc")}</div>
+                                          <div className="mt-2 text-blue-300">
+                                            <Link to="/companies/register" className="underline">
+                                              {t("governance.ai.registerCompanyFirst", "Register a company first")}
+                                            </Link>
+                                          </div>
+                                          <div className="absolute top-full left-4 transform -translate-y-1">
+                                            <div className="border-4 border-transparent border-t-gray-900"></div>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
                                   <Button 
                                     size="sm" 
                                     variant="outline"
@@ -1263,6 +1311,200 @@ export function GovernancePage() {
                 </div>
               </div>
             </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Create Action Modal - Only for users with companies */}
+      <Dialog open={showCreateActionModal} onOpenChange={setShowCreateActionModal}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{t("governance.createAction.title", "Create Action Proposal")}</DialogTitle>
+            <DialogDescription>
+              {t("governance.createAction.description", "Create a proposal to address the detected pollution")}
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedDetectionForAction && userCompanies.length > 0 && (
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              const formData = new FormData(e.currentTarget);
+              const title = formData.get('title') as string;
+              const budget = formData.get('budget') as string;
+              const companyId = formData.get('companyId') as string;
+              
+              // Get markdown content from state (will be set by MDEditor)
+              const descriptionElement = document.getElementById('proposal-description-content') as HTMLTextAreaElement;
+              const actionPlanElement = document.getElementById('proposal-actionplan-content') as HTMLTextAreaElement;
+              const description = descriptionElement?.value || '';
+              const actionPlan = actionPlanElement?.value || '';
+
+              try {
+                const selectedCompany = userCompanies.find(c => c.id === companyId);
+                const organizationName = selectedCompany?.name || 'Unknown Organization';
+                  
+                // Create the proposal with all details
+                await backend.manifesto.createProposal({
+                  title,
+                  description,
+                  new_content: `## Action Proposal for Pollution Detection\n\n### Detection Information\n- **Location**: ${selectedDetectionForAction.areaName}\n- **Type**: ${selectedDetectionForAction.pollutionTypes.join(', ')}\n- **Severity**: ${selectedDetectionForAction.maxSeverity}\n- **Area**: ${selectedDetectionForAction.totalAreaKm2.toFixed(1)} km²\n- **Coordinates**: ${selectedDetectionForAction.centerLat.toFixed(4)}, ${selectedDetectionForAction.centerLon.toFixed(4)}\n\n### Proposed Budget\n**R$ ${budget}**\n\n### Description\n${description}\n\n### Detailed Action Plan\n${actionPlan}\n\n### Proposing Organization\n**${organizationName}**\n- Company ID: ${companyId}\n- Status: ${selectedCompany?.status || 'approved'}`,
+                  author_id: localStorage.getItem("userId") || "anonymous",
+                  author_name: organizationName
+                });
+
+                toast({
+                  title: t("governance.createAction.success", "Proposal created successfully"),
+                  description: t("governance.createAction.successDesc", "Your action proposal has been submitted for 7-day voting period"),
+                });
+
+                setShowCreateActionModal(false);
+                setSelectedDetectionForAction(null);
+                
+                // Switch to proposals tab to show the new proposal
+                setActiveSection("proposals");
+              } catch (error) {
+                console.error("Failed to create proposal:", error);
+                toast({
+                  title: t("governance.createAction.error", "Failed to create proposal"),
+                  description: t("governance.createAction.errorDesc", "Please try again later"),
+                  variant: "destructive",
+                });
+              }
+            }}>
+              <div className="space-y-4">
+                {/* Detection Info */}
+                <div className="bg-blue-50 p-4 rounded-lg">
+                  <h4 className="font-semibold mb-2">{t("governance.createAction.detectionInfo", "Detection Information")}</h4>
+                  <div className="text-sm space-y-1">
+                    <p><strong>{t("governance.createAction.location", "Location")}:</strong> {selectedDetectionForAction.areaName}</p>
+                    <p><strong>{t("governance.createAction.pollutionType", "Pollution Type")}:</strong> {selectedDetectionForAction.pollutionTypes.map(type => 
+                      type === 'oil' ? t("governance.aiDetection.oil") : 
+                      type === 'plastic' ? t("governance.aiDetection.plastic") : 
+                      type
+                    ).join(', ')}</p>
+                    <p><strong>{t("governance.createAction.severity", "Severity")}:</strong> {t(`governance.aiDetection.severityLevels.${selectedDetectionForAction.maxSeverity}`)}</p>
+                    <p><strong>{t("governance.createAction.area", "Area")}:</strong> {selectedDetectionForAction.totalAreaKm2.toFixed(1)} km²</p>
+                  </div>
+                </div>
+
+                {/* Company Selection */}
+                {userCompanies.length > 1 && (
+                  <div>
+                    <label className="block text-sm font-medium mb-2">
+                      {t("governance.createAction.selectCompany", "Select Organization")}
+                    </label>
+                    <select 
+                      name="companyId" 
+                      className="w-full p-2 border rounded-lg"
+                      required
+                    >
+                      {userCompanies.map(company => (
+                        <option key={company.id} value={company.id}>
+                          {company.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                {userCompanies.length === 1 && (
+                  <input type="hidden" name="companyId" value={userCompanies[0].id} />
+                )}
+
+                {/* Title */}
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    {t("governance.createAction.proposalTitle", "Proposal Title")} *
+                  </label>
+                  <Input 
+                    type="text" 
+                    name="title" 
+                    placeholder={t("governance.createAction.titlePlaceholder", "e.g., Emergency cleanup operation in Guanabara Bay")}
+                    required
+                  />
+                </div>
+
+                {/* Budget/Value */}
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    {t("governance.createAction.budget", "Required Budget (R$)")} *
+                  </label>
+                  <Input 
+                    type="number" 
+                    name="budget" 
+                    placeholder={t("governance.createAction.budgetPlaceholder", "e.g., 150000")}
+                    min="1"
+                    step="0.01"
+                    required
+                  />
+                </div>
+
+                {/* Description with Markdown Editor */}
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    {t("governance.createAction.proposalDescription", "Description")} *
+                  </label>
+                  <div data-color-mode="light">
+                    <MDEditor
+                      value=""
+                      onChange={(val) => {
+                        const element = document.getElementById('proposal-description-content') as HTMLTextAreaElement;
+                        if (element) element.value = val || '';
+                      }}
+                      height={200}
+                      preview="live"
+                    />
+                    <textarea 
+                      id="proposal-description-content" 
+                      className="hidden" 
+                      defaultValue=""
+                    />
+                  </div>
+                </div>
+
+                {/* Action Plan with Markdown Editor */}
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    {t("governance.createAction.actionPlan", "Detailed Action Plan")} *
+                  </label>
+                  <div data-color-mode="light">
+                    <MDEditor
+                      value=""
+                      onChange={(val) => {
+                        const element = document.getElementById('proposal-actionplan-content') as HTMLTextAreaElement;
+                        if (element) element.value = val || '';
+                      }}
+                      height={300}
+                      preview="live"
+                    />
+                    <textarea 
+                      id="proposal-actionplan-content" 
+                      className="hidden" 
+                      defaultValue=""
+                    />
+                  </div>
+                </div>
+
+                <Alert>
+                  <AlertDescription>
+                    {t("governance.createAction.votingInfo", "This proposal will be open for voting for 7 days. It requires majority approval to proceed.")}
+                  </AlertDescription>
+                </Alert>
+
+                <div className="flex gap-2 justify-end pt-4">
+                  <Button type="button" variant="outline" onClick={() => {
+                    setShowCreateActionModal(false);
+                    setSelectedDetectionForAction(null);
+                  }}>
+                    {t("governance.createAction.cancel", "Cancel")}
+                  </Button>
+                  <Button type="submit">
+                    <Plus className="w-4 h-4 mr-2" />
+                    {t("governance.createAction.submit", "Submit Proposal")}
+                  </Button>
+                </div>
+              </div>
+            </form>
           )}
         </DialogContent>
       </Dialog>
