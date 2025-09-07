@@ -288,7 +288,3 @@ curl http://localhost:4000/ocean-monitor/areas/{area-id}/status
 # Download a specific image
 curl http://localhost:4000/ocean-monitor/images/{object-key} -o image.png
 ```
-
-## License
-
-Part of the OceanGuard initiative for ocean health monitoring.
