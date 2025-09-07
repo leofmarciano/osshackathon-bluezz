@@ -2,7 +2,17 @@ import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Github, LineChart } from "lucide-react";
+import { Github, LineChart, Building2, Plus } from "lucide-react";
+import { Link } from "react-router-dom";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import CompanyRegistrationForm from "../companies/CompanyRegistrationForm";
 
 const GITHUB_URL = "https://github.com/bluezz-xyz/bluezz";
 
@@ -32,6 +42,7 @@ function useAnimatedCounter(target: number, durationMs = 1200) {
 
 export default function Governance() {
   const { t, i18n } = useTranslation();
+  const [isRegistrationOpen, setIsRegistrationOpen] = useState(false);
   const targetFunds = 25000;
   const current = useAnimatedCounter(targetFunds);
 
@@ -40,6 +51,12 @@ export default function Governance() {
     const currency = i18n.language?.startsWith("pt") ? "BRL" : "USD";
     return new Intl.NumberFormat(locale, { style: "currency", currency }).format(current);
   }, [current, i18n.language]);
+
+  const handleCompanySubmit = async (data: any) => {
+    console.log("Company registration data:", data);
+    // Handle registration submission
+    setIsRegistrationOpen(false);
+  };
 
   return (
     <section id="governance" className="bg-gradient-to-b from-blue-50 to-white py-20">
@@ -53,7 +70,7 @@ export default function Governance() {
           </p>
         </div>
 
-        <div className="mt-12 grid gap-4 md:grid-cols-2">
+        <div className="mt-12 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           <Card className="relative overflow-hidden border border-blue-100 bg-white/70 backdrop-blur supports-[backdrop-filter]:bg-white/50">
             <div className="absolute -right-10 -top-10 h-24 w-24 rounded-full bg-blue-100/60 blur-2xl" />
             <CardHeader className="flex flex-row items-center justify-between space-y-0">
@@ -74,6 +91,51 @@ export default function Governance() {
                   "Valores de exemplo para demonstração. Em breve: dados em tempo real."
                 )}
               </p>
+            </CardContent>
+          </Card>
+
+          <Card className="relative flex flex-col justify-between border border-blue-100 bg-white/70 backdrop-blur supports-[backdrop-filter]:bg-white/50">
+            <div className="absolute -right-10 -top-10 h-24 w-24 rounded-full bg-purple-100/60 blur-2xl" />
+            <CardHeader>
+              <CardTitle className="text-base">
+                {t("home.governance.companies.title", "ONGs e Empresas")}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-gray-600">
+                {t(
+                  "home.governance.companies.desc",
+                  "Veja organizações aprovadas e em processo de votação."
+                )}
+              </p>
+              <div className="mt-6 flex gap-2">
+                <Button variant="outline" size="sm" asChild>
+                  <Link to="/companies">
+                    <Building2 className="mr-2 h-4 w-4" />
+                    {t("home.governance.companies.view", "Ver Todas")}
+                  </Link>
+                </Button>
+                <Dialog open={isRegistrationOpen} onOpenChange={setIsRegistrationOpen}>
+                  <DialogTrigger asChild>
+                    <Button size="sm">
+                      <Plus className="mr-2 h-4 w-4" />
+                      {t("home.governance.companies.register", "Cadastrar")}
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto">
+                    <DialogHeader>
+                      <DialogTitle>{t("companies.register.title", "Cadastrar Organização")}</DialogTitle>
+                      <DialogDescription>
+                        {t("companies.register.description", "Preencha os dados para submeter sua organização para votação.")}
+                      </DialogDescription>
+                    </DialogHeader>
+                    <CompanyRegistrationForm 
+                      onSubmit={handleCompanySubmit}
+                      onCancel={() => setIsRegistrationOpen(false)}
+                    />
+                  </DialogContent>
+                </Dialog>
+              </div>
             </CardContent>
           </Card>
 

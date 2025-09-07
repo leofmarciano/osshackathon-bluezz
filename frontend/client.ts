@@ -34,7 +34,12 @@ const BROWSER = typeof globalThis === "object" && ("window" in globalThis);
  */
 export class Client {
     public readonly announcements: announcements.ServiceClient
+    public readonly companies: companies.ServiceClient
+    public readonly frontend: frontend.ServiceClient
+    public readonly manifesto: manifesto.ServiceClient
+    public readonly ocean_monitor: ocean_monitor.ServiceClient
     public readonly payments: payments.ServiceClient
+    public readonly pollution_detector: pollution_detector.ServiceClient
     public readonly user: user.ServiceClient
     private readonly options: ClientOptions
     private readonly target: string
@@ -51,7 +56,12 @@ export class Client {
         this.options = options ?? {}
         const base = new BaseClient(this.target, this.options)
         this.announcements = new announcements.ServiceClient(base)
+        this.companies = new companies.ServiceClient(base)
+        this.frontend = new frontend.ServiceClient(base)
+        this.manifesto = new manifesto.ServiceClient(base)
+        this.ocean_monitor = new ocean_monitor.ServiceClient(base)
         this.payments = new payments.ServiceClient(base)
+        this.pollution_detector = new pollution_detector.ServiceClient(base)
         this.user = new user.ServiceClient(base)
     }
 
@@ -185,13 +195,939 @@ export namespace announcements {
 
 
 export namespace auth {
+    export interface AuthParams {
+        authorization?: string
+    }
 }
 
-/**
- * Import the endpoint handlers to derive the types for the client.
- */
-import { createCheckout as api_payments_create_checkout_createCheckout } from "~backend/payments/create_checkout";
-import { listDonations as api_payments_list_donations_listDonations } from "~backend/payments/list_donations";
+export namespace companies {
+    export interface AddCommentRequest {
+        content: string
+    }
+
+    export interface AddCommentResponse {
+        comment: PostComment
+    }
+
+    export interface Company {
+        id: number
+        name: string
+        type: "ngo" | "company"
+        "registration_number": string
+        category: string
+        email: string
+        phone: string
+        website?: string
+        address: string
+        city: string
+        state?: string
+        "zip_code"?: string
+        country: string
+        description: string
+        mission: string
+        impact: string
+        "target_audience"?: string
+        "owner_id": string
+        status: "pending" | "approved" | "rejected"
+        "is_non_profit": boolean
+        "voting_start_date"?: string
+        "voting_end_date"?: string
+        "voting_ends_at"?: string
+        "votes_yes": number
+        "votes_no": number
+        "votes_abstain": number
+        "created_at": string
+        "updated_at": string
+        "approved_at"?: string
+    }
+
+    export interface CompanyDocument {
+        id: number
+        "company_id": number
+        "document_type": "legal" | "financial" | "reports" | "certificates" | "other"
+        "file_name": string
+        "file_url": string
+        "file_size": number
+        "mime_type"?: string
+        "uploaded_at": string
+    }
+
+    export interface CompanyDocument {
+        id: number
+        "company_id": number
+        "document_type": "legal" | "financial" | "reports" | "certificates" | "other"
+        "file_name": string
+        "file_key": string
+        "file_size": number
+        "mime_type": string
+        "uploaded_by": string
+        "uploaded_at": string
+        "is_public": boolean
+    }
+
+    export interface CompanyImage {
+        id: number
+        "company_id": number
+        "image_url": string
+        "image_type"?: string
+        "is_primary": boolean
+        "uploaded_at": string
+    }
+
+    export interface CompanyProfile {
+        id: number
+        "company_id": number
+        presentation?: string
+        "logo_url"?: string
+        "cover_image_url"?: string
+        "social_media"?: { [key: string]: string }
+        "team_members"?: any[]
+        statistics?: { [key: string]: any }
+        "updated_at": string
+    }
+
+    export interface CompanyVote {
+        id: number
+        "company_id": number
+        "user_id": string
+        "vote_type": "yes" | "no" | "abstain"
+        "voted_at": string
+    }
+
+    export interface CreatePostRequest {
+        content: string
+        "image_url"?: string
+    }
+
+    export interface CreatePostResponse {
+        post: Post
+    }
+
+    export interface DeleteDocumentResponse {
+        success: boolean
+        message: string
+    }
+
+    export interface GetCommentsRequest {
+        limit?: number
+        offset?: number
+    }
+
+    export interface GetCommentsResponse {
+        comments: PostComment[]
+        total: number
+    }
+
+    export interface GetCompaniesRequest {
+        status?: "pending" | "approved" | "rejected"
+        type?: "ngo" | "company"
+        category?: string
+        "owner_id"?: string
+        limit?: number
+        offset?: number
+    }
+
+    export interface GetCompaniesResponse {
+        companies: {
+            id: number
+            name: string
+            type: "ngo" | "company"
+            "registration_number": string
+            category: string
+            email: string
+            phone: string
+            website?: string
+            address: string
+            city: string
+            state?: string
+            "zip_code"?: string
+            country: string
+            description: string
+            mission: string
+            impact: string
+            "target_audience"?: string
+            "owner_id": string
+            status: "pending" | "approved" | "rejected"
+            "is_non_profit": boolean
+            "voting_start_date"?: string
+            "voting_end_date"?: string
+            "voting_ends_at"?: string
+            "votes_yes": number
+            "votes_no": number
+            "votes_abstain": number
+            "created_at": string
+            "updated_at": string
+            "approved_at"?: string
+            documents?: CompanyDocument[]
+            images?: CompanyImage[]
+            profile?: CompanyProfile
+        }[]
+        total: number
+    }
+
+    export interface GetCompanyResponse {
+        company: Company
+        documents: CompanyDocument[]
+        images: CompanyImage[]
+        profile?: CompanyProfile
+        "can_edit": boolean
+        userVote?: CompanyVote
+    }
+
+    export interface GetDocumentUrlResponse {
+        url: string
+        "expires_in": number
+    }
+
+    export interface GetDocumentsRequest {
+        "document_type"?: string
+    }
+
+    export interface GetDocumentsResponse {
+        documents: CompanyDocument[]
+    }
+
+    export interface GetPostsRequest {
+        limit?: number
+        offset?: number
+    }
+
+    export interface GetPostsResponse {
+        posts: Post[]
+        total: number
+    }
+
+    export interface LikePostResponse {
+        success: boolean
+        "likes_count": number
+    }
+
+    export interface Post {
+        id: number
+        "company_id": number
+        "author_id": string
+        "author_name": string
+        "author_avatar"?: string | null
+        content: string
+        "image_url"?: string | null
+        "created_at": string
+        "updated_at": string
+        "likes_count"?: number
+        "comments_count"?: number
+        "has_liked"?: boolean
+    }
+
+    export interface PostComment {
+        id: number
+        "post_id": number
+        "user_id": string
+        "user_name": string
+        "user_avatar"?: string | null
+        content: string
+        "created_at": string
+    }
+
+    export interface RegisterCompanyRequest {
+        name: string
+        type: "ngo" | "company"
+        "registration_number": string
+        category: string
+        email: string
+        phone: string
+        website?: string
+        address: string
+        city: string
+        state?: string
+        "zip_code"?: string
+        country: string
+        description: string
+        mission: string
+        impact: string
+        "target_audience"?: string
+        "is_non_profit": boolean
+        documents?: {
+            filename: string
+            data: string
+            "document_type": string
+        }[]
+        images?: {
+            filename: string
+            data: string
+        }[]
+    }
+
+    export interface RegisterCompanyResponse {
+        company: Company
+        message: string
+    }
+
+    export interface UpdateCompanyProfileRequest {
+        "user_id": string
+        presentation?: string
+        "logo_url"?: string
+        "cover_image_url"?: string
+        "social_media"?: { [key: string]: string }
+        "team_members"?: any[]
+        statistics?: { [key: string]: any }
+    }
+
+    export interface UpdateCompanyProfileResponse {
+        profile: CompanyProfile
+        message: string
+    }
+
+    export interface UpdateCompanyRequest {
+        "user_id": string
+        name?: string
+        email?: string
+        phone?: string
+        website?: string
+        address?: string
+        city?: string
+        state?: string
+        "zip_code"?: string
+        country?: string
+        description?: string
+        mission?: string
+        impact?: string
+        "target_audience"?: string
+    }
+
+    export interface UpdateCompanyResponse {
+        company: Company
+        message: string
+    }
+
+    export interface UploadDocumentRequest {
+        "document_type": "legal" | "financial" | "reports" | "certificates" | "other"
+        "file_name": string
+        data: string
+        "mime_type": string
+    }
+
+    export interface UploadDocumentResponse {
+        document: CompanyDocument
+        message: string
+    }
+
+    export interface UploadImageRequest {
+        filename: string
+        data: string
+        contentType: string
+    }
+
+    export interface UploadImageResponse {
+        url: string
+    }
+
+    export interface VoteOnCompanyRequest {
+        "vote_type": "yes" | "no" | "abstain"
+    }
+
+    export interface VoteOnCompanyResponse {
+        message: string
+        votes: {
+            yes: number
+            no: number
+            abstain: number
+        }
+    }
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.addComment = this.addComment.bind(this)
+            this.createPost = this.createPost.bind(this)
+            this.deleteDocument = this.deleteDocument.bind(this)
+            this.deletePost = this.deletePost.bind(this)
+            this.getComments = this.getComments.bind(this)
+            this.getCompanies = this.getCompanies.bind(this)
+            this.getCompany = this.getCompany.bind(this)
+            this.getDocumentUrl = this.getDocumentUrl.bind(this)
+            this.getDocuments = this.getDocuments.bind(this)
+            this.getPosts = this.getPosts.bind(this)
+            this.getUploadUrl = this.getUploadUrl.bind(this)
+            this.likePost = this.likePost.bind(this)
+            this.registerCompany = this.registerCompany.bind(this)
+            this.updateCompany = this.updateCompany.bind(this)
+            this.updateCompanyProfile = this.updateCompanyProfile.bind(this)
+            this.uploadDocument = this.uploadDocument.bind(this)
+            this.uploadImage = this.uploadImage.bind(this)
+            this.voteOnCompany = this.voteOnCompany.bind(this)
+        }
+
+        /**
+         * API: Add a comment to a post
+         */
+        public async addComment(post_id: number, params: AddCommentRequest): Promise<AddCommentResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/posts/${encodeURIComponent(post_id)}/comments`, JSON.stringify(params))
+            return await resp.json() as AddCommentResponse
+        }
+
+        /**
+         * API: Create a new post (only company owner)
+         */
+        public async createPost(company_id: number, params: CreatePostRequest): Promise<CreatePostResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/companies/${encodeURIComponent(company_id)}/posts`, JSON.stringify(params))
+            return await resp.json() as CreatePostResponse
+        }
+
+        /**
+         * API: Delete a document (only company owner)
+         */
+        public async deleteDocument(document_id: number): Promise<DeleteDocumentResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("DELETE", `/documents/${encodeURIComponent(document_id)}`)
+            return await resp.json() as DeleteDocumentResponse
+        }
+
+        /**
+         * API: Delete a post (only post owner)
+         */
+        public async deletePost(post_id: number): Promise<{
+    success: boolean
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("DELETE", `/posts/${encodeURIComponent(post_id)}`)
+            return await resp.json() as {
+    success: boolean
+}
+        }
+
+        /**
+         * API: Get comments for a post
+         */
+        public async getComments(post_id: number, params: GetCommentsRequest): Promise<GetCommentsResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                limit:  params.limit === undefined ? undefined : String(params.limit),
+                offset: params.offset === undefined ? undefined : String(params.offset),
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/posts/${encodeURIComponent(post_id)}/comments`, undefined, {query})
+            return await resp.json() as GetCommentsResponse
+        }
+
+        /**
+         * API: Get companies list
+         */
+        public async getCompanies(params: GetCompaniesRequest): Promise<GetCompaniesResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                category:   params.category,
+                limit:      params.limit === undefined ? undefined : String(params.limit),
+                offset:     params.offset === undefined ? undefined : String(params.offset),
+                "owner_id": params["owner_id"],
+                status:     params.status === undefined ? undefined : String(params.status),
+                type:       params.type === undefined ? undefined : String(params.type),
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/companies`, undefined, {query})
+            return await resp.json() as GetCompaniesResponse
+        }
+
+        /**
+         * API: Get single company details
+         */
+        public async getCompany(id: number): Promise<GetCompanyResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/companies/${encodeURIComponent(id)}`)
+            return await resp.json() as GetCompanyResponse
+        }
+
+        /**
+         * API: Get signed URL for document download (authenticated users only)
+         */
+        public async getDocumentUrl(document_id: number): Promise<GetDocumentUrlResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/documents/${encodeURIComponent(document_id)}/url`)
+            return await resp.json() as GetDocumentUrlResponse
+        }
+
+        /**
+         * API: Get documents for a company (authenticated users only)
+         */
+        public async getDocuments(company_id: number, params: GetDocumentsRequest): Promise<GetDocumentsResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                "document_type": params["document_type"],
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/companies/${encodeURIComponent(company_id)}/documents`, undefined, {query})
+            return await resp.json() as GetDocumentsResponse
+        }
+
+        /**
+         * API: Get posts for a company
+         */
+        public async getPosts(company_id: number, params: GetPostsRequest): Promise<GetPostsResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                limit:  params.limit === undefined ? undefined : String(params.limit),
+                offset: params.offset === undefined ? undefined : String(params.offset),
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/companies/${encodeURIComponent(company_id)}/posts`, undefined, {query})
+            return await resp.json() as GetPostsResponse
+        }
+
+        /**
+         * API: Get signed URL for direct upload (only company owner)
+         */
+        public async getUploadUrl(company_id: number, params: {
+    "file_name": string
+    "mime_type": string
+}): Promise<{
+    url: string
+    "file_key": string
+    "expires_in": number
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/companies/${encodeURIComponent(company_id)}/documents/upload-url`, JSON.stringify(params))
+            return await resp.json() as {
+    url: string
+    "file_key": string
+    "expires_in": number
+}
+        }
+
+        /**
+         * API: Like/unlike a post
+         */
+        public async likePost(post_id: number): Promise<LikePostResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/posts/${encodeURIComponent(post_id)}/like`)
+            return await resp.json() as LikePostResponse
+        }
+
+        /**
+         * API: Register a new company
+         */
+        public async registerCompany(params: RegisterCompanyRequest): Promise<RegisterCompanyResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/companies/register`, JSON.stringify(params))
+            return await resp.json() as RegisterCompanyResponse
+        }
+
+        /**
+         * API: Update company (only owner can update)
+         */
+        public async updateCompany(id: number, params: UpdateCompanyRequest): Promise<UpdateCompanyResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("PUT", `/companies/${encodeURIComponent(id)}`, JSON.stringify(params))
+            return await resp.json() as UpdateCompanyResponse
+        }
+
+        /**
+         * API: Update company profile (only owner can update)
+         */
+        public async updateCompanyProfile(company_id: number, params: UpdateCompanyProfileRequest): Promise<UpdateCompanyProfileResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("PUT", `/companies/${encodeURIComponent(company_id)}/profile`, JSON.stringify(params))
+            return await resp.json() as UpdateCompanyProfileResponse
+        }
+
+        /**
+         * API: Upload a document (only company owner)
+         */
+        public async uploadDocument(company_id: number, params: UploadDocumentRequest): Promise<UploadDocumentResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/companies/${encodeURIComponent(company_id)}/documents`, JSON.stringify(params))
+            return await resp.json() as UploadDocumentResponse
+        }
+
+        /**
+         * API: Upload image separately (for markdown editor)
+         */
+        public async uploadImage(params: UploadImageRequest): Promise<UploadImageResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/companies/upload-image`, JSON.stringify(params))
+            return await resp.json() as UploadImageResponse
+        }
+
+        /**
+         * API: Vote on a company
+         */
+        public async voteOnCompany(company_id: number, params: VoteOnCompanyRequest): Promise<VoteOnCompanyResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/companies/${encodeURIComponent(company_id)}/vote`, JSON.stringify(params))
+            return await resp.json() as VoteOnCompanyResponse
+        }
+    }
+}
+
+export namespace frontend {
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.assets = this.assets.bind(this)
+        }
+
+        public async assets(path: string[]): Promise<void> {
+            await this.baseClient.callTypedAPI("HEAD", `/frontend/${path.map(encodeURIComponent).join("/")}`)
+        }
+    }
+}
+
+export namespace manifesto {
+    export interface CreateProposalRequest {
+        title: string
+        description: string
+        "new_content": string
+        "author_id": string
+        "author_name": string
+    }
+
+    export interface ManifestoProposal {
+        id: number
+        title: string
+        description: string
+        "new_content": string
+        "previous_version_id": number
+        "author_id": string
+        "author_name": string
+        status: "voting" | "approved" | "rejected" | "expired"
+        "votes_yes": number
+        "votes_no": number
+        "votes_abstain": number
+        "created_at": string
+        "expires_at": string
+        "approved_at"?: string
+        "rejected_at"?: string
+    }
+
+    export interface ManifestoVersion {
+        id: number
+        "version_number": number
+        content: string
+        "author_id": string
+        "author_name": string
+        "created_at": string
+        "is_current": boolean
+        "proposal_id"?: number
+    }
+
+    export interface ManifestoVersionWithTranslations {
+        id: number
+        "version_number": number
+        content: string
+        "author_id": string
+        "author_name": string
+        "created_at": string
+        "is_current": boolean
+        language?: string
+        translations?: { [key: string]: string }
+    }
+
+    export interface ProposalWithTranslations {
+        id: number
+        title: string
+        description: string
+        "new_content": string
+        "author_id": string
+        "author_name": string
+        status: string
+        "votes_yes": number
+        "votes_no": number
+        "votes_abstain": number
+        "created_at": string
+        "expires_at": string
+        language: string
+    }
+
+    export interface VoteRequest {
+        "proposal_id": number
+        "user_id": string
+        "vote_type": "yes" | "no" | "abstain"
+    }
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.createProposal = this.createProposal.bind(this)
+            this.getCurrent = this.getCurrent.bind(this)
+            this.getHistory = this.getHistory.bind(this)
+            this.getManifestoWithTranslations = this.getManifestoWithTranslations.bind(this)
+            this.getProposal = this.getProposal.bind(this)
+            this.getProposalWithTranslations = this.getProposalWithTranslations.bind(this)
+            this.getProposals = this.getProposals.bind(this)
+            this.getUserVote = this.getUserVote.bind(this)
+            this.getVersion = this.getVersion.bind(this)
+            this.voteOnProposal = this.voteOnProposal.bind(this)
+        }
+
+        /**
+         * Create new proposal
+         */
+        public async createProposal(params: CreateProposalRequest): Promise<{
+    proposal: ManifestoProposal
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/manifesto/proposal`, JSON.stringify(params))
+            return await resp.json() as {
+    proposal: ManifestoProposal
+}
+        }
+
+        /**
+         * Get current manifesto
+         */
+        public async getCurrent(): Promise<{
+    manifesto: ManifestoVersion
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/manifesto/current`)
+            return await resp.json() as {
+    manifesto: ManifestoVersion
+}
+        }
+
+        /**
+         * Get all versions history
+         */
+        public async getHistory(): Promise<{
+    versions: ManifestoVersion[]
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/manifesto/history`)
+            return await resp.json() as {
+    versions: ManifestoVersion[]
+}
+        }
+
+        /**
+         * Get manifesto version with translations
+         */
+        public async getManifestoWithTranslations(id: string, params: {
+    language?: string
+}): Promise<{
+    manifesto: ManifestoVersionWithTranslations
+}> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                language: params.language,
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/manifesto/${encodeURIComponent(id)}/translations`, undefined, {query})
+            return await resp.json() as {
+    manifesto: ManifestoVersionWithTranslations
+}
+        }
+
+        /**
+         * Get specific proposal
+         */
+        public async getProposal(id: string): Promise<{
+    proposal: ManifestoProposal
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/manifesto/proposal/${encodeURIComponent(id)}`)
+            return await resp.json() as {
+    proposal: ManifestoProposal
+}
+        }
+
+        /**
+         * Get proposal with translations
+         */
+        public async getProposalWithTranslations(id: string, params: {
+    language?: string
+}): Promise<{
+    proposal: ProposalWithTranslations
+}> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                language: params.language,
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/manifesto/proposal/${encodeURIComponent(id)}/translations`, undefined, {query})
+            return await resp.json() as {
+    proposal: ProposalWithTranslations
+}
+        }
+
+        /**
+         * Get all proposals
+         */
+        public async getProposals(params: {
+    status?: string
+}): Promise<{
+    proposals: ManifestoProposal[]
+}> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                status: params.status,
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/manifesto/proposals`, undefined, {query})
+            return await resp.json() as {
+    proposals: ManifestoProposal[]
+}
+        }
+
+        /**
+         * Get user's vote for a proposal
+         */
+        public async getUserVote(proposalId: string, userId: string): Promise<{
+    vote: string | null
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/manifesto/vote/${encodeURIComponent(proposalId)}/${encodeURIComponent(userId)}`)
+            return await resp.json() as {
+    vote: string | null
+}
+        }
+
+        /**
+         * Get specific version
+         */
+        public async getVersion(id: string): Promise<{
+    version: ManifestoVersion
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/manifesto/version/${encodeURIComponent(id)}`)
+            return await resp.json() as {
+    version: ManifestoVersion
+}
+        }
+
+        /**
+         * Vote on proposal
+         */
+        public async voteOnProposal(params: VoteRequest): Promise<{
+    success: boolean
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/manifesto/vote`, JSON.stringify(params))
+            return await resp.json() as {
+    success: boolean
+}
+        }
+    }
+}
+
+export namespace ocean_monitor {
+    export interface AddAreaRequest {
+        name: string
+        centerLat: number
+        centerLon: number
+        radiusKm: number
+        target: "oil" | "plastic"
+        priority?: number
+    }
+
+    export interface AddAreaResponse {
+        areaId: string
+        tilesCount: number
+    }
+
+    export interface BoundingBox {
+        minLon: number
+        minLat: number
+        maxLon: number
+        maxLat: number
+    }
+
+    export interface ListAreasResponse {
+        areas: ScanArea[]
+    }
+
+    export interface ScanArea {
+        id: string
+        name: string
+        center: {
+            lat: number
+            lon: number
+        }
+        radiusKm: number
+        bbox: BoundingBox
+        target: "oil" | "plastic"
+        priority: number
+        active: boolean
+    }
+
+    export interface ScanStatusResponse {
+        areaId: string
+        lastScanned?: string
+        hasRecentScan: boolean
+        totalImages: number
+    }
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.addScanArea = this.addScanArea.bind(this)
+            this.downloadImage = this.downloadImage.bind(this)
+            this.getScanStatus = this.getScanStatus.bind(this)
+            this.listScanAreas = this.listScanAreas.bind(this)
+            this.triggerScan = this.triggerScan.bind(this)
+        }
+
+        public async addScanArea(params: AddAreaRequest): Promise<AddAreaResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/ocean-monitor/areas`, JSON.stringify(params))
+            return await resp.json() as AddAreaResponse
+        }
+
+        /**
+         * Download captured image
+         */
+        public async downloadImage(method: "GET", objectKey: string[], body?: RequestInit["body"], options?: CallParameters): Promise<globalThis.Response> {
+            return this.baseClient.callAPI(method, `/ocean-monitor/images/${objectKey.map(encodeURIComponent).join("/")}`, body, options)
+        }
+
+        public async getScanStatus(areaId: string): Promise<ScanStatusResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/ocean-monitor/areas/${encodeURIComponent(areaId)}/status`)
+            return await resp.json() as ScanStatusResponse
+        }
+
+        public async listScanAreas(): Promise<ListAreasResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/ocean-monitor/areas`)
+            return await resp.json() as ListAreasResponse
+        }
+
+        /**
+         * Manual trigger endpoint for testing
+         */
+        public async triggerScan(): Promise<{
+    message: string
+    result: {
+        scannedAreas: number
+        totalImages: number
+    }
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/ocean-monitor/trigger-scan`)
+            return await resp.json() as {
+    message: string
+    result: {
+        scannedAreas: number
+        totalImages: number
+    }
+}
+        }
+    }
+}
 
 export namespace payments {
 
@@ -239,10 +1175,172 @@ export namespace payments {
     }
 }
 
-/**
- * Import the endpoint handlers to derive the types for the client.
- */
-import { getMe as api_user_get_me_getMe } from "~backend/user/get_me";
+export namespace pollution_detector {
+    export interface AggregatedDetection {
+        areaId: string
+        areaName: string
+        centerLat: number
+        centerLon: number
+        detectionCount: number
+        maxSeverity: "low" | "medium" | "high" | "critical"
+        totalAreaKm2: number
+        pollutionTypes: string[]
+        avgConfidence: number
+        latestDetection: string
+        imageIds: string[]
+    }
+
+    export interface AreaDetectionsResponse {
+        detections: PollutionDetection[]
+        images: {
+            imageId: string
+            objectKey: string
+            tileX: number
+            tileY: number
+            detectedAt: string
+        }[]
+    }
+
+    export interface GetDetectionResponse {
+        found: boolean
+        detection?: PollutionDetection
+    }
+
+    export interface GetDetectionsResponse {
+        detections: PollutionDetection[]
+        summary: {
+            total: number
+            oil: number
+            plastic: number
+            critical: number
+            high: number
+            medium: number
+            low: number
+        }
+    }
+
+    export interface ImageAnalysisRequest {
+        imageId: string
+        areaId: string
+        objectKey: string
+        tileX: number
+        tileY: number
+        target: "oil" | "plastic"
+        bbox: {
+            minLat: number
+            minLon: number
+            maxLat: number
+            maxLon: number
+        }
+    }
+
+    export interface PollutionDetection {
+        id: string
+        imageId: string
+        areaId: string
+        tileX: number
+        tileY: number
+        pollutionType: "oil" | "plastic"
+        confidence: number
+        severity: "low" | "medium" | "high" | "critical"
+        estimatedAreaKm2: number
+        description: string
+        affectedRegions: any
+        bbox: {
+            minLat: number
+            minLon: number
+            maxLat: number
+            maxLon: number
+        }
+        detectedAt: string
+        verified: boolean
+    }
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.analyzeSingleImage = this.analyzeSingleImage.bind(this)
+            this.getAggregatedDetections = this.getAggregatedDetections.bind(this)
+            this.getDetectionById = this.getDetectionById.bind(this)
+            this.getDetections = this.getDetections.bind(this)
+            this.getDetectionsByArea = this.getDetectionsByArea.bind(this)
+            this.triggerAnalysis = this.triggerAnalysis.bind(this)
+        }
+
+        /**
+         * Analyze a specific image
+         */
+        public async analyzeSingleImage(params: ImageAnalysisRequest): Promise<{
+    detected: boolean
+    detectionId?: string
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/pollution-detector/analyze-image`, JSON.stringify(params))
+            return await resp.json() as {
+    detected: boolean
+    detectionId?: string
+}
+        }
+
+        public async getAggregatedDetections(): Promise<{
+    detections: AggregatedDetection[]
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/pollution-detector/aggregated`)
+            return await resp.json() as {
+    detections: AggregatedDetection[]
+}
+        }
+
+        public async getDetectionById(id: string): Promise<GetDetectionResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/pollution-detector/detections/${encodeURIComponent(id)}`)
+            return await resp.json() as GetDetectionResponse
+        }
+
+        public async getDetections(params: {
+    limit?: number
+}): Promise<GetDetectionsResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                limit: params.limit === undefined ? undefined : String(params.limit),
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/pollution-detector/detections`, undefined, {query})
+            return await resp.json() as GetDetectionsResponse
+        }
+
+        public async getDetectionsByArea(areaId: string): Promise<AreaDetectionsResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/pollution-detector/areas/${encodeURIComponent(areaId)}/detections`)
+            return await resp.json() as AreaDetectionsResponse
+        }
+
+        /**
+         * Manual trigger for immediate analysis
+         */
+        public async triggerAnalysis(params: {
+    limit?: number
+}): Promise<{
+    message: string
+    analyzed: number
+    detections: number
+    jobId: string
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/pollution-detector/analyze`, JSON.stringify(params))
+            return await resp.json() as {
+    message: string
+    analyzed: number
+    detections: number
+    jobId: string
+}
+        }
+    }
+}
 
 export namespace user {
 

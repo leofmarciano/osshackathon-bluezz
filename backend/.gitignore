@@ -3,4 +3,8 @@ encore.gen.cue
 /.encore
 /encore.gen
 
+<<<<<<< HEAD
 .env
+=======
+.env
+>>>>>>> main

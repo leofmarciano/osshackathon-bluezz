@@ -3,6 +3,7 @@
     "home": "Home",
     "howToHelp": "How to Help",
     "discover": "Discover",
+    "companies": "Organizations",
     "governance": "Governance",
     "howItWorks": "How It Works",
     "search": "Search",
@@ -227,6 +228,12 @@
         "title": "Follow on GitHub",
         "desc": "Code, issues, votes and audits open for anyone to verify.",
         "cta": "View repository"
+      },
+      "companies": {
+        "title": "NGOs and Companies",
+        "desc": "See approved organizations and those in the voting process.",
+        "view": "View All",
+        "register": "Register"
       }
     },
     "community": {
@@ -513,15 +520,21 @@
     "subtitle": "Participate in decisions that shape the future of our oceans. Every voice matters.",
     "voteNow": "Vote Now",
     "proposeChange": "Propose Change",
+    "viewAll": "View All",
+    "approval": "approval",
+    "votes": "votes",
+    "createProposal": "Create Proposal",
+    "menu": "Menu",
+    "lastUpdate": "Last update",
     "stats": {
       "activeProposals": "Active Proposals",
-      "endingSoon": "2 ending soon",
+      "endingSoon": "ending soon",
       "totalVotes": "Total Votes",
       "thisMonth": "this month",
       "registeredNGOs": "Registered NGOs",
-      "verified": "18 verified",
+      "verified": "verified",
       "aiDetections": "AI Detections",
-      "criticalIssues": "3 critical"
+      "criticalIssues": "critical"
     },
     "ai": {
       "alertTitle": "New AI-detected problems",
@@ -553,7 +566,57 @@
       "moreInfo": "More Info",
       "reportFalse": "Report False Positive",
       "howItWorks": "How it works",
-      "description": "Our AI monitors satellite imagery and oceanographic data 24/7 to identify pollution, oil spills and other threats to the oceans."
+      "description": "Our AI monitors satellite imagery and oceanographic data 24/7 to identify pollution, oil spills and other threats to the oceans.",
+      "detections": "detections",
+      "detectionsOf": "detections of",
+      "in": "in",
+      "severity": "Severity",
+      "oil": "Oil",
+      "plastic": "Plastic",
+      "affectedArea": "Affected area",
+      "capturedImages": "Captured Images",
+      "individualDetections": "Individual Detections",
+      "clickToZoom": "Click to zoom",
+      "noDetections": "No pollution detections found in the last 7 days.",
+      "area": "Area",
+      "severityLevels": {
+        "critical": "Critical",
+        "high": "High",
+        "medium": "Medium",
+        "low": "Low"
+      },
+      "noCompany": "No registered company",
+      "noCompanyDesc": "You need to have a registered company to create action proposals",
+      "noCompanyTitle": "Company Registration Required",
+      "noCompanyMessage": "To create action proposals from AI detections, you need to have a registered and approved company.",
+      "registerNow": "Register your company now →",
+      "registerCompanyFirst": "Register a company first"
+    },
+    "createAction": {
+      "title": "Create Action Proposal",
+      "description": "Create a proposal to address the detected pollution",
+      "detectionInfo": "Detection Information",
+      "location": "Location",
+      "pollutionType": "Pollution Type",
+      "severity": "Severity",
+      "area": "Area",
+      "selectCompany": "Select Organization",
+      "proposalTitle": "Proposal Title",
+      "titlePlaceholder": "e.g., Emergency cleanup operation in Guanabara Bay",
+      "proposalDescription": "Description",
+      "descriptionPlaceholder": "Briefly describe the urgency and importance of this action",
+      "actionPlan": "Detailed Action Plan",
+      "actionPlanPlaceholder": "Describe the specific steps, resources needed, timeline, and expected outcomes",
+      "cancel": "Cancel",
+      "submit": "Submit Proposal",
+      "success": "Proposal created successfully",
+      "successDesc": "Your action proposal has been submitted for 7-day voting period",
+      "error": "Failed to create proposal",
+      "errorDesc": "Please try again later",
+      "budget": "Required Budget (R$)",
+      "budgetPlaceholder": "e.g., 150000",
+      "votingInfo": "This proposal will be open for voting for 7 days. It requires majority approval to proceed.",
+      "noCompanyWarning": "You don't have a registered company. This proposal will be created as an individual."
     },
     "manifesto": {
       "title": "Bluezz Manifesto",
@@ -616,6 +679,19 @@
       "description": "Join thousands of people who are actively participating in decisions about the future of our seas.",
       "joinCommunity": "Join Community",
       "startDiscussion": "Start Discussion"
+    },
+    "mockData": {
+      "proposal1Title": "Emergency cleanup of Guanabara Bay",
+      "proposal1Desc": "Mobilization of teams to remove oil detected by AI",
+      "proposal2Title": "Manifesto Amendment: Include microplastics goals",
+      "proposal2Desc": "Add specific section on combating microplastics",
+      "proposal3Title": "NGO Registration: Instituto Mar Azul",
+      "proposal3Desc": "Approval for participation in ocean cleanup program",
+      "community": "Community",
+      "statute": "Statute",
+      "certificates": "Certificates",
+      "completed1Title": "Installation of containment barriers in Santos",
+      "completed2Title": "Creation of Transparency Council"
     }
   },
   "manifesto": {
@@ -748,6 +824,317 @@
     "navAriaLabel": "Footer navigation",
     "copyright": "© {{year}} {{app}}. All rights reserved."
   },
+  "companies": {
+    "title": "Partner Organizations",
+    "subtitle": "Meet the NGOs and companies helping to save the oceans",
+    "search": "Search organizations...",
+    "approval": "approval",
+    "followers": "followers",
+    "website": "Website",
+    "viewProfile": "View Profile",
+    "empty": {
+      "active": "No active organizations found",
+      "pending": "No organizations in voting at the moment"
+    },
+    "tabs": {
+      "active": "Active",
+      "pending": "In Voting"
+    },
+    "types": {
+      "all": "All",
+      "ngo": "NGO",
+      "company": "Company"
+    },
+    "categories": {
+      "all": "All Categories",
+      "ocean_cleanup": "Ocean Cleanup",
+      "marine_conservation": "Marine Conservation",
+      "pollution_prevention": "Pollution Prevention",
+      "research": "Research",
+      "education": "Education",
+      "technology": "Technology",
+      "recycling": "Recycling",
+      "other": "Other"
+    },
+    "status": {
+      "active": "Active",
+      "pending": "In Voting",
+      "rejected": "Rejected"
+    },
+    "voting": {
+      "daysLeft": "{{days}} days left",
+      "ended": "Voting ended"
+    },
+    "cta": {
+      "title": "Join the movement!",
+      "description": "Register your organization and join the largest ocean protection network."
+    },
+    "stats": {
+      "registered": "Active organizations",
+      "registeredCount": "24",
+      "supporters": "Supporters",
+      "supportersCount": "12.5K",
+      "raised": "Raised",
+      "raisedAmount": "$5.2M"
+    },
+    "register": {
+      "button": "Register Organization",
+      "title": "Register Organization",
+      "description": "Fill in the data to submit your organization for voting.",
+      "submit": "Submit for Voting",
+      "badge": "Organization Registration",
+      "heroTitle": "Join the Movement",
+      "heroSubtitle": "Register your organization and become part of the largest ocean protection network",
+      "benefits": {
+        "visibility": "Global Visibility",
+        "visibilityDesc": "Reach thousands of supporters and partners worldwide",
+        "funding": "Fundraising",
+        "fundingDesc": "Access crowdfunding and strategic partnerships",
+        "credibility": "Credibility",
+        "credibilityDesc": "Verification seal and transparency increase trust",
+        "impact": "Greater Impact",
+        "impactDesc": "Collaborate with other organizations and multiply your results"
+      },
+      "benefitsTitle": "Why register your organization?",
+      "process": {
+        "submit": "Submission",
+        "submitDesc": "Fill out the form with complete information",
+        "review": "Review",
+        "reviewDesc": "The community reviews your proposal",
+        "voting": "Voting (7 days)",
+        "votingDesc": "Open voting period for everyone",
+        "approval": "Approval",
+        "approvalDesc": "With simple majority, your organization is approved"
+      },
+      "processTitle": "How does the process work?",
+      "processDesc": "Democratic and transparent approval process",
+      "votingInfo": "About voting",
+      "votingInfoDesc": "Voting lasts 7 days and requires a simple majority (>50% positive votes) for approval. All verified community members can vote.",
+      "formTitle": "Registration Form",
+      "formDesc": "Fill out carefully. Complete information increases your chances of approval.",
+      "important": "Important",
+      "note1": "You will be responsible for the organization and can manage your profile",
+      "note2": "All submitted documents will be public to ensure transparency",
+      "note3": "The organization will only be active after community approval",
+      "note4": "The voting process cannot be canceled after it starts",
+      "steps": {
+        "basic": "Basic Information",
+        "location": "Location",
+        "mission": "Mission and Impact",
+        "documents": "Documents"
+      },
+      "basic": {
+        "title": "Basic Information",
+        "description": "Identify your organization"
+      },
+      "location": {
+        "title": "Location",
+        "description": "Where your organization is located"
+      },
+      "mission": {
+        "title": "Mission and Impact",
+        "description": "Describe your mission and expected impact"
+      },
+      "documents": {
+        "title": "Documents",
+        "description": "Provide verification documents",
+        "alert": "All documents will be public to ensure transparency"
+      },
+      "fields": {
+        "type": "Organization Type",
+        "name": "Organization Name",
+        "cnpj": "Registration Number",
+        "category": "Category",
+        "email": "Email",
+        "phone": "Phone",
+        "website": "Website",
+        "address": "Address",
+        "city": "City",
+        "state": "State",
+        "country": "Country",
+        "description": "Brief Description",
+        "mission": "Mission",
+        "impact": "Expected Impact",
+        "documents": "Legal Documents",
+        "images": "Images"
+      },
+      "placeholders": {
+        "category": "Select a category",
+        "description": "Briefly describe your organization and what it does...",
+        "mission": "What is your organization's mission?",
+        "impact": "What impact do you expect to generate in the oceans?"
+      },
+      "upload": {
+        "documents": "Upload documents",
+        "images": "Upload images"
+      },
+      "errors": {
+        "required": "This field is required",
+        "documents": "At least one document is required"
+      }
+    },
+    "profile": {
+      "follow": "Follow",
+      "unfollow": "Unfollow",
+      "tabs": {
+        "presentation": "Presentation",
+        "timeline": "Timeline",
+        "documents": "Documents",
+        "info": "Information"
+      },
+      "stats": {
+        "followers": "Followers",
+        "posts": "Posts",
+        "donations": "Donations",
+        "since": "Since"
+      },
+      "voting": {
+        "title": "Voting in Progress",
+        "timeLeft": "{{days}} days and {{hours}} hours remaining",
+        "ended": "Voting ended",
+        "approval": "approval",
+        "yes": "Yes",
+        "no": "No",
+        "approve": "Approve",
+        "reject": "Reject",
+        "voted": "You voted: {{vote}}",
+        "loginRequired": "Sign in to vote on this organization"
+      },
+      "presentation": {
+        "title": "Presentation",
+        "placeholder": "Use Markdown to format your presentation...",
+        "empty": "No presentation available yet."
+      },
+      "adminMode": "You are viewing this page as an administrator. You can edit the presentation and create posts.",
+      "info": {
+        "title": "Contact Information",
+        "mission": "Mission",
+        "impact": "Impact",
+        "contact": "Contact"
+      }
+    },
+    "edit": {
+      "title": "Edit Organization",
+      "sections": {
+        "info": "General Information",
+        "infoDesc": "Basic data and contact",
+        "presentation": "Presentation",
+        "presentationDesc": "Markdown content",
+        "logo": "Logo and Identity",
+        "logoDesc": "Profile image"
+      },
+      "info": {
+        "title": "General Information",
+        "name": "Name",
+        "namePlaceholder": "Organization name",
+        "website": "Website",
+        "description": "Description",
+        "descriptionPlaceholder": "Brief description of the organization",
+        "mission": "Mission",
+        "missionPlaceholder": "Our mission is...",
+        "impact": "Impact",
+        "impactPlaceholder": "Our impact to date..."
+      },
+      "contact": {
+        "title": "Contact Information",
+        "email": "Email",
+        "phone": "Phone",
+        "address": "Address",
+        "addressPlaceholder": "Street, number",
+        "city": "City",
+        "state": "State",
+        "country": "Country"
+      },
+      "presentation": {
+        "title": "Organization Presentation",
+        "description": "Use markdown to format your presentation. This will be your organization's main page."
+      },
+      "logo": {
+        "title": "Organization Logo",
+        "upload": "Choose image",
+        "requirements": "JPG, PNG or GIF. Maximum size 2MB. Recommended: 400x400px",
+        "reset": "Restore original logo"
+      }
+    },
+    "timeline": {
+      "createPost": "Create Post",
+      "addImage": "Add Image",
+      "post": "Post",
+      "loading": "Loading posts...",
+      "noPosts": "No posts yet. Be the first to share an update!",
+      "addComment": "Write a comment...",
+      "loadMore": "Load more",
+      "imageTooLarge": "Image must be less than 5MB",
+      "contentTooLong": "Content must be between 1 and 50000 characters",
+      "commentTooLong": "Comment must be between 1 and 1000 characters",
+      "dangerousContent": "Your post contains potentially dangerous content. Please remove any scripts or HTML tags.",
+      "dangerousComment": "Your comment contains potentially dangerous content.",
+      "securityError": "Your content was blocked for security reasons. Please remove any scripts or dangerous HTML.",
+      "lengthError": "Your content is too long or too short.",
+      "genericError": "Failed to create post. Please try again.",
+      "genericCommentError": "Failed to add comment. Please try again.",
+      "confirmDelete": "Are you sure you want to delete this post?",
+      "deleteError": "Failed to delete post. Please try again."
+    },
+    "create": {
+      "title": "Create Post",
+      "placeholder": "Share an update with the community...",
+      "location": "Location",
+      "post": "Post",
+      "posting": "Posting..."
+    },
+    "post": {
+      "edit": "Edit",
+      "delete": "Delete"
+    },
+    "stats": {
+      "views": "views",
+      "likes": "likes",
+      "comments": "comments"
+    },
+    "actions": {
+      "like": "Like",
+      "comment": "Comment",
+      "share": "Share"
+    },
+    "comment": {
+      "placeholder": "Write a comment..."
+    },
+    "time": {
+      "now": "now",
+      "minutes": "{{count}} min ago",
+      "hours": "{{count}}h ago",
+      "days": "{{count}}d ago"
+    }
+  },
+  "documents": {
+    "title": "Documents",
+    "search": "Search documents...",
+    "filter": "Filter by",
+    "upload": "Upload",
+    "view": "View",
+    "download": "Download",
+    "public": "Public",
+    "empty": {
+      "default": "No documents available",
+      "search": "No documents found"
+    },
+    "categories": {
+      "all": "All",
+      "legal": "Legal",
+      "financial": "Financial",
+      "reports": "Reports",
+      "certificates": "Certificates",
+      "other": "Other"
+    },
+    "uploadModal": {
+      "title": "Upload Documents",
+      "description": "Add new documents to the organization profile",
+      "select": "Select files",
+      "selected": "Selected files",
+      "submit": "Upload"
+    }
+  },
   "common": {
     "currency": "$",
     "from": "of",
@@ -755,6 +1142,12 @@
     "success": "Success!",
     "error": "Error",
     "cancel": "Cancel",
-    "back": "Back"
+    "back": "Back",
+    "next": "Next",
+    "save": "Save",
+    "edit": "Edit",
+    "preview": "Preview",
+    "code": "Code",
+    "submitting": "Submitting..."
   }
 }

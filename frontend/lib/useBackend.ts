@@ -13,13 +13,18 @@ export function useBackend() {
     auth: async () => {
       try {
         const token = await getToken();
+        console.log("Got auth token:", token ? "Token present" : "No token");
         if (!token) {
-          throw new Error("No token available");
+          console.warn("No auth token available");
+          return undefined;
         }
-        return { authorization: `Bearer ${token}` };
+        // Return AuthParams with authorization field directly
+        return { 
+          authorization: `Bearer ${token}`
+        };
       } catch (error) {
         console.error("Failed to get auth token:", error);
-        throw error;
+        return undefined;
       }
     }
   });

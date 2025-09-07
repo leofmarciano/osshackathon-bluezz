@@ -10,6 +10,16 @@ import { Streamdown } from "streamdown";
 import { useBackend } from "@/lib/useBackend";
 import { ManifestoEditor } from "../manifesto/ManifestoEditor";
 import { ManifestoHistoryModal } from "../manifesto/ManifestoHistoryModal";
+import { useNavigate, Link } from "react-router-dom";
+import MDEditor from "@uiw/react-md-editor";
+import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { 
   Vote, 
   Brain, 
@@ -22,7 +32,6 @@ import {
   CheckCircle2,
   XCircle,
   ChevronRight,
-  Map,
   Waves,
   Target,
   Shield,
@@ -34,13 +43,40 @@ import {
   Info,
   Plus,
   Eye,
-  ArrowRight
+  ArrowRight,
+  Globe
 } from "lucide-react";
+
+interface AggregatedDetection {
+  areaId: string;
+  areaName: string;
+  centerLat: number;
+  centerLon: number;
+  detectionCount: number;
+  maxSeverity: 'low' | 'medium' | 'high' | 'critical';
+  totalAreaKm2: number;
+  pollutionTypes: string[];
+  avgConfidence: number;
+  latestDetection: string;
+  imageIds: string[];
+}
+
+interface DetectionDetails {
+  detections: any[];
+  images: Array<{
+    imageId: string;
+    objectKey: string;
+    tileX: number;
+    tileY: number;
+    detectedAt: string;
+  }>;
+}
 
 export function GovernancePage() {
   const { t, i18n } = useTranslation();
   const { toast } = useToast();
   const backend = useBackend();
+  const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState("proposals");
   const [loading, setLoading] = useState(false);
   const [editingManifesto, setEditingManifesto] = useState(false);
@@ -48,48 +84,119 @@ export function GovernancePage() {
   const [currentManifesto, setCurrentManifesto] = useState<any>(null);
   const [manifestoProposals, setManifestoProposals] = useState<any[]>([]);
   const [votingProposal, setVotingProposal] = useState<number | null>(null);
+  const [aiDetections, setAiDetections] = useState<AggregatedDetection[]>([]);
+  const [loadingDetections, setLoadingDetections] = useState(false);
+  const [selectedDetection, setSelectedDetection] = useState<AggregatedDetection | null>(null);
+  const [detectionDetails, setDetectionDetails] = useState<DetectionDetails | null>(null);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [expandedImage, setExpandedImage] = useState<{ url: string; alt: string } | null>(null);
+  const [companies, setCompanies] = useState<any[]>([]);
+  const [loadingCompanies, setLoadingCompanies] = useState(false);
+  const [userCompanies, setUserCompanies] = useState<any[]>([]);
+  const [showCreateActionModal, setShowCreateActionModal] = useState(false);
+  const [selectedDetectionForAction, setSelectedDetectionForAction] = useState<AggregatedDetection | null>(null);
 
-  // Mock data for demonstration
-  const aiDetectedProblems = [
-    {
-      id: 1,
-      location: "Baía de Guanabara, RJ",
-      severity: "critical",
-      type: "oil",
-      description: "Manchas de óleo detectadas próximas à entrada da baía",
-      detectedAt: "2024-01-15",
-      coordinates: { lat: -22.8, lng: -43.1 },
-      confidence: 95
-    },
-    {
-      id: 2,
-      location: "Litoral de Santos, SP",
-      severity: "high",
-      type: "plastic",
-      description: "Alta concentração de resíduos plásticos",
-      detectedAt: "2024-01-14",
-      coordinates: { lat: -23.9, lng: -46.3 },
-      confidence: 88
-    },
-    {
-      id: 3,
-      location: "Praia de Copacabana, RJ",
-      severity: "medium",
-      type: "sewage",
-      description: "Possível descarga de esgoto não tratado",
-      detectedAt: "2024-01-13",
-      coordinates: { lat: -22.9, lng: -43.2 },
-      confidence: 72
+  // Load AI detections from backend
+  const loadAIDetections = async () => {
+    try {
+      setLoadingDetections(true);
+      const response = await backend.pollution_detector.getAggregatedDetections();
+      console.log('AI Detections response:', response);
+      // Ensure we're setting an array even if response is malformed
+      const detections = Array.isArray(response?.detections) ? response.detections : [];
+      setAiDetections(detections);
+    } catch (error) {
+      console.error('Failed to load AI detections:', error);
+      // Set empty array on error instead of keeping stale data
+      setAiDetections([]);
+      toast({
+        title: t("governance.ai.loadError", "Error loading detections"),
+        description: t("governance.ai.loadErrorDesc", "Failed to load pollution detections"),
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingDetections(false);
     }
-  ];
+  };
+
+  // Load detection details
+  const loadDetectionDetails = async (areaId: string) => {
+    try {
+      const response = await backend.pollution_detector.getDetectionsByArea(areaId);
+      setDetectionDetails(response);
+    } catch (error) {
+      console.error('Failed to load detection details:', error);
+      toast({
+        title: "Error loading details",
+        description: "Failed to load detection details",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleViewDetails = async (detection: AggregatedDetection) => {
+    setSelectedDetection(detection);
+    setShowDetailsModal(true);
+    await loadDetectionDetails(detection.areaId);
+  };
+
+  // Load companies from backend
+  const loadCompanies = async () => {
+    try {
+      setLoadingCompanies(true);
+      const result = await backend.companies.getCompanies({});
+      setCompanies(result.companies);
+    } catch (error) {
+      console.error('Failed to load companies:', error);
+      toast({
+        title: t("companies.fetchError", "Error loading organizations"),
+        description: t("companies.fetchErrorDesc", "Failed to load organizations"),
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingCompanies(false);
+    }
+  };
+
+  // Load user's companies
+  const loadUserCompanies = async () => {
+    try {
+      const userId = localStorage.getItem("userId");
+      if (!userId) {
+        return;
+      }
+      
+      const result = await backend.companies.getCompanies({ owner_id: userId });
+      const approvedCompanies = result.companies.filter(c => c.status === 'approved');
+      setUserCompanies(approvedCompanies);
+    } catch (error) {
+      console.error('Failed to load user companies:', error);
+    }
+  };
+
+  // Handle creating action proposal from AI detection
+  const handleCreateAction = (detection: AggregatedDetection) => {
+    // ONLY users with approved companies can create proposals
+    if (userCompanies.length === 0) {
+      toast({
+        title: t("governance.ai.noCompany", "No registered company"),
+        description: t("governance.ai.noCompanyDesc", "You need to have a registered company to create action proposals"),
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setSelectedDetectionForAction(detection);
+    setShowCreateActionModal(true);
+  };
 
   const activeProposals = [
     {
       id: 1,
-      title: "Limpeza emergencial da Baía de Guanabara",
+      title: t("governance.mockData.proposal1Title", "Limpeza emergencial da Baía de Guanabara"),
       type: "action",
       proposer: "ONG Oceano Limpo",
-      description: "Mobilização de equipes para remoção de óleo detectado pela IA",
+      description: t("governance.mockData.proposal1Desc", "Mobilização de equipes para remoção de óleo detectado pela IA"),
       budget: "R$ 150.000",
       votes: { yes: 1234, no: 87, abstain: 23 },
       deadline: "2024-01-20",
@@ -97,51 +204,67 @@ export function GovernancePage() {
     },
     {
       id: 2,
-      title: "Alteração no Manifesto: Inclusão de metas de microplásticos",
+      title: t("governance.mockData.proposal2Title", "Alteração no Manifesto: Inclusão de metas de microplásticos"),
       type: "manifesto",
-      proposer: "Comunidade",
-      description: "Adicionar seção específica sobre combate a microplásticos",
+      proposer: t("governance.mockData.community", "Comunidade"),
+      description: t("governance.mockData.proposal2Desc", "Adicionar seção específica sobre combate a microplásticos"),
       votes: { yes: 892, no: 234, abstain: 45 },
       deadline: "2024-01-22",
       status: "voting"
     },
     {
       id: 3,
-      title: "Registro de ONG: Instituto Mar Azul",
+      title: t("governance.mockData.proposal3Title", "Registro de ONG: Instituto Mar Azul"),
       type: "ngo",
       proposer: "Instituto Mar Azul",
-      description: "Aprovação para participação no programa de limpeza oceânica",
-      documents: ["CNPJ", "Estatuto", "Certidões"],
+      description: t("governance.mockData.proposal3Desc", "Aprovação para participação no programa de limpeza oceânica"),
+      documents: ["CNPJ", t("governance.mockData.statute", "Estatuto"), t("governance.mockData.certificates", "Certidões")],
       votes: { yes: 567, no: 12, abstain: 8 },
       deadline: "2024-01-18",
       status: "voting"
     }
   ];
 
-  const completedProposals = [
-    {
-      id: 4,
-      title: "Instalação de barreiras de contenção em Santos",
-      type: "action",
-      result: "approved",
-      votes: { yes: 2341, no: 123, abstain: 56 },
-      completedAt: "2024-01-10"
-    },
-    {
-      id: 5,
-      title: "Criação do Conselho de Transparência",
-      type: "governance",
-      result: "approved",
-      votes: { yes: 3456, no: 234, abstain: 89 },
-      completedAt: "2024-01-08"
-    }
-  ];
+  // Mock data - commented out for now until we have real historical data
+  const completedProposals: any[] = [];
+  // const completedProposals = [
+  //   {
+  //     id: 4,
+  //     title: t("governance.mockData.completed1Title", "Instalação de barreiras de contenção em Santos"),
+  //     type: "action",
+  //     result: "approved",
+  //     votes: { yes: 2341, no: 123, abstain: 56 },
+  //     completedAt: "2024-01-10"
+  //   },
+  //   {
+  //     id: 5,
+  //     title: t("governance.mockData.completed2Title", "Criação do Conselho de Transparência"),
+  //     type: "governance",
+  //     result: "approved",
+  //     votes: { yes: 3456, no: 234, abstain: 89 },
+  //     completedAt: "2024-01-08"
+  //   }
+  // ];
 
   useEffect(() => {
     if (activeSection === "manifesto") {
       loadManifestoData();
+    } else if (activeSection === "ai") {
+      loadAIDetections();
+    } else if (activeSection === "ngos") {
+      loadCompanies();
     }
   }, [activeSection, i18n.language]);
+  
+  // Load all data on mount to populate stats
+  useEffect(() => {
+    loadAIDetections();
+    loadCompanies();
+    loadUserCompanies();
+    if (!currentManifesto) {
+      loadManifestoData();
+    }
+  }, []);
 
   const loadManifestoData = async () => {
     try {
@@ -202,35 +325,13 @@ export function GovernancePage() {
     }
   };
 
-  const registeredNGOs = [
-    {
-      name: "Oceano Limpo",
-      verified: true,
-      projectsCompleted: 12,
-      totalRaised: "R$ 2.3M",
-      rating: 4.8
-    },
-    {
-      name: "Guardiões do Mar",
-      verified: true,
-      projectsCompleted: 8,
-      totalRaised: "R$ 1.1M",
-      rating: 4.6
-    },
-    {
-      name: "Projeto Azul",
-      verified: false,
-      projectsCompleted: 3,
-      totalRaised: "R$ 450K",
-      rating: 4.2
-    }
-  ];
+
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
       case "critical": return "destructive";
-      case "high": return "orange";
-      case "medium": return "yellow";
+      case "high": return "destructive";
+      case "medium": return "secondary";
       default: return "secondary";
     }
   };
@@ -245,12 +346,17 @@ export function GovernancePage() {
     }
   };
 
+  // Count the number of detection areas (groups), not individual detections
+  const aiDetectionAreas = aiDetections.length;
+  const totalDetections = aiDetections.reduce((sum, d) => sum + d.detectionCount, 0);
+  const hasUrgentDetections = aiDetections.some(d => d.maxSeverity === 'critical' || d.maxSeverity === 'high');
+  
   const menuItems = [
-    { id: "proposals", label: t("governance.tabs.activeProposals"), icon: Vote, badge: "3" },
-    { id: "ai", label: t("governance.tabs.aiDetection"), icon: Brain, badge: "12", urgent: true },
-    { id: "manifesto", label: t("governance.tabs.manifesto"), icon: FileText },
-    { id: "ngos", label: t("governance.tabs.ngos"), icon: Building2, badge: "24" },
-    { id: "history", label: t("governance.tabs.history"), icon: Clock }
+    { id: "proposals", label: t("governance.tabs.activeProposals"), icon: Vote, badge: activeProposals.length > 0 ? activeProposals.length.toString() : undefined },
+    { id: "ai", label: t("governance.tabs.aiDetection"), icon: Brain, badge: aiDetectionAreas > 0 ? aiDetectionAreas.toString() : undefined, urgent: hasUrgentDetections },
+    { id: "manifesto", label: t("governance.tabs.manifesto"), icon: FileText, badge: manifestoProposals.length > 0 ? manifestoProposals.length.toString() : undefined },
+    { id: "ngos", label: t("governance.tabs.ngos"), icon: Building2, badge: companies.length > 0 ? companies.length.toString() : undefined },
+    { id: "history", label: t("governance.tabs.history"), icon: Clock, badge: completedProposals.length > 0 ? completedProposals.length.toString() : undefined }
   ];
 
   return (
@@ -278,12 +384,19 @@ export function GovernancePage() {
       {/* Stats Cards */}
       <div className="container mx-auto px-4 -mt-8 relative z-10 mb-8">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card className="border-0 shadow-lg">
+          <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow cursor-pointer" onClick={() => setActiveSection("proposals")}>
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">{t("governance.stats.activeProposals")}</p>
-                  <p className="text-2xl font-bold">3</p>
+                  <p className="text-2xl font-bold">{activeProposals.length}</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {activeProposals.filter(p => {
+                      const deadline = new Date(p.deadline);
+                      const daysLeft = Math.ceil((deadline.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+                      return daysLeft <= 3;
+                    }).length} {t("governance.stats.endingSoon")}
+                  </p>
                 </div>
                 <div className="h-10 w-10 rounded-full bg-blue-100 text-blue-600 grid place-items-center">
                   <TrendingUp className="w-5 h-5" />
@@ -291,12 +404,15 @@ export function GovernancePage() {
               </div>
             </CardContent>
           </Card>
-          <Card className="border-0 shadow-lg">
+          <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow cursor-pointer" onClick={() => setActiveSection("proposals")}>
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">{t("governance.stats.totalVotes")}</p>
-                  <p className="text-2xl font-bold">8,742</p>
+                  <p className="text-2xl font-bold">
+                    {activeProposals.reduce((sum, p) => sum + p.votes.yes + p.votes.no + p.votes.abstain, 0).toLocaleString()}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">{t("governance.stats.thisMonth")}</p>
                 </div>
                 <div className="h-10 w-10 rounded-full bg-green-100 text-green-600 grid place-items-center">
                   <Users className="w-5 h-5" />
@@ -304,12 +420,15 @@ export function GovernancePage() {
               </div>
             </CardContent>
           </Card>
-          <Card className="border-0 shadow-lg">
+          <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow cursor-pointer" onClick={() => setActiveSection("ngos")}>
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">{t("governance.stats.registeredNGOs")}</p>
-                  <p className="text-2xl font-bold">24</p>
+                  <p className="text-2xl font-bold">{companies.length}</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {companies.filter(c => c.status === 'approved').length} {t("governance.stats.verified")}
+                  </p>
                 </div>
                 <div className="h-10 w-10 rounded-full bg-purple-100 text-purple-600 grid place-items-center">
                   <CheckCircle2 className="w-5 h-5" />
@@ -317,14 +436,19 @@ export function GovernancePage() {
               </div>
             </CardContent>
           </Card>
-          <Card className="border-0 shadow-lg">
+          <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow cursor-pointer" onClick={() => setActiveSection("ai")}>
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">{t("governance.stats.aiDetections")}</p>
-                  <p className="text-2xl font-bold">12</p>
+                  <p className="text-2xl font-bold">{aiDetectionAreas}</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {totalDetections} {t("governance.stats.totalDetections", "total detections")} • {aiDetections.filter(d => d.maxSeverity === 'critical' || d.maxSeverity === 'high').length} {t("governance.stats.criticalIssues")}
+                  </p>
                 </div>
-                <div className="h-10 w-10 rounded-full bg-orange-100 text-orange-600 grid place-items-center">
+                <div className={`h-10 w-10 rounded-full grid place-items-center ${
+                  hasUrgentDetections ? 'bg-red-100 text-red-600 animate-pulse' : 'bg-orange-100 text-orange-600'
+                }`}>
                   <AlertTriangle className="w-5 h-5" />
                 </div>
               </div>
@@ -338,32 +462,39 @@ export function GovernancePage() {
         <div className="grid lg:grid-cols-4 gap-8">
           {/* Sidebar Navigation */}
           <div className="lg:col-span-1">
-            <Card className="sticky top-4">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg">{t("governance.menu", "Menu")}</CardTitle>
-              </CardHeader>
-              <CardContent className="p-2">
-                <nav className="space-y-1">
+            <Card className="sticky top-4 border-0 shadow-lg">
+              
+              <CardContent className="p-3">
+                <nav className="space-y-2">
                   {menuItems.map((item) => {
                     const Icon = item.icon;
+                    const isActive = activeSection === item.id;
                     return (
                       <button
                         key={item.id}
                         onClick={() => setActiveSection(item.id)}
-                        className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-colors ${
-                          activeSection === item.id
-                            ? "bg-blue-50 text-blue-600 font-medium"
-                            : "hover:bg-gray-50 text-gray-700"
+                        className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200 ${
+                          isActive
+                            ? "bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-md transform scale-[1.02]"
+                            : "hover:bg-gray-50 text-gray-700 hover:shadow-sm"
                         }`}
                       >
                         <div className="flex items-center gap-3">
-                          <Icon className="w-4 h-4" />
-                          <span className="text-sm">{item.label}</span>
+                          <div className={`p-1.5 rounded-lg ${
+                            isActive ? 'bg-white/20' : 'bg-gray-100'
+                          }`}>
+                            <Icon className={`w-4 h-4 ${isActive ? 'text-white' : ''}`} />
+                          </div>
+                          <span className="text-sm font-medium">{item.label}</span>
                         </div>
                         {item.badge && (
                           <Badge 
-                            variant={item.urgent ? "destructive" : "secondary"} 
-                            className="ml-auto h-5 px-1.5 min-w-[20px] flex items-center justify-center"
+                            variant={item.urgent ? "destructive" : isActive ? "secondary" : "outline"} 
+                            className={`ml-auto h-6 px-2 min-w-[24px] flex items-center justify-center ${
+                              isActive && !item.urgent ? 'bg-white/20 text-white border-white/30' : ''
+                            } ${
+                              item.urgent ? 'animate-pulse' : ''
+                            }`}
                           >
                             {item.badge}
                           </Badge>
@@ -373,11 +504,17 @@ export function GovernancePage() {
                   })}
                 </nav>
 
-                <div className="mt-6 pt-6 border-t">
-                  <Button className="w-full" size="sm">
+                <div className="mt-6 pt-6 border-t border-gray-100">
+                  <Button 
+                    className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 shadow-md" 
+                    size="sm"
+                  >
                     <Plus className="w-4 h-4 mr-2" />
-                    {t("governance.createProposal", "Criar Proposta")}
+                    {t("governance.createProposal")}
                   </Button>
+                  <p className="text-xs text-center text-gray-500 mt-3">
+                    {t("governance.lastUpdate", "Last update")}: {new Date().toLocaleTimeString()}
+                  </p>
                 </div>
               </CardContent>
             </Card>
@@ -449,9 +586,9 @@ export function GovernancePage() {
 
                               <div className="space-y-2">
                                 <div className="flex items-center justify-between text-sm">
-                                  <span className="text-gray-600">{total} votos</span>
+                                  <span className="text-gray-600">{total} {t("governance.votes", "votos")}</span>
                                   <span className="font-medium text-green-600">
-                                    {Math.round(yesPercentage)}% aprovação
+                                    {Math.round(yesPercentage)}% {t("governance.approval", "aprovação")}
                                   </span>
                                 </div>
                                 <Progress value={yesPercentage} className="h-2" />
@@ -485,65 +622,129 @@ export function GovernancePage() {
               <>
                 <div className="flex justify-between items-center">
                   <h2 className="text-2xl font-bold">{t("governance.aiDetection.title")}</h2>
-                  <Button variant="outline" size="sm">
-                    <Map className="w-4 h-4 mr-2" />
-                    {t("governance.aiDetection.viewMap")}
-                  </Button>
                 </div>
 
-                <div className="grid gap-4">
-                  {aiDetectedProblems.map((problem) => (
-                    <Card key={problem.id} className="overflow-hidden">
-                      <CardContent className="p-4">
-                        <div className="flex items-start gap-4">
-                          <div className={`h-10 w-10 rounded-lg grid place-items-center flex-shrink-0 ${
-                            problem.severity === 'critical' ? 'bg-red-100 text-red-600' :
-                            problem.severity === 'high' ? 'bg-orange-100 text-orange-600' :
-                            'bg-yellow-100 text-yellow-600'
-                          }`}>
-                            <AlertTriangle className="w-5 h-5" />
-                          </div>
-                          <div className="flex-1">
-                            <div className="flex items-start justify-between mb-2">
-                              <div>
-                                <h3 className="font-semibold text-gray-900">{problem.location}</h3>
-                                <p className="text-sm text-gray-600 mt-1">{problem.description}</p>
+                {/* Warning if user has no companies */}
+                {userCompanies.length === 0 && aiDetections.length > 0 && (
+                  <Alert className="mb-4 border-yellow-200 bg-yellow-50">
+                    <AlertTriangle className="h-4 w-4 text-yellow-600" />
+                    <AlertTitle className="text-yellow-800">
+                      {t("governance.ai.noCompanyTitle", "Company Registration Required")}
+                    </AlertTitle>
+                    <AlertDescription className="text-yellow-700">
+                      {t("governance.ai.noCompanyMessage", "To create action proposals from AI detections, you need to have a registered and approved company.")}
+                      <Link to="/companies/register" className="ml-2 font-semibold text-blue-600 hover:underline">
+                        {t("governance.ai.registerNow", "Register your company now →")}
+                      </Link>
+                    </AlertDescription>
+                  </Alert>
+                )}
+
+                {loadingDetections ? (
+                  <div className="flex items-center justify-center h-64">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                  </div>
+                ) : aiDetections.length > 0 ? (
+                  <div className="grid gap-4">
+                    {aiDetections.map((detection) => {
+                      const pollutionType = detection.pollutionTypes.map(type => 
+                        type === 'oil' ? t("governance.aiDetection.oil") : 
+                        type === 'plastic' ? t("governance.aiDetection.plastic") : 
+                        type
+                      ).join(', ');
+                      const formattedDate = new Date(detection.latestDetection).toLocaleDateString('pt-BR');
+                      
+                      return (
+                        <Card key={detection.areaId} className="overflow-hidden">
+                          <CardContent className="p-4">
+                            <div className="flex items-start gap-4">
+                              <div className={`h-10 w-10 rounded-lg grid place-items-center flex-shrink-0 ${
+                                detection.maxSeverity === 'critical' ? 'bg-red-100 text-red-600' :
+                                detection.maxSeverity === 'high' ? 'bg-orange-100 text-orange-600' :
+                                detection.maxSeverity === 'medium' ? 'bg-yellow-100 text-yellow-600' :
+                                'bg-blue-100 text-blue-600'
+                              }`}>
+                                <AlertTriangle className="w-5 h-5" />
                               </div>
-                              <Badge variant={getSeverityColor(problem.severity)}>
-                                {problem.severity.toUpperCase()}
-                              </Badge>
-                            </div>
-                            
-                            <div className="flex items-center gap-4 text-sm text-gray-500 mb-3">
-                              <span className="flex items-center gap-1">
-                                <Calendar className="w-3 h-3" />
-                                {problem.detectedAt}
-                              </span>
-                              <span className="flex items-center gap-1">
-                                <Target className="w-3 h-3" />
-                                {t("governance.aiDetection.confidence")}: {problem.confidence}%
-                              </span>
-                              <span className="text-xs">
-                                {problem.coordinates.lat}, {problem.coordinates.lng}
-                              </span>
-                            </div>
+                              <div className="flex-1">
+                                <div className="flex items-start justify-between mb-2">
+                                  <div>
+                                    <h3 className="font-semibold text-gray-900">{detection.areaName}</h3>
+                                    <p className="text-sm text-gray-600 mt-1">
+                                      {detection.detectionCount} {t("governance.aiDetection.detectionsOf")} {pollutionType} {t("governance.aiDetection.in")} {detection.totalAreaKm2.toFixed(1)} km²
+                                    </p>
+                                  </div>
+                                  <Badge variant={getSeverityColor(detection.maxSeverity)}>
+                                    {t(`governance.aiDetection.severityLevels.${detection.maxSeverity}`).toUpperCase()}
+                                  </Badge>
+                                </div>
+                                
+                                <div className="flex items-center gap-4 text-sm text-gray-500 mb-3">
+                                  <span className="flex items-center gap-1">
+                                    <Calendar className="w-3 h-3" />
+                                    {formattedDate}
+                                  </span>
+                                  <span className="flex items-center gap-1">
+                                    <Target className="w-3 h-3" />
+                                    {t("governance.aiDetection.confidence")}: {Math.round(detection.avgConfidence * 100)}%
+                                  </span>
+                                  <span className="text-xs">
+                                    {detection.centerLat.toFixed(4)}, {detection.centerLon.toFixed(4)}
+                                  </span>
+                                </div>
 
-                            <div className="flex gap-2">
-                              <Button size="sm" variant="default">
-                                <Target className="w-3 h-3 mr-1" />
-                                {t("governance.aiDetection.createAction")}
-                              </Button>
-                              <Button size="sm" variant="outline">
-                                <Info className="w-3 h-3 mr-1" />
-                                {t("governance.aiDetection.moreInfo")}
-                              </Button>
+                                <div className="flex gap-2">
+                                  <div className="relative group">
+                                    <Button 
+                                      size="sm" 
+                                      variant={userCompanies.length === 0 ? "secondary" : "default"}
+                                      onClick={() => handleCreateAction(detection)}
+                                      disabled={userCompanies.length === 0}
+                                      className={userCompanies.length === 0 ? "opacity-50 cursor-not-allowed" : ""}
+                                    >
+                                      <Target className="w-3 h-3 mr-1" />
+                                      {t("governance.aiDetection.createAction")}
+                                    </Button>
+                                    {userCompanies.length === 0 && (
+                                      <div className="absolute bottom-full left-0 mb-2 hidden group-hover:block z-50">
+                                        <div className="bg-gray-900 text-white text-xs rounded-lg py-2 px-3 whitespace-nowrap">
+                                          <div className="font-semibold mb-1">{t("governance.ai.noCompany")}</div>
+                                          <div>{t("governance.ai.noCompanyDesc")}</div>
+                                          <div className="mt-2 text-blue-300">
+                                            <Link to="/companies/register" className="underline">
+                                              {t("governance.ai.registerCompanyFirst", "Register a company first")}
+                                            </Link>
+                                          </div>
+                                          <div className="absolute top-full left-4 transform -translate-y-1">
+                                            <div className="border-4 border-transparent border-t-gray-900"></div>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+                                  <Button 
+                                    size="sm" 
+                                    variant="outline"
+                                    onClick={() => handleViewDetails(detection)}
+                                  >
+                                    <Info className="w-3 h-3 mr-1" />
+                                    {t("governance.aiDetection.moreInfo")}
+                                  </Button>
+                                </div>
+                              </div>
                             </div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <Alert>
+                    <AlertDescription>
+                      {t("governance.aiDetection.noDetections")}
+                    </AlertDescription>
+                  </Alert>
+                )}
 
                 <Alert>
                   <Brain className="h-4 w-4" />
@@ -720,56 +921,181 @@ export function GovernancePage() {
               </>
             )}
 
-            {/* NGOs Section */}
+            {/* NGOs/Companies Section */}
             {activeSection === "ngos" && (
               <>
-                <div className="flex justify-between items-center">
-                  <h2 className="text-2xl font-bold">{t("governance.ngos.title")}</h2>
-                  <Button size="sm">
-                    <Building2 className="w-4 h-4 mr-2" />
-                    {t("governance.ngos.register")}
-                  </Button>
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-2xl font-bold">{t("companies.title")}</h2>
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" asChild>
+                      <Link to="/companies">
+                        <Eye className="w-4 h-4 mr-2" />
+                        {t("governance.viewAll")}
+                      </Link>
+                    </Button>
+                    <Button size="sm" onClick={() => navigate("/companies/register")}>
+                      <Plus className="w-4 h-4 mr-2" />
+                      {t("companies.register.button")}
+                    </Button>
+                  </div>
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-4">
-                  {registeredNGOs.map((ngo, index) => (
-                    <Card key={index} className="hover:shadow-md transition-shadow">
-                      <CardContent className="p-4">
-                        <div className="flex items-start justify-between mb-3">
-                          <div>
-                            <h3 className="font-semibold text-gray-900">{ngo.name}</h3>
-                            {ngo.verified && (
-                              <Badge variant="default" className="mt-1 bg-green-500">
-                                <CheckCircle2 className="w-3 h-3 mr-1" />
-                                {t("governance.ngos.verified")}
-                              </Badge>
+                {/* Stats for Active vs Pending */}
+                <div className="grid md:grid-cols-3 gap-4 mb-6">
+                  <Card>
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-muted-foreground">{t("companies.tabs.active")}</p>
+                          <p className="text-2xl font-bold">
+                            {companies.filter(c => c.status === 'approved').length}
+                          </p>
+                        </div>
+                        <CheckCircle2 className="h-8 w-8 text-green-500" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-muted-foreground">{t("companies.tabs.pending")}</p>
+                          <p className="text-2xl font-bold">
+                            {companies.filter(c => c.status === 'pending').length}
+                          </p>
+                        </div>
+                        <Clock className="h-8 w-8 text-yellow-500" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-muted-foreground">Total</p>
+                          <p className="text-2xl font-bold">{companies.length}</p>
+                        </div>
+                        <Building2 className="h-8 w-8 text-blue-500" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Companies Grid */}
+                {loadingCompanies ? (
+                  <div className="flex items-center justify-center h-64">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                  </div>
+                ) : (
+                  <div className="grid md:grid-cols-2 gap-4">
+                    {companies.slice(0, 6).map((company) => {
+                      const totalVotes = (company.votes_yes || 0) + (company.votes_no || 0) + (company.votes_abstain || 0);
+                      const votePercentage = totalVotes > 0 
+                        ? Math.round((company.votes_yes / totalVotes) * 100) 
+                        : 0;
+                      const daysLeft = company.voting_ends_at
+                        ? Math.ceil((new Date(company.voting_ends_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+                        : 0;
+
+                      return (
+                        <Card key={company.id} className="hover:shadow-md transition-shadow overflow-hidden">
+                          <CardContent className="p-4">
+                            <div className="flex items-start justify-between mb-3">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2">
+                                  <h3 className="font-semibold text-gray-900">{company.name}</h3>
+                                  <Badge variant={company.type === "ngo" ? "default" : "secondary"}>
+                                    {company.type === "ngo" ? "ONG" : t("companies.types.company")}
+                                  </Badge>
+                                </div>
+                                
+                                <div className="flex items-center gap-2 mt-1">
+                                  {company.status === "approved" && (
+                                    <Badge variant="default" className="bg-green-500">
+                                      <CheckCircle2 className="w-3 h-3 mr-1" />
+                                      {t("companies.status.active")}
+                                    </Badge>
+                                  )}
+                                  <Badge variant="outline">
+                                    {t(`companies.categories.${company.category}`)}
+                                  </Badge>
+                                  {company.status === "pending" && (
+                                    <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
+                                      {t("companies.status.pending")}
+                                    </Badge>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                            
+                            {/* Description */}
+                            <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+                              {company.description}
+                            </p>
+                            
+                            {/* Voting Progress for Pending Companies */}
+                            {company.status === "pending" && totalVotes > 0 && (
+                              <div className="mb-3 p-3 bg-yellow-50 rounded-lg">
+                                <div className="flex items-center justify-between text-sm mb-2">
+                                  <span className="text-gray-600">
+                                    {daysLeft > 0 ? `${daysLeft} ${t("governance.manifesto.daysLeft")}` : t("companies.voting.ended")}
+                                  </span>
+                                  <span className="font-medium text-green-600">
+                                    {votePercentage}% {t("companies.approval")}
+                                  </span>
+                                </div>
+                                <Progress value={votePercentage} className="h-2" />
+                                <div className="flex justify-between mt-2 text-xs">
+                                  <span className="text-green-600">
+                                    ✓ {company.votes_yes || 0} {t("companies.profile.voting.yes")}
+                                  </span>
+                                  <span className="text-red-600">
+                                    ✗ {company.votes_no || 0} {t("companies.profile.voting.no")}
+                                  </span>
+                                </div>
+                              </div>
                             )}
-                          </div>
-                          <div className="text-right">
-                            <div className="text-sm text-gray-500">⭐ {ngo.rating}</div>
-                          </div>
-                        </div>
-                        
-                        <div className="grid grid-cols-2 gap-3 text-sm mb-3">
-                          <div>
-                            <p className="text-gray-500">{t("governance.ngos.projects")}</p>
-                            <p className="font-medium">{ngo.projectsCompleted}</p>
-                          </div>
-                          <div>
-                            <p className="text-gray-500">{t("governance.ngos.raised")}</p>
-                            <p className="font-medium text-green-600">{ngo.totalRaised}</p>
-                          </div>
-                        </div>
-                        
-                        <Button variant="outline" className="w-full" size="sm">
-                          {t("governance.ngos.viewProfile")}
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
+                            
+                            {/* Location and Website */}
+                            <div className="text-sm text-gray-500 mb-3">
+                              <p className="flex items-center gap-1">
+                                <Building2 className="w-3 h-3" />
+                                {company.city}, {company.state || company.country}
+                              </p>
+                              {company.website && (
+                                <p className="flex items-center gap-1 mt-1">
+                                  <Globe className="w-3 h-3" />
+                                  {company.website}
+                                </p>
+                              )}
+                            </div>
+                            
+                            <div className="flex gap-2">
+                              <Button 
+                                variant="outline" 
+                                className="flex-1" 
+                                size="sm"
+                                asChild
+                              >
+                                <Link to={`/companies/${company.id}`}>
+                                  {t("companies.viewProfile")}
+                                </Link>
+                              </Button>
+                              {company.status === "pending" && (
+                                <Button size="sm" className="flex-1" onClick={() => navigate(`/companies/${company.id}`)}>
+                                  <Vote className="w-3 h-3 mr-1" />
+                                  {t("governance.voteNow")}
+                                </Button>
+                              )}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                )}
 
-                <Alert>
+                <Alert className="mt-6">
                   <Shield className="h-4 w-4" />
                   <AlertTitle>{t("governance.ngos.verification")}</AlertTitle>
                   <AlertDescription>
@@ -790,8 +1116,9 @@ export function GovernancePage() {
                   </Button>
                 </div>
 
-                <div className="space-y-3">
-                  {completedProposals.map((proposal) => (
+                {completedProposals.length > 0 ? (
+                  <div className="space-y-3">
+                    {completedProposals.map((proposal) => (
                     <Card key={proposal.id}>
                       <CardContent className="p-4">
                         <div className="flex items-center justify-between">
@@ -831,8 +1158,17 @@ export function GovernancePage() {
                         </div>
                       </CardContent>
                     </Card>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                ) : (
+                  <Alert>
+                    <Clock className="h-4 w-4" />
+                    <AlertTitle>{t("governance.history.noHistory", "No voting history yet")}</AlertTitle>
+                    <AlertDescription>
+                      {t("governance.history.noHistoryDesc", "Completed proposals will appear here after voting ends.")}
+                    </AlertDescription>
+                  </Alert>
+                )}
               </>
             )}
           </div>
@@ -862,6 +1198,317 @@ export function GovernancePage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Image Zoom Modal */}
+      <Dialog open={!!expandedImage} onOpenChange={(open) => !open && setExpandedImage(null)}>
+        <DialogContent className="max-w-5xl p-0 overflow-hidden">
+          {expandedImage && (
+            <div className="relative">
+              <button
+                onClick={() => setExpandedImage(null)}
+                className="absolute top-4 right-4 z-10 bg-black/50 text-white rounded-full p-2 hover:bg-black/70 transition-colors"
+              >
+                <XCircle className="w-6 h-6" />
+              </button>
+              <img 
+                src={expandedImage.url}
+                alt={expandedImage.alt}
+                className="w-full h-auto max-h-[90vh] object-contain"
+                onError={(e) => {
+                  e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2RkZCIvPjx0ZXh0IHRleHQtYW5jaG9yPSJtaWRkbGUiIHg9IjIwMCIgeT0iMTUwIiBzdHlsZT0iZmlsbDojOTk5O2ZvbnQtd2VpZ2h0OmJvbGQ7Zm9udC1zaXplOjIwcHg7Zm9udC1mYW1pbHk6QXJpYWwsSGVsdmV0aWNhLHNhbnMtc2VyaWYiPkltYWdlIG5vdCBmb3VuZDwvdGV4dD48L3N2Zz4=';
+                }}
+              />
+              <div className="absolute bottom-0 left-0 right-0 bg-black/70 text-white p-4">
+                <p className="text-center">{expandedImage.alt}</p>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Detection Details Modal */}
+      <Dialog open={showDetailsModal} onOpenChange={setShowDetailsModal}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{selectedDetection?.areaName}</DialogTitle>
+            <DialogDescription>
+              {selectedDetection?.detectionCount} {t("governance.aiDetection.detections")} • 
+              {selectedDetection?.totalAreaKm2.toFixed(1)} km² • 
+              {t("governance.aiDetection.severity")}: {selectedDetection?.maxSeverity && t(`governance.aiDetection.severityLevels.${selectedDetection.maxSeverity}`)}
+            </DialogDescription>
+          </DialogHeader>
+
+          {detectionDetails && (
+            <div className="space-y-6">
+              {/* Images Grid */}
+              <div>
+                <h3 className="font-semibold mb-3">{t("governance.aiDetection.capturedImages")}</h3>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  {detectionDetails.images.map((image) => {
+                    // Use the backend base URL for the image
+                    const baseUrl = (window as any).VITE_ENCORE_API_URL || 'http://localhost:4000';
+                    const imageUrl = `${baseUrl}/ocean-monitor/images/${encodeURIComponent(image.objectKey)}`;
+                    const imageAlt = `Tile ${image.tileX},${image.tileY}`;
+                    
+                    return (
+                      <div 
+                        key={image.imageId} 
+                        className="relative group cursor-pointer"
+                        onClick={() => setExpandedImage({ url: imageUrl, alt: imageAlt })}
+                      >
+                        <img 
+                          src={imageUrl}
+                          alt={imageAlt}
+                          className="w-full h-32 object-cover rounded-lg border hover:opacity-90 transition-opacity"
+                          onError={(e) => {
+                            console.error('Failed to load image:', image.objectKey);
+                            e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2RkZCIvPjx0ZXh0IHRleHQtYW5jaG9yPSJtaWRkbGUiIHg9IjIwMCIgeT0iMTUwIiBzdHlsZT0iZmlsbDojOTk5O2ZvbnQtd2VpZ2h0OmJvbGQ7Zm9udC1zaXplOjIwcHg7Zm9udC1mYW1pbHk6QXJpYWwsSGVsdmV0aWNhLHNhbnMtc2VyaWYiPkltYWdlIG5vdCBmb3VuZDwvdGV4dD48L3N2Zz4=';
+                          }}
+                        />
+                        <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center pointer-events-none">
+                          <div className="text-white text-center">
+                            <p className="text-sm font-medium mb-1">{t("governance.aiDetection.clickToZoom")}</p>
+                            <p className="text-xs">Tile: {image.tileX},{image.tileY}</p>
+                            <p className="text-xs">{new Date(image.detectedAt).toLocaleDateString()}</p>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Detections List */}
+              <div>
+                <h3 className="font-semibold mb-3">{t("governance.aiDetection.individualDetections")}</h3>
+                <div className="space-y-3">
+                  {detectionDetails.detections.map((det: any) => (
+                    <Card key={det.id}>
+                      <CardContent className="p-3">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <Badge variant={det.pollutionType === 'oil' ? 'destructive' : 'default'}>
+                                {det.pollutionType === 'oil' ? t("governance.aiDetection.oil") : t("governance.aiDetection.plastic")}
+                              </Badge>
+                              <Badge variant={getSeverityColor(det.severity)}>
+                                {t(`governance.aiDetection.severityLevels.${det.severity}`)}
+                              </Badge>
+                              <span className="text-sm text-gray-500">
+                                {(det.confidence * 100).toFixed(0)}% {t("governance.aiDetection.confidence")}
+                              </span>
+                            </div>
+                            <p className="text-sm text-gray-600">{det.description}</p>
+                            <p className="text-xs text-gray-500 mt-1">
+                              {t("governance.aiDetection.affectedArea")}: {det.estimatedAreaKm2.toFixed(2)} km² • 
+                              Tile: {det.tileX},{det.tileY}
+                            </p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Create Action Modal - Only for users with companies */}
+      <Dialog open={showCreateActionModal} onOpenChange={setShowCreateActionModal}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{t("governance.createAction.title", "Create Action Proposal")}</DialogTitle>
+            <DialogDescription>
+              {t("governance.createAction.description", "Create a proposal to address the detected pollution")}
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedDetectionForAction && userCompanies.length > 0 && (
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              const formData = new FormData(e.currentTarget);
+              const title = formData.get('title') as string;
+              const budget = formData.get('budget') as string;
+              const companyId = formData.get('companyId') as string;
+              
+              // Get markdown content from state (will be set by MDEditor)
+              const descriptionElement = document.getElementById('proposal-description-content') as HTMLTextAreaElement;
+              const actionPlanElement = document.getElementById('proposal-actionplan-content') as HTMLTextAreaElement;
+              const description = descriptionElement?.value || '';
+              const actionPlan = actionPlanElement?.value || '';
+
+              try {
+                const selectedCompany = userCompanies.find(c => c.id === companyId);
+                const organizationName = selectedCompany?.name || 'Unknown Organization';
+                  
+                // Create the proposal with all details
+                await backend.manifesto.createProposal({
+                  title,
+                  description,
+                  new_content: `## Action Proposal for Pollution Detection\n\n### Detection Information\n- **Location**: ${selectedDetectionForAction.areaName}\n- **Type**: ${selectedDetectionForAction.pollutionTypes.join(', ')}\n- **Severity**: ${selectedDetectionForAction.maxSeverity}\n- **Area**: ${selectedDetectionForAction.totalAreaKm2.toFixed(1)} km²\n- **Coordinates**: ${selectedDetectionForAction.centerLat.toFixed(4)}, ${selectedDetectionForAction.centerLon.toFixed(4)}\n\n### Proposed Budget\n**R$ ${budget}**\n\n### Description\n${description}\n\n### Detailed Action Plan\n${actionPlan}\n\n### Proposing Organization\n**${organizationName}**\n- Company ID: ${companyId}\n- Status: ${selectedCompany?.status || 'approved'}`,
+                  author_id: localStorage.getItem("userId") || "anonymous",
+                  author_name: organizationName
+                });
+
+                toast({
+                  title: t("governance.createAction.success", "Proposal created successfully"),
+                  description: t("governance.createAction.successDesc", "Your action proposal has been submitted for 7-day voting period"),
+                });
+
+                setShowCreateActionModal(false);
+                setSelectedDetectionForAction(null);
+                
+                // Switch to proposals tab to show the new proposal
+                setActiveSection("proposals");
+              } catch (error) {
+                console.error("Failed to create proposal:", error);
+                toast({
+                  title: t("governance.createAction.error", "Failed to create proposal"),
+                  description: t("governance.createAction.errorDesc", "Please try again later"),
+                  variant: "destructive",
+                });
+              }
+            }}>
+              <div className="space-y-4">
+                {/* Detection Info */}
+                <div className="bg-blue-50 p-4 rounded-lg">
+                  <h4 className="font-semibold mb-2">{t("governance.createAction.detectionInfo", "Detection Information")}</h4>
+                  <div className="text-sm space-y-1">
+                    <p><strong>{t("governance.createAction.location", "Location")}:</strong> {selectedDetectionForAction.areaName}</p>
+                    <p><strong>{t("governance.createAction.pollutionType", "Pollution Type")}:</strong> {selectedDetectionForAction.pollutionTypes.map(type => 
+                      type === 'oil' ? t("governance.aiDetection.oil") : 
+                      type === 'plastic' ? t("governance.aiDetection.plastic") : 
+                      type
+                    ).join(', ')}</p>
+                    <p><strong>{t("governance.createAction.severity", "Severity")}:</strong> {t(`governance.aiDetection.severityLevels.${selectedDetectionForAction.maxSeverity}`)}</p>
+                    <p><strong>{t("governance.createAction.area", "Area")}:</strong> {selectedDetectionForAction.totalAreaKm2.toFixed(1)} km²</p>
+                  </div>
+                </div>
+
+                {/* Company Selection */}
+                {userCompanies.length > 1 && (
+                  <div>
+                    <label className="block text-sm font-medium mb-2">
+                      {t("governance.createAction.selectCompany", "Select Organization")}
+                    </label>
+                    <select 
+                      name="companyId" 
+                      className="w-full p-2 border rounded-lg"
+                      required
+                    >
+                      {userCompanies.map(company => (
+                        <option key={company.id} value={company.id}>
+                          {company.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                {userCompanies.length === 1 && (
+                  <input type="hidden" name="companyId" value={userCompanies[0].id} />
+                )}
+
+                {/* Title */}
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    {t("governance.createAction.proposalTitle", "Proposal Title")} *
+                  </label>
+                  <Input 
+                    type="text" 
+                    name="title" 
+                    placeholder={t("governance.createAction.titlePlaceholder", "e.g., Emergency cleanup operation in Guanabara Bay")}
+                    required
+                  />
+                </div>
+
+                {/* Budget/Value */}
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    {t("governance.createAction.budget", "Required Budget (R$)")} *
+                  </label>
+                  <Input 
+                    type="number" 
+                    name="budget" 
+                    placeholder={t("governance.createAction.budgetPlaceholder", "e.g., 150000")}
+                    min="1"
+                    step="0.01"
+                    required
+                  />
+                </div>
+
+                {/* Description with Markdown Editor */}
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    {t("governance.createAction.proposalDescription", "Description")} *
+                  </label>
+                  <div data-color-mode="light">
+                    <MDEditor
+                      value=""
+                      onChange={(val) => {
+                        const element = document.getElementById('proposal-description-content') as HTMLTextAreaElement;
+                        if (element) element.value = val || '';
+                      }}
+                      height={200}
+                      preview="live"
+                    />
+                    <textarea 
+                      id="proposal-description-content" 
+                      className="hidden" 
+                      defaultValue=""
+                    />
+                  </div>
+                </div>
+
+                {/* Action Plan with Markdown Editor */}
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    {t("governance.createAction.actionPlan", "Detailed Action Plan")} *
+                  </label>
+                  <div data-color-mode="light">
+                    <MDEditor
+                      value=""
+                      onChange={(val) => {
+                        const element = document.getElementById('proposal-actionplan-content') as HTMLTextAreaElement;
+                        if (element) element.value = val || '';
+                      }}
+                      height={300}
+                      preview="live"
+                    />
+                    <textarea 
+                      id="proposal-actionplan-content" 
+                      className="hidden" 
+                      defaultValue=""
+                    />
+                  </div>
+                </div>
+
+                <Alert>
+                  <AlertDescription>
+                    {t("governance.createAction.votingInfo", "This proposal will be open for voting for 7 days. It requires majority approval to proceed.")}
+                  </AlertDescription>
+                </Alert>
+
+                <div className="flex gap-2 justify-end pt-4">
+                  <Button type="button" variant="outline" onClick={() => {
+                    setShowCreateActionModal(false);
+                    setSelectedDetectionForAction(null);
+                  }}>
+                    {t("governance.createAction.cancel", "Cancel")}
+                  </Button>
+                  <Button type="submit">
+                    <Plus className="w-4 h-4 mr-2" />
+                    {t("governance.createAction.submit", "Submit Proposal")}
+                  </Button>
+                </div>
+              </div>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
+
     </div>
   );
 }
