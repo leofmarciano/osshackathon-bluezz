@@ -1,4 +1,10 @@
 # 🌊 BluEZZ - The Open Source Revolution Against Ocean Pollution
+
+> [!TIP]
+> ## 🏆 Global Hackathon Champion
+>
+> **This project was ranked #1 and crowned the overall winner** of the **Global Open Source Hackathon**, organized by **Encore**, **Prisma**, and **Polar**, outperforming **750+ competing open source projects** from developers around the world.
+
 <center>
 This project is for the OSS Hackathon promoted by Encore and Leap, and is just vibe-coding! Not a single line was written by hand.
 </center>
